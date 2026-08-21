@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Delivery Checkout | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="delivery-checkout.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="checkout-header">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+
+        <strong>
+            DREYPELLA
+        </strong>
+
+        <span>
+            RIDE
+        </span>
+
+    </a>
+
+
+    <a
+        href="customer-dashboard.html"
+        class="dashboard-link"
+    >
+        Dashboard
+    </a>
+
+</header>
+
+
+
+<main class="checkout-container">
+
+
+    <div class="checkout-card">
+
+
+        <div class="title-area">
+
+            <div class="title-icon">
+                📦
+            </div>
+
+            <div>
+
+                <h1>
+                    Delivery Checkout
+                </h1>
+
+                <p>
+                    Choose who will pay for this delivery.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DELIVERY SUMMARY -->
+
+        <section class="section">
+
+            <h2>
+                Delivery Summary
+            </h2>
+
+
+            <div class="route-card">
+
+
+                <div class="route-item">
+
+                    <span class="route-dot pickup"></span>
+
+                    <div>
+
+                        <small>
+                            PICKUP
+                        </small>
+
+                        <p id="pickupText">
+                            Loading...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="route-line"></div>
+
+
+                <div class="route-item">
+
+                    <span class="route-dot destination"></span>
+
+                    <div>
+
+                        <small>
+                            DESTINATION
+                        </small>
+
+                        <p id="destinationText">
+                            Loading...
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-grid">
+
+
+                <div>
+
+                    <span>
+                        Distance
+                    </span>
+
+                    <strong id="distanceText">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Estimated Time
+                    </span>
+
+                    <strong id="timeText">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Delivery Method
+                    </span>
+
+                    <strong id="methodText">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Package
+                    </span>
+
+                    <strong id="packageText">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- RECEIVER -->
+
+        <section class="section">
+
+            <h2>
+                Receiver
+            </h2>
+
+
+            <div class="receiver-card">
+
+
+                <div class="input-group">
+
+                    <label>
+                        Receiver Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="receiverName"
+                        placeholder="Receiver's full name"
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>
+                        Receiver Phone
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="receiverPhone"
+                        placeholder="08012345678"
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>
+                        Receiver Email
+                        <span>
+                            Optional
+                        </span>
+                    </label>
+
+                    <input
+                        type="email"
+                        id="receiverEmail"
+                        placeholder="receiver@email.com"
+                    >
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- WHO PAYS -->
+
+        <section class="section">
+
+            <h2>
+                Who will pay?
+            </h2>
+
+
+            <div class="payment-choice-container">
+
+
+                <label
+                    class="payment-choice"
+                    id="senderChoice"
+                >
+
+                    <input
+                        type="radio"
+                        name="payer"
+                        value="SENDER"
+                        checked
+                    >
+
+                    <div class="choice-content">
+
+                        <div class="choice-icon">
+                            👤
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Sender pays
+                            </strong>
+
+                            <small>
+                                You pay for the delivery now.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </label>
+
+
+
+                <label
+                    class="payment-choice"
+                    id="receiverChoice"
+                >
+
+                    <input
+                        type="radio"
+                        name="payer"
+                        value="RECEIVER"
+                    >
+
+                    <div class="choice-content">
+
+                        <div class="choice-icon">
+                            📱
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Receiver pays
+                            </strong>
+
+                            <small>
+                                Send a payment request to the receiver.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </label>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- PRICE -->
+
+        <section class="price-card">
+
+
+            <div>
+
+                <span>
+                    Delivery Fee
+                </span>
+
+                <strong id="priceText">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- RECEIVER PAYMENT NOTICE -->
+
+        <div
+            id="receiverNotice"
+            class="receiver-notice"
+        >
+
+            <strong>
+                Receiver payment
+            </strong>
+
+            <p>
+                The receiver will receive a secure payment request.
+                The delivery will only proceed after the payment is
+                successfully confirmed.
+            </p>
+
+        </div>
+
+
+
+        <!-- MESSAGE -->
+
+        <div
+            id="checkoutMessage"
+            class="checkout-message"
+        ></div>
+
+
+
+        <!-- ACTION -->
+
+        <button
+            id="checkoutButton"
+            class="checkout-button"
+        >
+            PAY NOW
+        </button>
+
+
+        <button
+            id="backButton"
+            class="back-button"
+        >
+            ← Back to Confirmation
+        </button>
+
+
+    </div>
+
+</main>
+
+
+
+<script src="delivery-checkout.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Vendor Orders | Dreypella Ride
+</title>
+
+<link
+    rel="stylesheet"
+    href="vendor-orders.css"
+>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     HEADER
+========================================= -->
+
+<header class="vendor-header">
+
+    <a
+        href="vendor-dashboard.html"
+        class="brand"
+    >
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+    </a>
+
+
+    <div class="header-title">
+
+        <span>
+            VENDOR
+        </span>
+
+        <strong>
+            Orders
+        </strong>
+
+    </div>
+
+
+    <a
+        href="vendor-dashboard.html"
+        class="dashboard-button"
+    >
+        DASHBOARD
+    </a>
+
+</header>
+
+
+
+<!-- =========================================
+     MAIN
+========================================= -->
+
+<main class="vendor-container">
+
+
+    <!-- PAGE HEADER -->
+
+    <section class="page-heading">
+
+        <div>
+
+            <span class="small-title">
+                MARKETPLACE
+            </span>
+
+            <h1>
+                Customer Orders
+            </h1>
+
+            <p>
+                Manage orders received from
+                your Dreypella Marketplace customers.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         SUMMARY
+    ====================================== -->
+
+    <section class="summary-grid">
+
+
+        <div class="summary-card">
+
+            <span>
+                TOTAL ORDERS
+            </span>
+
+            <strong id="totalOrders">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                PENDING
+            </span>
+
+            <strong id="pendingOrders">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                PREPARING
+            </span>
+
+            <strong id="preparingOrders">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                COMPLETED
+            </span>
+
+            <strong id="completedOrders">
+                0
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         FILTER
+    ====================================== -->
+
+    <section class="filter-card">
+
+        <div class="filter-group">
+
+            <label for="orderFilter">
+                ORDER STATUS
+            </label>
+
+
+            <select id="orderFilter">
+
+                <option value="ALL">
+                    All Orders
+                </option>
+
+                <option value="PENDING">
+                    Pending
+                </option>
+
+                <option value="ACCEPTED">
+                    Accepted
+                </option>
+
+                <option value="PREPARING">
+                    Preparing
+                </option>
+
+                <option value="READY_FOR_PICKUP">
+                    Ready for Pickup
+                </option>
+
+                <option value="COMPLETED">
+                    Completed
+                </option>
+
+                <option value="CANCELLED">
+                    Cancelled
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button
+            id="refreshOrders"
+            type="button"
+            class="refresh-button"
+        >
+            ↻ REFRESH
+        </button>
+
+    </section>
+
+
+
+    <!-- =====================================
+         LIVE ORDERS
+    ====================================== -->
+
+    <section class="orders-card">
+
+
+        <div class="orders-header">
+
+            <div>
+
+                <span>
+                    LIVE ORDERS
+                </span>
+
+                <h2>
+                    Recent Marketplace Orders
+                </h2>
+
+            </div>
+
+
+            <span
+                id="liveIndicator"
+                class="live-indicator"
+            >
+                ● LIVE
+            </span>
+
+        </div>
+
+
+
+        <div
+            id="vendorOrders"
+            class="vendor-orders"
+        >
+
+            <div class="loading-state">
+
+                <div class="spinner"></div>
+
+                <p>
+                    Loading orders...
+                </p>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================
+         ORDER DETAILS MODAL
+    ====================================== -->
+
+    <div
+        id="orderModal"
+        class="modal hidden"
+    >
+
+        <div class="modal-overlay"></div>
+
+
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span>
+                        ORDER DETAILS
+                    </span>
+
+                    <h2 id="modalOrderReference">
+                        —
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="closeModal"
+                    class="close-modal"
+                    type="button"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+
+            <!-- CUSTOMER -->
+
+            <div class="modal-section">
+
+                <h3>
+                    Customer
+                </h3>
+
+
+                <div class="customer-details">
+
+                    <strong id="modalCustomerName">
+                        —
+                    </strong>
+
+                    <span id="modalCustomerPhone">
+                        —
+                    </span>
+
+                    <span id="modalDeliveryAddress">
+                        —
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCTS -->
+
+            <div class="modal-section">
+
+                <h3>
+                    Products
+                </h3>
+
+
+                <div
+                    id="modalProducts"
+                    class="modal-products"
+                ></div>
+
+            </div>
+
+
+
+            <!-- PAYMENT -->
+
+            <div class="modal-section">
+
+                <h3>
+                    Payment Summary
+                </h3>
+
+
+                <div class="money-row">
+
+                    <span>
+                        Customer Total
+                    </span>
+
+                    <strong id="modalCustomerTotal">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+                <div class="money-row platform-fee">
+
+                    <span>
+                        Dreypella Platform Fee (5%)
+                    </span>
+
+                    <strong id="modalPlatformFee">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+                <div class="money-row vendor-total">
+
+                    <span>
+                        Your Earnings
+                    </span>
+
+                    <strong id="modalVendorEarnings">
+                        ₦0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- STATUS -->
+
+            <div class="modal-section">
+
+                <h3>
+                    Order Status
+                </h3>
+
+
+                <select
+                    id="modalStatus"
+                    class="status-select"
+                >
+
+                    <option value="PENDING">
+                        Pending
+                    </option>
+
+                    <option value="ACCEPTED">
+                        Accepted
+                    </option>
+
+                    <option value="PREPARING">
+                        Preparing
+                    </option>
+
+                    <option value="READY_FOR_PICKUP">
+                        Ready for Pickup
+                    </option>
+
+                    <option value="COMPLETED">
+                        Completed
+                    </option>
+
+                    <option value="CANCELLED">
+                        Cancelled
+                    </option>
+
+                </select>
+
+
+                <button
+                    id="updateOrderStatus"
+                    class="update-button"
+                    type="button"
+                >
+                    UPDATE ORDER STATUS
+                </button>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <div
+        id="orderMessage"
+        class="order-message"
+    ></div>
+
+
+</main>
+
+
+
+<!-- =========================================
+     FIREBASE
+========================================= -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+
+<script src="firebase-config.js"></script>
+
+
+<script src="vendor-orders.js"></script>
+
+
+</body>
+
+</html>

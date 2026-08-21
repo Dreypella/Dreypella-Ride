@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Checkout | Dreypella Marketplace
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="customer-checkout.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="checkout-header">
+
+    <a
+        href="marketplace.html"
+        class="logo"
+    >
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </a>
+
+
+    <div class="checkout-title">
+        Marketplace Checkout
+    </div>
+
+
+    <a
+        href="customer-dashboard.html"
+        class="back-link"
+    >
+        Dashboard
+    </a>
+
+</header>
+
+
+
+<main class="checkout-container">
+
+
+    <section class="checkout-heading">
+
+        <span>
+            DREYPELLA MARKETPLACE
+        </span>
+
+        <h1>
+            Complete Your Order
+        </h1>
+
+        <p>
+            Review your items, enter your delivery details
+            and complete your payment.
+        </p>
+
+    </section>
+
+
+
+    <div
+        id="checkoutMessage"
+        class="checkout-message"
+    ></div>
+
+
+
+    <div class="checkout-layout">
+
+
+        <!-- =========================
+             LEFT SIDE
+        ========================== -->
+
+        <div class="checkout-left">
+
+
+            <!-- ORDER ITEMS -->
+
+            <section class="checkout-card">
+
+                <div class="card-heading">
+
+                    <div>
+                        <span class="section-label">
+                            ORDER
+                        </span>
+
+                        <h2>
+                            Your Items
+                        </h2>
+                    </div>
+
+                    <span id="itemCount">
+                        0 items
+                    </span>
+
+                </div>
+
+
+                <div id="cartItems">
+
+                    <!-- Products inserted by JS -->
+
+                </div>
+
+            </section>
+
+
+
+            <!-- DELIVERY -->
+
+            <section class="checkout-card">
+
+                <div class="card-heading">
+
+                    <div>
+
+                        <span class="section-label">
+                            DELIVERY
+                        </span>
+
+                        <h2>
+                            Delivery Information
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+
+                <form id="checkoutForm">
+
+
+                    <div class="form-group">
+
+                        <label for="customerName">
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="customerName"
+                            placeholder="Enter your full name"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <div class="form-row">
+
+
+                        <div class="form-group">
+
+                            <label for="customerPhone">
+                                Phone Number
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="customerPhone"
+                                placeholder="080XXXXXXXX"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="customerEmail">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                id="customerEmail"
+                                placeholder="you@example.com"
+                                required
+                            >
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div class="form-group">
+
+                        <label for="deliveryAddress">
+                            Delivery Address
+                        </label>
+
+                        <textarea
+                            id="deliveryAddress"
+                            rows="3"
+                            placeholder="Enter your complete delivery address"
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <div class="form-row">
+
+
+                        <div class="form-group">
+
+                            <label for="deliveryCity">
+                                City
+                            </label>
+
+                            <input
+                                type="text"
+                                id="deliveryCity"
+                                placeholder="e.g. Ogbomosho"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="deliveryState">
+                                State
+                            </label>
+
+                            <input
+                                type="text"
+                                id="deliveryState"
+                                placeholder="e.g. Oyo"
+                                required
+                            >
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div class="form-group">
+
+                        <label for="orderNote">
+                            Order Note
+                            <span>
+                                Optional
+                            </span>
+                        </label>
+
+                        <textarea
+                            id="orderNote"
+                            rows="3"
+                            placeholder="Any special instruction for the vendor?"
+                        ></textarea>
+
+                    </div>
+
+
+                </form>
+
+            </section>
+
+
+
+            <!-- PAYMENT -->
+
+            <section class="checkout-card">
+
+                <div class="card-heading">
+
+                    <div>
+
+                        <span class="section-label">
+                            PAYMENT
+                        </span>
+
+                        <h2>
+                            Payment Method
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="payment-options">
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="PAYSTACK"
+                            checked
+                        >
+
+                        <div>
+
+                            <strong>
+                                Pay Online
+                            </strong>
+
+                            <span>
+                                Pay securely with Paystack
+                            </span>
+
+                        </div>
+
+                    </label>
+
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="WALLET"
+                        >
+
+                        <div>
+
+                            <strong>
+                                Dreypella Wallet
+                            </strong>
+
+                            <span>
+                                Pay using your wallet balance
+                            </span>
+
+                        </div>
+
+                    </label>
+
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+
+
+        <!-- =========================
+             RIGHT SIDE
+        ========================== -->
+
+        <aside class="checkout-right">
+
+
+            <section class="summary-card">
+
+
+                <h2>
+                    Order Summary
+                </h2>
+
+
+
+                <div class="summary-row">
+
+                    <span>
+                        Product Subtotal
+                    </span>
+
+                    <strong id="subtotal">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+
+                <div class="summary-row">
+
+                    <span>
+                        Delivery Fee
+                    </span>
+
+                    <strong id="deliveryFee">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+
+                <div class="summary-row platform-row">
+
+                    <div>
+
+                        <span>
+                            Marketplace Platform Charge
+                        </span>
+
+                        <small>
+                            5% of product subtotal
+                        </small>
+
+                    </div>
+
+                    <strong id="platformFee">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+
+                <div class="summary-divider"></div>
+
+
+
+                <div class="total-row">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <strong id="grandTotal">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+
+                <button
+                    type="submit"
+                    form="checkoutForm"
+                    id="placeOrderButton"
+                    class="place-order-button"
+                >
+                    PLACE ORDER
+                </button>
+
+
+
+                <p class="secure-note">
+                    🔒 Your order information is securely
+                    processed by Dreypella.
+                </p>
+
+
+            </section>
+
+
+
+            <section class="vendor-card">
+
+                <span>
+                    SELLER
+                </span>
+
+                <strong id="vendorName">
+                    Vendor
+                </strong>
+
+                <p id="vendorCategory">
+                    Marketplace Vendor
+                </p>
+
+            </section>
+
+
+        </aside>
+
+
+    </div>
+
+
+</main>
+
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+
+<script src="customer-checkout.js"></script>
+
+
+</body>
+
+</html>

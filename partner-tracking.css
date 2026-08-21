@@ -1,0 +1,654 @@
+:root {
+
+    --navy: #081B5A;
+
+    --red: #E31B23;
+
+    --gold: #FFD700;
+
+    --white: #FFFFFF;
+
+    --light: #F5F7FA;
+
+    --text: #172033;
+
+    --muted: #6B7280;
+
+    --border: #E5E7EB;
+
+    --green: #16803C;
+
+}
+
+
+* {
+
+    box-sizing:
+        border-box;
+
+    margin:
+        0;
+
+    padding:
+        0;
+
+}
+
+
+body {
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        var(--light);
+
+    color:
+        var(--text);
+
+}
+
+
+.tracking-header {
+
+    min-height:
+        70px;
+
+    padding:
+        15px 6%;
+
+    background:
+        var(--navy);
+
+    color:
+        white;
+
+}
+
+
+.brand {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
+}
+
+
+.brand strong {
+
+    font-size:
+        20px;
+
+}
+
+
+.brand span {
+
+    color:
+        var(--gold);
+
+    font-weight:
+        900;
+
+}
+
+
+.tracking-container {
+
+    width:
+        min(
+            700px,
+            92%
+        );
+
+    margin:
+        25px auto 50px;
+
+}
+
+
+.hero-card {
+
+    background:
+        var(--navy);
+
+    color:
+        white;
+
+    border-radius:
+        18px;
+
+    padding:
+        25px;
+
+    margin-bottom:
+        15px;
+
+}
+
+
+.eyebrow {
+
+    color:
+        var(--gold);
+
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+}
+
+
+.hero-card h1 {
+
+    margin:
+        7px 0;
+
+    font-size:
+        26px;
+
+}
+
+
+.hero-card p {
+
+    color:
+        #DCE3FF;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.6;
+
+}
+
+
+.booking-card,
+.status-card,
+.delivery-card,
+.notice-card {
+
+    background:
+        var(--white);
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        18px;
+
+    padding:
+        20px;
+
+    margin-bottom:
+        15px;
+
+}
+
+
+.booking-card label {
+
+    display:
+        block;
+
+    color:
+        var(--navy);
+
+    font-size:
+        12px;
+
+    font-weight:
+        800;
+
+    margin-bottom:
+        7px;
+
+}
+
+
+.booking-card input {
+
+    width:
+        100%;
+
+    padding:
+        14px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        10px;
+
+    outline:
+        none;
+
+    font-size:
+        14px;
+
+    margin-bottom:
+        10px;
+
+}
+
+
+.booking-card input:focus {
+
+    border-color:
+        var(--navy);
+
+}
+
+
+button {
+
+    width:
+        100%;
+
+    border:
+        none;
+
+    border-radius:
+        10px;
+
+    padding:
+        14px;
+
+    background:
+        var(--navy);
+
+    color:
+        white;
+
+    font-weight:
+        900;
+
+    cursor:
+        pointer;
+
+}
+
+
+button:disabled {
+
+    opacity:
+        .5;
+
+    cursor:
+        not-allowed;
+
+}
+
+
+.stop-button {
+
+    margin-top:
+        9px;
+
+    background:
+        var(--red);
+
+}
+
+
+.message {
+
+    margin-top:
+        12px;
+
+    font-size:
+        12px;
+
+    color:
+        var(--muted);
+
+    line-height:
+        1.5;
+
+}
+
+
+.status-row {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+}
+
+
+.label {
+
+    display:
+        block;
+
+    color:
+        var(--muted);
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+    margin-bottom:
+        5px;
+
+}
+
+
+.status-row h2 {
+
+    color:
+        var(--navy);
+
+    font-size:
+        21px;
+
+}
+
+
+.status-indicator {
+
+    width:
+        18px;
+
+    height:
+        18px;
+
+    border-radius:
+        50%;
+
+    background:
+        var(--red);
+
+}
+
+
+.status-indicator.active {
+
+    background:
+        var(--green);
+
+    box-shadow:
+        0 0 0 7px
+        rgba(
+            22,
+            128,
+            60,
+            .12
+        );
+
+}
+
+
+.coordinates {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            1fr
+        );
+
+    gap:
+        10px;
+
+    margin-top:
+        18px;
+
+}
+
+
+.coordinates div {
+
+    background:
+        var(--light);
+
+    border-radius:
+        10px;
+
+    padding:
+        12px;
+
+}
+
+
+.coordinates span {
+
+    display:
+        block;
+
+    color:
+        var(--muted);
+
+    font-size:
+        9px;
+
+    margin-bottom:
+        5px;
+
+}
+
+
+.coordinates strong {
+
+    display:
+        block;
+
+    color:
+        var(--navy);
+
+    font-size:
+        12px;
+
+    word-break:
+        break-word;
+
+}
+
+
+.delivery-card h2 {
+
+    color:
+        var(--navy);
+
+    font-size:
+        19px;
+
+    margin-bottom:
+        20px;
+
+}
+
+
+.route-point {
+
+    display:
+        flex;
+
+    gap:
+        12px;
+
+    align-items:
+        flex-start;
+
+}
+
+
+.route-point small {
+
+    display:
+        block;
+
+    color:
+        var(--muted);
+
+    font-size:
+        9px;
+
+    font-weight:
+        900;
+
+    margin-bottom:
+        5px;
+
+}
+
+
+.route-point strong {
+
+    display:
+        block;
+
+    color:
+        var(--navy);
+
+    font-size:
+        13px;
+
+    line-height:
+        1.5;
+
+}
+
+
+.dot {
+
+    width:
+        13px;
+
+    height:
+        13px;
+
+    min-width:
+        13px;
+
+    border-radius:
+        50%;
+
+    margin-top:
+        2px;
+
+}
+
+
+.pickup {
+
+    background:
+        var(--navy);
+
+}
+
+
+.destination {
+
+    background:
+        var(--red);
+
+}
+
+
+.route-line {
+
+    width:
+        2px;
+
+    height:
+        35px;
+
+    background:
+        #D6DCEB;
+
+    margin:
+        4px 0 4px 5px;
+
+}
+
+
+.notice-card {
+
+    border-left:
+        4px solid
+        var(--gold);
+
+}
+
+
+.notice-card strong {
+
+    color:
+        var(--navy);
+
+    font-size:
+        14px;
+
+}
+
+
+.notice-card p {
+
+    margin-top:
+        7px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.6;
+
+}
+
+
+@media (
+    max-width: 600px
+) {
+
+    .tracking-container {
+
+        width:
+            94%;
+
+        margin-top:
+            18px;
+
+    }
+
+
+    .hero-card h1 {
+
+        font-size:
+            22px;
+
+    }
+
+
+    .coordinates {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+}

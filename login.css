@@ -1,0 +1,631 @@
+/* =====================================================
+   DREYPELLA RIDE
+   LOGIN PAGE
+===================================================== */
+
+
+:root {
+
+    --navy: #081B5A;
+
+    --red: #E31B23;
+
+    --white: #FFFFFF;
+
+    --light: #F5F7FA;
+
+    --text: #172033;
+
+    --muted: #6B7280;
+
+    --border: #DDE2EA;
+
+    --success: #15803D;
+
+    --danger: #DC2626;
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+* {
+
+    margin: 0;
+
+    padding: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+html {
+
+    scroll-behavior: smooth;
+
+}
+
+
+body {
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        var(--light);
+
+    color:
+        var(--text);
+
+    min-height: 100vh;
+
+}
+
+
+/* =====================================================
+   PAGE
+===================================================== */
+
+.login-page {
+
+    min-height: 100vh;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 30px 16px;
+
+}
+
+
+/* =====================================================
+   LOGIN CARD
+===================================================== */
+
+.login-card {
+
+    width: 100%;
+
+    max-width: 480px;
+
+    background:
+        var(--white);
+
+    border-radius: 22px;
+
+    padding: 38px;
+
+    box-shadow:
+        0 15px 45px rgba(8, 27, 90, 0.10);
+
+}
+
+
+/* =====================================================
+   BACK LINK
+===================================================== */
+
+.back-link {
+
+    display: inline-block;
+
+    text-decoration: none;
+
+    color:
+        var(--navy);
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    margin-bottom: 35px;
+
+}
+
+
+.back-link:hover {
+
+    color:
+        var(--red);
+
+}
+
+
+/* =====================================================
+   LOGO
+===================================================== */
+
+.logo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 28px;
+
+}
+
+
+.logo-main {
+
+    color:
+        var(--navy);
+
+    font-size: 28px;
+
+    font-weight: 800;
+
+    letter-spacing: -1px;
+
+}
+
+
+.logo-sub {
+
+    color:
+        var(--red);
+
+    font-size: 17px;
+
+    font-weight: 700;
+
+    letter-spacing: 4px;
+
+}
+
+
+/* =====================================================
+   HEADINGS
+===================================================== */
+
+h1 {
+
+    color:
+        var(--navy);
+
+    font-size: 38px;
+
+    line-height: 1.1;
+
+    margin-bottom: 10px;
+
+}
+
+
+.subtitle {
+
+    color:
+        var(--muted);
+
+    font-size: 17px;
+
+    margin-bottom: 32px;
+
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.form-group {
+
+    margin-bottom: 22px;
+
+}
+
+
+label {
+
+    display: block;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    margin-bottom: 9px;
+
+    color:
+        var(--text);
+
+}
+
+
+input {
+
+    width: 100%;
+
+    height: 56px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    padding: 0 16px;
+
+    font-size: 16px;
+
+    color:
+        var(--text);
+
+    background:
+        var(--white);
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+
+}
+
+
+input:focus {
+
+    border-color:
+        var(--navy);
+
+    box-shadow:
+        0 0 0 3px rgba(8, 27, 90, 0.08);
+
+}
+
+
+/* =====================================================
+   PASSWORD
+===================================================== */
+
+.password-wrapper {
+
+    position: relative;
+
+}
+
+
+.password-wrapper input {
+
+    padding-right: 75px;
+
+}
+
+
+.password-toggle {
+
+    position: absolute;
+
+    right: 12px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    border: none;
+
+    background: transparent;
+
+    color:
+        var(--navy);
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    padding: 8px;
+
+}
+
+
+/* =====================================================
+   OPTIONS
+===================================================== */
+
+.form-options {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: -5px;
+
+    margin-bottom: 22px;
+
+}
+
+
+.forgot-link {
+
+    color:
+        var(--red);
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+}
+
+
+.forgot-link:hover {
+
+    text-decoration: underline;
+
+}
+
+
+/* =====================================================
+   LOGIN BUTTON
+===================================================== */
+
+.login-button {
+
+    width: 100%;
+
+    min-height: 56px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background:
+        var(--red);
+
+    color:
+        var(--white);
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.5px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s,
+        opacity 0.2s;
+
+}
+
+
+.login-button:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+.login-button:active {
+
+    transform: translateY(0);
+
+}
+
+
+.login-button:disabled {
+
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+.message {
+
+    display: none;
+
+    margin-top: 18px;
+
+    padding: 13px 14px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+}
+
+
+.message.show {
+
+    display: block;
+
+}
+
+
+.message.error {
+
+    color:
+        var(--danger);
+
+    background:
+        #FEF2F2;
+
+    border: 1px solid #FECACA;
+
+}
+
+
+.message.success {
+
+    color:
+        var(--success);
+
+    background:
+        #F0FDF4;
+
+    border: 1px solid #BBF7D0;
+
+}
+
+
+.message.warning {
+
+    color:
+        #92400E;
+
+    background:
+        #FFFBEB;
+
+    border: 1px solid #FDE68A;
+
+}
+
+
+/* =====================================================
+   REGISTER SECTION
+===================================================== */
+
+.register-section {
+
+    text-align: center;
+
+    margin-top: 28px;
+
+    padding-top: 24px;
+
+    border-top:
+        1px solid var(--border);
+
+    color:
+        var(--muted);
+
+    font-size: 15px;
+
+}
+
+
+.register-section a {
+
+    color:
+        var(--navy);
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    margin-left: 5px;
+
+}
+
+
+.register-section a:hover {
+
+    color:
+        var(--red);
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .login-page {
+
+        padding: 16px;
+
+        align-items: flex-start;
+
+    }
+
+
+    .login-card {
+
+        margin-top: 25px;
+
+        padding: 27px 22px;
+
+        border-radius: 18px;
+
+    }
+
+
+    .back-link {
+
+        margin-bottom: 28px;
+
+    }
+
+
+    .logo-main {
+
+        font-size: 24px;
+
+    }
+
+
+    .logo-sub {
+
+        font-size: 14px;
+
+        letter-spacing: 3px;
+
+    }
+
+
+    h1 {
+
+        font-size: 31px;
+
+    }
+
+
+    .subtitle {
+
+        font-size: 15px;
+
+        margin-bottom: 27px;
+
+    }
+
+
+    input {
+
+        height: 54px;
+
+    }
+
+}
+
+
+/* =====================================================
+   SMALL PHONES
+===================================================== */
+
+@media (max-width: 360px) {
+
+    .login-card {
+
+        padding: 24px 18px;
+
+    }
+
+
+    h1 {
+
+        font-size: 28px;
+
+    }
+
+}

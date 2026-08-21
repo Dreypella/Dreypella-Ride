@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Vendor Dashboard | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="vendor-dashboard.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     SIDEBAR
+========================================= -->
+
+<aside
+    id="sidebar"
+    class="sidebar"
+>
+
+    <div class="brand">
+
+        <strong>
+            DREYPELLA
+        </strong>
+
+        <span>
+            RIDE
+        </span>
+
+    </div>
+
+
+    <div class="vendor-mini-profile">
+
+        <div
+            id="vendorAvatar"
+            class="vendor-avatar"
+        >
+            V
+        </div>
+
+        <div>
+
+            <strong id="sidebarVendorName">
+                Vendor
+            </strong>
+
+            <small>
+                Vendor Account
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <nav class="sidebar-nav">
+
+        <a
+            href="vendor-dashboard.html"
+            class="nav-link active"
+        >
+            <span>▦</span>
+            Dashboard
+        </a>
+
+
+        <a
+            href="vendor-upload.html"
+            class="nav-link"
+        >
+            <span>＋</span>
+            Add Product
+        </a>
+
+
+        <a
+            href="vendor-products.html"
+            class="nav-link"
+        >
+            <span>▤</span>
+            My Products
+        </a>
+
+
+        <a
+            href="vendor-orders.html"
+            class="nav-link"
+        >
+            <span>🛍</span>
+            Orders
+        </a>
+
+
+        <a
+            href="vendor-wallet.html"
+            class="nav-link"
+        >
+            <span>₦</span>
+            Wallet
+        </a>
+
+
+        <a
+            href="vendor-profile.html"
+            class="nav-link"
+        >
+            <span>⚙</span>
+            Store Settings
+        </a>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+        <a
+            href="marketplace.html"
+            class="marketplace-link"
+        >
+            ← Marketplace
+        </a>
+
+
+        <button
+            id="logoutButton"
+            class="logout-button"
+        >
+            Logout
+        </button>
+
+    </div>
+
+</aside>
+
+
+
+<!-- =========================================
+     MAIN
+========================================= -->
+
+<main class="main-content">
+
+
+    <!-- HEADER -->
+
+    <header class="dashboard-header">
+
+        <button
+            id="menuButton"
+            class="menu-button"
+            type="button"
+        >
+            ☰
+        </button>
+
+
+        <div>
+
+            <span class="small-title">
+                VENDOR CENTER
+            </span>
+
+            <h1>
+                Dashboard
+            </h1>
+
+        </div>
+
+
+        <a
+            href="vendor-upload.html"
+            class="add-product-button"
+        >
+            + Add Product
+        </a>
+
+    </header>
+
+
+
+    <!-- MESSAGE -->
+
+    <div
+        id="dashboardMessage"
+        class="dashboard-message"
+    ></div>
+
+
+
+    <!-- STORE HEADER -->
+
+    <section class="store-header-card">
+
+        <div>
+
+            <span class="store-label">
+                YOUR STORE
+            </span>
+
+            <h2 id="storeName">
+                Loading store...
+            </h2>
+
+            <p id="vendorEmail">
+                Loading vendor...
+            </p>
+
+        </div>
+
+
+        <div
+            id="storeStatus"
+            class="store-status"
+        >
+            CHECKING
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         STATISTICS
+    ====================================== -->
+
+    <section class="stats-grid">
+
+
+        <div class="stat-card">
+
+            <span>
+                PRODUCTS
+            </span>
+
+            <strong id="totalProducts">
+                0
+            </strong>
+
+            <small>
+                Total products
+            </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                ACTIVE PRODUCTS
+            </span>
+
+            <strong id="activeProducts">
+                0
+            </strong>
+
+            <small>
+                Currently visible
+            </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                ORDERS
+            </span>
+
+            <strong id="totalOrders">
+                0
+            </strong>
+
+            <small>
+                All orders
+            </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                COMPLETED
+            </span>
+
+            <strong id="completedOrders">
+                0
+            </strong>
+
+            <small>
+                Completed orders
+            </small>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================
+         REVENUE
+    ====================================== -->
+
+    <section class="revenue-card">
+
+
+        <div class="revenue-heading">
+
+            <div>
+
+                <span>
+                    VENDOR EARNINGS
+                </span>
+
+                <h2 id="netRevenue">
+                    ₦0
+                </h2>
+
+            </div>
+
+
+            <a
+                href="vendor-wallet.html"
+                class="wallet-button"
+            >
+                VIEW WALLET
+            </a>
+
+        </div>
+
+
+        <div class="revenue-breakdown">
+
+
+            <div>
+
+                <span>
+                    SALES
+                </span>
+
+                <strong id="grossSales">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    PLATFORM FEES
+                </span>
+
+                <strong id="platformFees">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    NET EARNINGS
+                </span>
+
+                <strong id="displayNetRevenue">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <p class="fee-note">
+
+            Dreypella's marketplace platform fee is
+            automatically calculated at
+            <strong>5%</strong> of the vendor's
+            original product price.
+
+        </p>
+
+    </section>
+
+
+
+    <!-- =====================================
+         QUICK ACTIONS
+    ====================================== -->
+
+    <section class="section-card">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    QUICK ACTIONS
+                </span>
+
+                <h2>
+                    Manage your store
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="quick-actions">
+
+
+            <a
+                href="vendor-upload.html"
+                class="quick-action"
+            >
+
+                <span class="action-icon">
+                    ＋
+                </span>
+
+                <div>
+
+                    <strong>
+                        Add Product
+                    </strong>
+
+                    <small>
+                        Upload a new item
+                    </small>
+
+                </div>
+
+            </a>
+
+
+            <a
+                href="vendor-products.html"
+                class="quick-action"
+            >
+
+                <span class="action-icon">
+                    ▤
+                </span>
+
+                <div>
+
+                    <strong>
+                        My Products
+                    </strong>
+
+                    <small>
+                        Edit and manage products
+                    </small>
+
+                </div>
+
+            </a>
+
+
+            <a
+                href="vendor-orders.html"
+                class="quick-action"
+            >
+
+                <span class="action-icon">
+                    🛍
+                </span>
+
+                <div>
+
+                    <strong>
+                        Orders
+                    </strong>
+
+                    <small>
+                        Manage customer orders
+                    </small>
+
+                </div>
+
+            </a>
+
+
+            <a
+                href="vendor-wallet.html"
+                class="quick-action"
+            >
+
+                <span class="action-icon">
+                    ₦
+                </span>
+
+                <div>
+
+                    <strong>
+                        Wallet
+                    </strong>
+
+                    <small>
+                        Earnings and withdrawals
+                    </small>
+
+                </div>
+
+            </a>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         RECENT ORDERS
+    ====================================== -->
+
+    <section class="section-card">
+
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    RECENT ACTIVITY
+                </span>
+
+                <h2>
+                    Recent Orders
+                </h2>
+
+            </div>
+
+
+            <a
+                href="vendor-orders.html"
+                class="view-all"
+            >
+                View all
+            </a>
+
+        </div>
+
+
+        <div
+            id="recentOrders"
+            class="orders-list"
+        >
+
+            <div class="empty-state">
+
+                Loading orders...
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================
+         PRODUCTS
+    ====================================== -->
+
+    <section class="section-card">
+
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    STORE INVENTORY
+                </span>
+
+                <h2>
+                    Recent Products
+                </h2>
+
+            </div>
+
+
+            <a
+                href="vendor-products.html"
+                class="view-all"
+            >
+                Manage products
+            </a>
+
+        </div>
+
+
+        <div
+            id="recentProducts"
+            class="products-grid"
+        >
+
+            <div class="empty-state">
+
+                Loading products...
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+<!-- =========================================
+     FIREBASE
+========================================= -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="vendor-dashboard.js"></script>
+
+
+</body>
+
+</html>

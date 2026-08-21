@@ -1,0 +1,958 @@
+:root {
+    --navy: #081B5A;
+    --red: #E31B23;
+    --white: #FFFFFF;
+    --light: #F5F7FA;
+    --text: #182033;
+    --muted: #6B7280;
+    --border: #E4E8EF;
+    --green: #16803C;
+    --shadow: 0 8px 25px rgba(8, 27, 90, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--light);
+    color: var(--text);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button {
+    font-family: inherit;
+}
+
+
+/* =========================================
+   DASHBOARD
+========================================= */
+
+.dashboard {
+    min-height: 100vh;
+    display: flex;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 250px;
+
+    background: var(--navy);
+    color: var(--white);
+
+    padding: 28px 16px;
+
+    z-index: 1000;
+
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+
+    padding: 0 12px 30px;
+}
+
+.sidebar-logo strong {
+    font-size: 22px;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-logo span {
+    color: #ff4750;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+
+/* =========================================
+   SIDE NAV
+========================================= */
+
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    min-height: 48px;
+
+    padding: 10px 13px;
+
+    border-radius: 10px;
+
+    color: rgba(255, 255, 255, 0.78);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: 0.2s;
+}
+
+.nav-link span:first-child {
+    width: 23px;
+    text-align: center;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--white);
+}
+
+.nav-link.active {
+    border-left: 3px solid var(--red);
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+.logout-btn {
+    width: 100%;
+
+    margin-top: 25px;
+
+    height: 46px;
+
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+
+    background: transparent;
+    color: var(--white);
+
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: var(--red);
+    border-color: var(--red);
+}
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+.main-content {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+}
+
+
+/* =========================================
+   TOP BAR
+========================================= */
+
+.topbar {
+    height: 78px;
+
+    background: var(--white);
+
+    border-bottom: 1px solid var(--border);
+
+    display: flex;
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 35px;
+
+    position: sticky;
+    top: 0;
+
+    z-index: 100;
+}
+
+.menu-btn {
+    display: none;
+}
+
+.page-title h1 {
+    font-size: 22px;
+    color: var(--navy);
+}
+
+.page-title p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.notification-btn {
+    width: 42px;
+    height: 42px;
+
+    border: 1px solid var(--border);
+    border-radius: 50%;
+
+    background: var(--white);
+
+    cursor: pointer;
+
+    position: relative;
+}
+
+.notification-btn span {
+    position: absolute;
+
+    top: -3px;
+    right: -3px;
+
+    min-width: 17px;
+    height: 17px;
+
+    border-radius: 50%;
+
+    background: var(--red);
+    color: var(--white);
+
+    font-size: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-btn {
+    border: none;
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 50%;
+
+    background: var(--navy);
+    color: var(--white);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 800;
+}
+
+.profile-name {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+/* =========================================
+   PAGE
+========================================= */
+
+.dashboard-page {
+    width: 100%;
+    max-width: 1250px;
+
+    margin: auto;
+
+    padding: 30px 35px 60px;
+}
+
+
+/* =========================================
+   WELCOME
+========================================= */
+
+.welcome-card {
+    background: var(--navy);
+
+    color: var(--white);
+
+    border-radius: 18px;
+
+    padding: 30px;
+
+    margin-bottom: 30px;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.welcome-card::after {
+    content: "";
+
+    position: absolute;
+
+    width: 170px;
+    height: 170px;
+
+    right: -60px;
+    top: -60px;
+
+    background: rgba(227, 27, 35, 0.8);
+
+    border-radius: 50%;
+}
+
+.small-label {
+    color: #ff6870;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    margin-bottom: 8px;
+}
+
+.welcome-card h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.welcome-card p:last-child {
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+}
+
+
+/* =========================================
+   SECTION
+========================================= */
+
+.section {
+    margin-bottom: 32px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 15px;
+}
+
+.section-heading h2 {
+    font-size: 19px;
+    color: var(--navy);
+}
+
+.section-heading a {
+    color: var(--red);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* =========================================
+   QUICK ACTIONS
+========================================= */
+
+.quick-actions {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.action-card {
+    background: var(--white);
+
+    border: 1px solid var(--border);
+
+    border-radius: 15px;
+
+    padding: 20px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    box-shadow: var(--shadow);
+
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(8,27,90,0.12);
+}
+
+.action-icon {
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+
+    border-radius: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eef1fa;
+
+    font-size: 22px;
+}
+
+.action-card h3 {
+    color: var(--navy);
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.action-card p {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.action-arrow {
+    margin-left: auto;
+
+    color: var(--red);
+
+    font-size: 20px;
+}
+
+
+/* =========================================
+   ACTIVE TRIP
+========================================= */
+
+.active-trip-card {
+    background: var(--white);
+
+    border-radius: 18px;
+
+    padding: 22px;
+
+    border: 1px solid var(--border);
+
+    box-shadow: var(--shadow);
+}
+
+.trip-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    color: var(--green);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    margin-bottom: 20px;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+
+    background: var(--green);
+
+    border-radius: 50%;
+}
+
+.trip-route {
+    margin-bottom: 20px;
+}
+
+.route-point {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.route-point small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+.route-point strong {
+    font-size: 14px;
+}
+
+.route-dot {
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+
+    border: 3px solid var(--navy);
+}
+
+.route-dot.destination {
+    border-color: var(--red);
+}
+
+.route-line {
+    width: 2px;
+    height: 25px;
+
+    background: var(--border);
+
+    margin: 2px 0 2px 5px;
+}
+
+.tracking-preview {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.fake-map {
+    height: 170px;
+
+    border-radius: 14px;
+
+    background:
+        linear-gradient(135deg, #eef1f5, #dfe4eb);
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.map-label {
+    position: absolute;
+
+    top: 12px;
+    left: 12px;
+
+    background: var(--white);
+
+    padding: 7px 10px;
+
+    border-radius: 8px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    box-shadow: var(--shadow);
+}
+
+.map-route {
+    position: absolute;
+
+    left: 20%;
+    top: 60%;
+
+    width: 60%;
+    height: 4px;
+
+    background: var(--red);
+
+    transform: rotate(-10deg);
+
+    border-radius: 10px;
+}
+
+.map-marker {
+    position: absolute;
+
+    left: 55%;
+    top: 43%;
+
+    width: 38px;
+    height: 38px;
+
+    background: var(--navy);
+
+    color: var(--white);
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.primary-button {
+    width: 100%;
+
+    min-height: 50px;
+
+    background: var(--red);
+    color: var(--white);
+
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+
+/* =========================================
+   SUMMARY
+========================================= */
+
+.summary-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.summary-card {
+    background: var(--white);
+
+    border: 1px solid var(--border);
+
+    border-radius: 15px;
+
+    padding: 20px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    box-shadow: var(--shadow);
+}
+
+.summary-icon {
+    width: 45px;
+    height: 45px;
+
+    border-radius: 11px;
+
+    background: #eef1fa;
+
+    color: var(--navy);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 800;
+}
+
+.summary-card span {
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 12px;
+
+    margin-bottom: 5px;
+}
+
+.summary-card strong {
+    color: var(--navy);
+
+    font-size: 18px;
+}
+
+
+/* =========================================
+   ACTIVITY
+========================================= */
+
+.activity-list {
+    background: var(--white);
+
+    border: 1px solid var(--border);
+
+    border-radius: 15px;
+
+    overflow: hidden;
+}
+
+.empty-state {
+    padding: 45px 20px;
+
+    text-align: center;
+}
+
+.empty-icon {
+    width: 55px;
+    height: 55px;
+
+    margin: 0 auto 12px;
+
+    border-radius: 50%;
+
+    background: #eef1fa;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 23px;
+}
+
+.empty-state h3 {
+    color: var(--navy);
+
+    font-size: 15px;
+
+    margin-bottom: 6px;
+}
+
+.empty-state p {
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   MOBILE BOTTOM NAV
+========================================= */
+
+.bottom-nav {
+    display: none;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 950px) {
+
+    .sidebar {
+        width: 220px;
+    }
+
+    .main-content {
+        width: calc(100% - 220px);
+        margin-left: 220px;
+    }
+
+    .quick-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+    body {
+        padding-bottom: 68px;
+    }
+
+    .sidebar {
+        left: -270px;
+
+        width: 260px;
+
+        transition: left 0.25s ease;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .main-content {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .topbar {
+        height: 68px;
+
+        padding: 0 15px;
+    }
+
+    .menu-btn {
+        display: flex;
+
+        width: 40px;
+        height: 40px;
+
+        border: none;
+
+        background: var(--navy);
+        color: var(--white);
+
+        border-radius: 9px;
+
+        align-items: center;
+        justify-content: center;
+
+        font-size: 19px;
+
+        cursor: pointer;
+    }
+
+    .page-title {
+        margin-right: auto;
+        margin-left: 12px;
+    }
+
+    .page-title h1 {
+        font-size: 18px;
+    }
+
+    .page-title p {
+        display: none;
+    }
+
+    .profile-name {
+        display: none;
+    }
+
+    .dashboard-page {
+        padding: 18px 14px 35px;
+    }
+
+    .welcome-card {
+        padding: 23px 20px;
+        margin-bottom: 23px;
+    }
+
+    .welcome-card h2 {
+        font-size: 23px;
+    }
+
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .action-card {
+        padding: 16px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .section {
+        margin-bottom: 25px;
+    }
+
+    .section-heading h2 {
+        font-size: 17px;
+    }
+
+    .bottom-nav {
+        position: fixed;
+
+        display: flex;
+
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        height: 66px;
+
+        background: var(--white);
+
+        border-top: 1px solid var(--border);
+
+        z-index: 2000;
+
+        justify-content: space-around;
+    }
+
+    .bottom-link {
+        flex: 1;
+
+        display: flex;
+        flex-direction: column;
+
+        align-items: center;
+        justify-content: center;
+
+        gap: 3px;
+
+        color: var(--muted);
+
+        font-size: 18px;
+    }
+
+    .bottom-link small {
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .bottom-link.active {
+        color: var(--red);
+    }
+}
+
+
+/* =========================================
+   SMALL PHONES
+========================================= */
+
+@media (max-width: 380px) {
+
+    .dashboard-page {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .welcome-card h2 {
+        font-size: 21px;
+    }
+
+    .top-actions {
+        gap: 7px;
+    }
+
+    .notification-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .profile-avatar {
+        width: 36px;
+        height: 36px;
+    }
+}

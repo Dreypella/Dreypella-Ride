@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#081B5A">
+
+    <title>Book a Ride | Dreypella Ride</title>
+
+    <link rel="stylesheet"
+          href="ride.css">
+
+</head>
+
+<body>
+
+
+<header class="ride-header">
+
+    <a href="customer-dashboard.html"
+       class="back-button">
+        ←
+    </a>
+
+    <div class="ride-brand">
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+    </div>
+
+</header>
+
+
+
+<main class="ride-page">
+
+
+    <!-- TITLE -->
+
+    <section class="ride-title">
+
+        <p>TRAVEL</p>
+
+        <h1>Book a Ride</h1>
+
+        <span>
+            Choose your route, travel date and preferred time.
+        </span>
+
+    </section>
+
+
+
+    <!-- ROUTE -->
+
+    <section class="journey-card">
+
+        <div class="location-field">
+
+            <label>
+                Travelling From
+            </label>
+
+            <div class="input-wrapper">
+
+                <span class="location-dot">
+                    ●
+                </span>
+
+                <select id="fromLocation">
+
+                    <option value="">
+                        Select departure city
+                    </option>
+
+                    <option value="Ogbomosho">
+                        Ogbomosho
+                    </option>
+
+                    <option value="Iseyin">
+                        Iseyin
+                    </option>
+
+                    <option value="Oyo">
+                        Oyo
+                    </option>
+
+                    <option value="Ibadan">
+                        Ibadan
+                    </option>
+
+                    <option value="Lagos">
+                        Lagos
+                    </option>
+
+                    <option value="Ilorin">
+                        Ilorin
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="route-line"></div>
+
+
+
+        <div class="location-field">
+
+            <label>
+                Travelling To
+            </label>
+
+            <div class="input-wrapper">
+
+                <span class="destination-dot">
+                    ●
+                </span>
+
+                <select id="toLocation">
+
+                    <option value="">
+                        Select destination city
+                    </option>
+
+                    <option value="Ogbomosho">
+                        Ogbomosho
+                    </option>
+
+                    <option value="Iseyin">
+                        Iseyin
+                    </option>
+
+                    <option value="Oyo">
+                        Oyo
+                    </option>
+
+                    <option value="Ibadan">
+                        Ibadan
+                    </option>
+
+                    <option value="Lagos">
+                        Lagos
+                    </option>
+
+                    <option value="Ilorin">
+                        Ilorin
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DATE -->
+
+        <div class="date-time-grid">
+
+            <div>
+
+                <label>
+                    Travel Date
+                </label>
+
+                <input
+                    type="date"
+                    id="travelDate"
+                    required
+                >
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    Preferred Time
+                </label>
+
+                <input
+                    type="time"
+                    id="preferredTime"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+
+        <button
+            type="button"
+            id="findTripsButton"
+            class="primary-button">
+
+            CHECK AVAILABILITY
+
+        </button>
+
+
+        <div
+            id="journeyMessage"
+            class="message">
+        </div>
+
+    </section>
+
+
+
+    <!-- AVAILABLE TRIPS -->
+
+    <section
+        id="tripResults"
+        class="trip-results hidden">
+
+        <div class="section-heading">
+
+            <p>AVAILABLE</p>
+
+            <h2>
+                Scheduled Trips
+            </h2>
+
+        </div>
+
+
+        <div
+            id="tripList"
+            class="trip-list">
+        </div>
+
+
+        <button
+            id="requestRideButton"
+            class="request-button">
+
+            REQUEST THIS JOURNEY
+
+        </button>
+
+    </section>
+
+
+
+    <!-- BOOKING FORM -->
+
+    <section
+        id="bookingSection"
+        class="booking-section hidden">
+
+
+        <div class="section-heading">
+
+            <p>PASSENGER</p>
+
+            <h2>
+                Booking Details
+            </h2>
+
+        </div>
+
+
+
+        <div
+            id="selectedTrip"
+            class="selected-trip">
+        </div>
+
+
+
+        <form id="bookingForm">
+
+
+            <label>
+                Passenger Name
+            </label>
+
+            <input
+                type="text"
+                id="passengerName"
+                placeholder="Full name"
+                required
+            >
+
+
+
+            <label>
+                Phone Number
+            </label>
+
+            <input
+                type="tel"
+                id="passengerPhone"
+                placeholder="08012345678"
+                required
+            >
+
+
+
+            <label>
+                Number of Seats
+            </label>
+
+            <select id="seatCount">
+
+                <option value="1">
+                    1 Seat
+                </option>
+
+                <option value="2">
+                    2 Seats
+                </option>
+
+                <option value="3">
+                    3 Seats
+                </option>
+
+                <option value="4">
+                    4 Seats
+                </option>
+
+            </select>
+
+
+
+            <div
+                id="fareBox"
+                class="price-box">
+
+                <span>
+                    Estimated Fare
+                </span>
+
+                <strong id="totalFare">
+                    To be confirmed
+                </strong>
+
+            </div>
+
+
+
+            <p class="confirmation-note">
+
+                Final fare, gathering point and vehicle details
+                will be confirmed by Dreypella Ride.
+
+            </p>
+
+
+
+            <button
+                type="submit"
+                class="primary-button">
+
+                SUBMIT RIDE REQUEST
+
+            </button>
+
+
+
+            <div
+                id="bookingMessage"
+                class="message">
+            </div>
+
+        </form>
+
+    </section>
+
+
+
+    <!-- REQUEST INFO -->
+
+    <section class="notice">
+
+        <span>ℹ️</span>
+
+        <p>
+
+            If no scheduled trip is available,
+            you can still submit your journey request.
+            Dreypella Ride will confirm the trip details
+            with you.
+
+        </p>
+
+    </section>
+
+
+</main>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="ride.js"></script>
+
+
+</body>
+
+</html>

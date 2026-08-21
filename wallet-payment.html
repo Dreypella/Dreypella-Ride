@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dreypella Ride | Wallet Payment</title>
+
+    <link
+        rel="stylesheet"
+        href="wallet-payment.css"
+    >
+</head>
+
+<body>
+
+<header class="payment-header">
+
+    <a
+        href="customer-dashboard.html"
+        class="back-button"
+    >
+        ←
+    </a>
+
+    <div>
+        <strong>
+            Dreypella <span>Ride</span>
+        </strong>
+
+        <small>
+            Wallet Payment
+        </small>
+    </div>
+
+</header>
+
+
+<main class="payment-container">
+
+    <!-- PAYMENT SUMMARY -->
+
+    <section class="payment-card">
+
+        <div class="payment-title">
+
+            <span class="payment-icon" id="paymentIcon">
+                ₦
+            </span>
+
+            <div>
+
+                <h1 id="paymentTitle">
+                    Payment
+                </h1>
+
+                <p id="paymentDescription">
+                    Complete your payment securely
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="summary">
+
+            <div class="summary-row">
+
+                <span>
+                    Item
+                </span>
+
+                <strong id="itemName">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Reference
+                </span>
+
+                <strong id="paymentReference">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Amount
+                </span>
+
+                <strong id="paymentAmount">
+                    ₦0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- WALLET -->
+
+    <section class="wallet-card">
+
+        <div class="wallet-heading">
+
+            <span>
+                WALLET BALANCE
+            </span>
+
+            <span class="wallet-status">
+                ● ACTIVE
+            </span>
+
+        </div>
+
+
+        <h2 id="walletBalance">
+            ₦0.00
+        </h2>
+
+
+        <div class="balance-after">
+
+            <span>
+                Balance after payment
+            </span>
+
+            <strong id="balanceAfter">
+                ₦0.00
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <!-- PAYMENT MESSAGE -->
+
+    <div
+        id="paymentMessage"
+        class="payment-message"
+    ></div>
+
+
+    <!-- PAY BUTTON -->
+
+    <button
+        type="button"
+        id="payButton"
+        class="pay-button"
+    >
+
+        PAY WITH WALLET
+
+    </button>
+
+
+    <!-- FUND WALLET -->
+
+    <button
+        type="button"
+        id="fundWalletButton"
+        class="fund-button hidden"
+    >
+
+        FUND WALLET
+
+    </button>
+
+
+    <p class="security-note">
+
+        🔒 Your wallet payment is processed securely.
+        Your wallet balance can only be changed by
+        the Dreypella backend.
+
+    </p>
+
+</main>
+
+
+<!-- PAYMENT SUCCESS -->
+
+<div
+    id="successModal"
+    class="modal hidden"
+>
+
+    <div class="modal-box">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <h2>
+            Payment Successful
+        </h2>
+
+        <p id="successMessage">
+            Your payment has been completed.
+        </p>
+
+        <button
+            type="button"
+            id="continueButton"
+        >
+            CONTINUE
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+
+
+<script src="firebase-config.js"></script>
+
+<script src="wallet-config.js"></script>
+
+<script src="wallet-utils.js"></script>
+
+<script src="wallet-service.js"></script>
+
+<script src="wallet-payment.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Pay Delivery Fee | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="receiver-payment.css"
+    >
+
+</head>
+
+<body>
+
+
+<header class="payment-header">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+
+    </a>
+
+</header>
+
+
+
+<main class="payment-container">
+
+
+    <div class="payment-card">
+
+
+        <div class="payment-icon">
+            📦
+        </div>
+
+
+        <h1>
+            Delivery Payment
+        </h1>
+
+
+        <p class="subtitle">
+            A Dreypella delivery payment request has been sent to you.
+        </p>
+
+
+
+        <!-- STATUS -->
+
+        <div
+            id="statusBox"
+            class="status-box"
+        >
+
+            <span class="status-dot"></span>
+
+            <span id="statusText">
+                Payment required
+            </span>
+
+        </div>
+
+
+
+        <!-- BOOKING -->
+
+        <div class="booking-reference">
+
+            <span>
+                Booking Reference
+            </span>
+
+            <strong id="bookingReference">
+                Loading...
+            </strong>
+
+        </div>
+
+
+
+        <!-- ROUTE -->
+
+        <section class="route-section">
+
+
+            <div class="route-item">
+
+                <span class="route-dot pickup"></span>
+
+                <div>
+
+                    <small>
+                        PICKUP
+                    </small>
+
+                    <p id="pickupText">
+                        Loading...
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="route-line"></div>
+
+
+            <div class="route-item">
+
+                <span class="route-dot destination"></span>
+
+                <div>
+
+                    <small>
+                        DELIVERY TO
+                    </small>
+
+                    <p id="destinationText">
+                        Loading...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- DETAILS -->
+
+        <div class="details">
+
+
+            <div>
+
+                <span>
+                    Delivery Method
+                </span>
+
+                <strong id="methodText">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Distance
+                </span>
+
+                <strong id="distanceText">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Recipient
+                </span>
+
+                <strong id="recipientText">
+                    —
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PRICE -->
+
+        <div class="price-card">
+
+            <span>
+                AMOUNT TO PAY
+            </span>
+
+            <strong id="priceText">
+                ₦0
+            </strong>
+
+        </div>
+
+
+
+        <!-- PAYMENT NOTICE -->
+
+        <div class="security-notice">
+
+            <span>
+                🔒
+            </span>
+
+            <p>
+                Your payment is processed securely.
+                Dreypella will only mark this delivery
+                as paid after the payment provider confirms
+                the transaction.
+            </p>
+
+        </div>
+
+
+
+        <!-- MESSAGE -->
+
+        <div
+            id="paymentMessage"
+            class="payment-message"
+        ></div>
+
+
+
+        <!-- PAY BUTTON -->
+
+        <button
+            id="payButton"
+            class="pay-button"
+        >
+
+            PAY DELIVERY FEE
+
+        </button>
+
+
+
+        <p class="help-text">
+
+            If you were not expecting this request,
+            contact Dreypella Support before making payment.
+
+        </p>
+
+
+    </div>
+
+</main>
+
+
+
+<script src="receiver-payment.js"></script>
+
+</body>
+
+</html>

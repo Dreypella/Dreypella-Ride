@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Customer Dashboard | Dreypella Ride</title>
+
+    <link
+        rel="stylesheet"
+        href="customer-dashboard.css"
+    >
+</head>
+
+<body>
+
+<!-- =========================================
+     DASHBOARD
+========================================= -->
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-logo">
+            <strong>DREYPELLA</strong>
+            <span>RIDE</span>
+        </div>
+
+        <nav class="side-nav">
+
+            <a href="customer-dashboard.html" class="nav-link active">
+                <span>⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="ride.html" class="nav-link">
+                <span>🚐</span>
+                <span>Book a Ride</span>
+            </a>
+
+            <a href="delivery.html" class="nav-link">
+                <span>📦</span>
+                <span>Send Package</span>
+            </a>
+
+            <a href="marketplace.html" class="nav-link">
+                <span>🛍</span>
+                <span>Marketplace</span>
+            </a>
+
+            <a href="wallet.html" class="nav-link">
+                <span>₦</span>
+                <span>Wallet</span>
+            </a>
+
+            <a href="tracking.html" class="nav-link">
+                <span>📍</span>
+                <span>Track</span>
+            </a>
+
+            <a href="orders.html" class="nav-link">
+                <span>🧾</span>
+                <span>My Orders</span>
+            </a>
+
+            <a href="history.html" class="nav-link">
+                <span>🕘</span>
+                <span>History</span>
+            </a>
+
+            <a href="notifications.html" class="nav-link">
+                <span>🔔</span>
+                <span>Notifications</span>
+            </a>
+
+            <a href="support.html" class="nav-link">
+                <span>💬</span>
+                <span>Support</span>
+            </a>
+
+            <a href="profile.html" class="nav-link">
+                <span>👤</span>
+                <span>Profile</span>
+            </a>
+
+        </nav>
+
+        <button
+            class="logout-btn"
+            id="logoutButton"
+        >
+            Logout
+        </button>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+
+            <button
+                class="menu-btn"
+                id="menuButton"
+                aria-label="Open menu"
+            >
+                ☰
+            </button>
+
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Welcome back to Dreypella Ride</p>
+            </div>
+
+            <div class="top-actions">
+
+                <button
+                    class="notification-btn"
+                    onclick="window.location.href='notifications.html'"
+                >
+                    🔔
+                    <span id="notificationCount">0</span>
+                </button>
+
+                <button
+                    class="profile-btn"
+                    onclick="window.location.href='profile.html'"
+                >
+                    <span class="profile-avatar" id="profileAvatar">
+                        U
+                    </span>
+
+                    <span
+                        class="profile-name"
+                        id="profileName"
+                    >
+                        User
+                    </span>
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- PAGE -->
+        <section class="dashboard-page">
+
+
+            <!-- WELCOME -->
+            <section class="welcome-card">
+
+                <div>
+                    <p class="small-label">
+                        DREYPELLA RIDE
+                    </p>
+
+                    <h2>
+                        Move. Send. Discover.
+                    </h2>
+
+                    <p>
+                        Your transportation, delivery and marketplace services in one place.
+                    </p>
+                </div>
+
+            </section>
+
+
+            <!-- QUICK ACTIONS -->
+            <section class="section">
+
+                <div class="section-heading">
+                    <h2>What do you need?</h2>
+                </div>
+
+                <div class="quick-actions">
+
+                    <a
+                        href="ride.html"
+                        class="action-card ride-action"
+                    >
+                        <div class="action-icon">
+                            🚐
+                        </div>
+
+                        <div>
+                            <h3>Book a Ride</h3>
+                            <p>Book an available trip</p>
+                        </div>
+
+                        <span class="action-arrow">→</span>
+                    </a>
+
+
+                    <a
+                        href="delivery.html"
+                        class="action-card delivery-action"
+                    >
+                        <div class="action-icon">
+                            📦
+                        </div>
+
+                        <div>
+                            <h3>Send a Package</h3>
+                            <p>Deliver anywhere</p>
+                        </div>
+
+                        <span class="action-arrow">→</span>
+                    </a>
+
+
+                    <a
+                        href="marketplace.html"
+                        class="action-card marketplace-action"
+                    >
+                        <div class="action-icon">
+                            🛍
+                        </div>
+
+                        <div>
+                            <h3>Marketplace</h3>
+                            <p>Shop from student vendors</p>
+                        </div>
+
+                        <span class="action-arrow">→</span>
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <!-- ACTIVE TRIP -->
+            <section
+                class="section"
+                id="activeTripSection"
+                style="display:none;"
+            >
+
+                <div class="section-heading">
+                    <h2>Active Trip</h2>
+
+                    <a href="tracking.html">
+                        Track
+                    </a>
+                </div>
+
+                <div class="active-trip-card">
+
+                    <div class="trip-status">
+                        <span class="status-dot"></span>
+                        <span id="activeTripStatus">
+                            Driver assigned
+                        </span>
+                    </div>
+
+                    <div class="trip-route">
+
+                        <div class="route-point">
+                            <span class="route-dot pickup"></span>
+
+                            <div>
+                                <small>Pickup</small>
+                                <strong id="activePickup">
+                                    —
+                                </strong>
+                            </div>
+                        </div>
+
+
+                        <div class="route-line"></div>
+
+
+                        <div class="route-point">
+                            <span class="route-dot destination"></span>
+
+                            <div>
+                                <small>Destination</small>
+                                <strong id="activeDestination">
+                                    —
+                                </strong>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="tracking-preview">
+
+                        <div class="fake-map">
+
+                            <div class="map-label">
+                                📍 Live location
+                            </div>
+
+                            <div class="map-route"></div>
+
+                            <div class="map-marker">
+                                🚐
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <a
+                        href="tracking.html"
+                        class="primary-button"
+                    >
+                        TRACK CURRENT TRIP
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <!-- ACCOUNT SUMMARY -->
+            <section class="section">
+
+                <div class="section-heading">
+                    <h2>Your Account</h2>
+                </div>
+
+                <div class="summary-grid">
+
+                    <a
+                        href="wallet.html"
+                        class="summary-card"
+                    >
+
+                        <div class="summary-icon">
+                            ₦
+                        </div>
+
+                        <div>
+                            <span>Wallet Balance</span>
+
+                            <strong id="walletBalance">
+                                ₦0.00
+                            </strong>
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="orders.html"
+                        class="summary-card"
+                    >
+
+                        <div class="summary-icon">
+                            🧾
+                        </div>
+
+                        <div>
+                            <span>Active Orders</span>
+
+                            <strong id="activeOrders">
+                                0
+                            </strong>
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="history.html"
+                        class="summary-card"
+                    >
+
+                        <div class="summary-icon">
+                            🕘
+                        </div>
+
+                        <div>
+                            <span>Completed Trips</span>
+
+                            <strong id="completedTrips">
+                                0
+                            </strong>
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <!-- RECENT ACTIVITY -->
+            <section class="section">
+
+                <div class="section-heading">
+
+                    <h2>Recent Activity</h2>
+
+                    <a href="history.html">
+                        View all
+                    </a>
+
+                </div>
+
+
+                <div
+                    class="activity-list"
+                    id="activityList"
+                >
+
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            🧾
+                        </div>
+
+                        <h3>No recent activity</h3>
+
+                        <p>
+                            Your rides, deliveries and orders will appear here.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- MOBILE BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+    <a
+        href="customer-dashboard.html"
+        class="bottom-link active"
+    >
+        <span>⌂</span>
+        <small>Home</small>
+    </a>
+
+    <a
+        href="ride.html"
+        class="bottom-link"
+    >
+        <span>🚐</span>
+        <small>Ride</small>
+    </a>
+
+    <a
+        href="delivery.html"
+        class="bottom-link"
+    >
+        <span>📦</span>
+        <small>Delivery</small>
+    </a>
+
+    <a
+        href="wallet.html"
+        class="bottom-link"
+    >
+        <span>₦</span>
+        <small>Wallet</small>
+    </a>
+
+    <a
+        href="profile.html"
+        class="bottom-link"
+    >
+        <span>👤</span>
+        <small>Account</small>
+    </a>
+
+</nav>
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="customer-dashboard.js"></script>
+
+</body>
+</html>

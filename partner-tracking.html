@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Live Delivery | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="partner-tracking.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="tracking-header">
+
+    <div class="brand">
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+    </div>
+
+</header>
+
+
+
+<main class="tracking-container">
+
+
+    <section class="hero-card">
+
+        <span class="eyebrow">
+            DELIVERY PARTNER
+        </span>
+
+        <h1>
+            Live Delivery Tracking
+        </h1>
+
+        <p>
+            Keep your location active while you are handling
+            a Dreypella delivery.
+        </p>
+
+    </section>
+
+
+
+    <section class="booking-card">
+
+        <label>
+            Booking Reference
+        </label>
+
+        <input
+            type="text"
+            id="bookingReference"
+            placeholder="e.g. DRP-123456"
+            autocomplete="off"
+        >
+
+        <button
+            id="startButton"
+            type="button"
+        >
+            START LIVE LOCATION
+        </button>
+
+        <button
+            id="stopButton"
+            type="button"
+            class="stop-button"
+            disabled
+        >
+            STOP LOCATION
+        </button>
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+    </section>
+
+
+
+    <section class="status-card">
+
+        <div class="status-row">
+
+            <div>
+
+                <span class="label">
+                    LOCATION STATUS
+                </span>
+
+                <h2 id="locationStatus">
+                    OFFLINE
+                </h2>
+
+            </div>
+
+            <div
+                id="statusIndicator"
+                class="status-indicator"
+            ></div>
+
+        </div>
+
+
+        <div class="coordinates">
+
+            <div>
+
+                <span>
+                    LATITUDE
+                </span>
+
+                <strong id="latitude">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    LONGITUDE
+                </span>
+
+                <strong id="longitude">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    LAST UPDATED
+                </span>
+
+                <strong id="lastUpdated">
+                    —
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="delivery-card">
+
+        <span class="label">
+            CURRENT DELIVERY
+        </span>
+
+        <h2 id="deliveryStatus">
+            No delivery selected
+        </h2>
+
+        <div class="route">
+
+            <div class="route-point">
+
+                <span class="dot pickup"></span>
+
+                <div>
+
+                    <small>
+                        PICKUP
+                    </small>
+
+                    <strong id="pickup">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="route-line"></div>
+
+
+            <div class="route-point">
+
+                <span class="dot destination"></span>
+
+                <div>
+
+                    <small>
+                        DESTINATION
+                    </small>
+
+                    <strong id="destination">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="notice-card">
+
+        <strong>
+            Important
+        </strong>
+
+        <p>
+            Keep location permission enabled and keep this page
+            active while you are delivering the package.
+            Dreypella uses your location to update the customer
+            and authorized administrators about the active delivery.
+        </p>
+
+    </section>
+
+
+</main>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="delivery-firebase.js"></script>
+
+<script src="partner-tracking.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Live Monitoring | Dreypella Ride Admin
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="admin-live-monitoring.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="admin-header">
+
+    <div class="brand">
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+    </div>
+
+
+    <div class="header-right">
+
+        <span class="live-dot"></span>
+
+        <strong>
+            LIVE MONITORING
+        </strong>
+
+    </div>
+
+</header>
+
+
+
+<main class="monitoring-container">
+
+
+    <section class="page-heading">
+
+        <div>
+
+            <span>
+                ADMIN OPERATIONS
+            </span>
+
+            <h1>
+                Live Monitoring
+            </h1>
+
+            <p>
+                Monitor active rides and deliveries in real time.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- SUMMARY -->
+
+    <section class="summary-grid">
+
+
+        <div class="summary-card">
+
+            <span>
+                ACTIVE RIDES
+            </span>
+
+            <strong id="activeRides">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                ACTIVE DELIVERIES
+            </span>
+
+            <strong id="activeDeliveries">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                PARTNERS ONLINE
+            </span>
+
+            <strong id="partnersOnline">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                COMPLETED TODAY
+            </span>
+
+            <strong id="completedToday">
+                0
+            </strong>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- FILTER -->
+
+    <section class="filter-card">
+
+        <div>
+
+            <label for="typeFilter">
+                TYPE
+            </label>
+
+            <select id="typeFilter">
+
+                <option value="ALL">
+                    All
+                </option>
+
+                <option value="RIDE">
+                    Rides
+                </option>
+
+                <option value="DELIVERY">
+                    Deliveries
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div>
+
+            <label for="statusFilter">
+                STATUS
+            </label>
+
+            <select id="statusFilter">
+
+                <option value="ALL">
+                    All Statuses
+                </option>
+
+                <option value="ACTIVE">
+                    Active
+                </option>
+
+                <option value="COMPLETED">
+                    Completed
+                </option>
+
+                <option value="CANCELLED">
+                    Cancelled
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button
+            id="refreshButton"
+            type="button"
+        >
+            REFRESH
+        </button>
+
+    </section>
+
+
+
+    <!-- MONITORING LIST -->
+
+    <section class="monitoring-card">
+
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>
+                    Current Operations
+                </h2>
+
+                <p id="connectionStatus">
+                    Connecting to Firestore...
+                </p>
+
+            </div>
+
+
+            <span
+                id="liveStatus"
+                class="status-online"
+            >
+                CONNECTING
+            </span>
+
+        </div>
+
+
+
+        <div
+            id="monitoringList"
+            class="monitoring-list"
+        >
+
+            <div class="empty-state">
+
+                <strong>
+                    Loading operations...
+                </strong>
+
+                <p>
+                    Connecting to live monitoring.
+                </p>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+
+<script src="firebase-config.js"></script>
+
+<script src="admin-live-monitoring.js"></script>
+
+
+</body>
+
+</html>

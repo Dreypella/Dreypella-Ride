@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Track Delivery | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="customer-delivery-tracking.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="tracking-header">
+
+    <div class="brand">
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+    </div>
+
+
+    <div class="booking">
+
+        Booking
+
+        <strong id="bookingReference">
+            Loading...
+        </strong>
+
+    </div>
+
+</header>
+
+
+
+<main class="tracking-container">
+
+
+    <section class="status-card">
+
+        <div>
+
+            <span class="small-title">
+                DELIVERY STATUS
+            </span>
+
+            <h1 id="deliveryStatus">
+                Loading...
+            </h1>
+
+            <p id="statusDescription">
+                Checking your delivery...
+            </p>
+
+        </div>
+
+
+        <div
+            id="statusIndicator"
+            class="status-indicator"
+        ></div>
+
+    </section>
+
+
+
+    <section class="route-card">
+
+        <div class="route-location">
+
+            <div class="dot pickup-dot"></div>
+
+            <div>
+
+                <span>
+                    PICKUP
+                </span>
+
+                <strong id="pickupLocation">
+                    Loading...
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="route-line">
+
+            <div
+                id="partnerProgress"
+                class="partner-progress"
+            ></div>
+
+        </div>
+
+
+        <div class="route-location">
+
+            <div class="dot destination-dot"></div>
+
+            <div>
+
+                <span>
+                    DESTINATION
+                </span>
+
+                <strong id="destinationLocation">
+                    Loading...
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <section
+        id="partnerCard"
+        class="partner-card"
+        style="display:none;"
+    >
+
+        <div class="partner-avatar">
+            DR
+        </div>
+
+
+        <div class="partner-details">
+
+            <span>
+                YOUR DELIVERY PARTNER
+            </span>
+
+            <h2 id="partnerName">
+                Dreypella Partner
+            </h2>
+
+            <p id="partnerType">
+                Delivery Partner
+            </p>
+
+            <p id="vehicleInfo">
+                —
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="location-card">
+
+        <div class="map-header">
+
+            <div>
+
+                <h2>
+                    Live Location
+                </h2>
+
+                <p id="locationStatus">
+                    Waiting for partner location...
+                </p>
+
+            </div>
+
+
+            <div
+                id="liveBadge"
+                class="live-badge"
+            >
+                OFFLINE
+            </div>
+
+        </div>
+
+
+        <!--
+            This is a lightweight map area.
+
+            We are not using Google Maps,
+            so you don't need a Google Maps API key.
+        -->
+
+        <div
+            id="liveMap"
+            class="live-map"
+        >
+
+            <div
+                id="mapGrid"
+                class="map-grid"
+            ></div>
+
+
+            <div
+                id="pickupMarker"
+                class="map-marker pickup-marker"
+            >
+                P
+            </div>
+
+
+            <div
+                id="partnerMarker"
+                class="map-marker partner-marker"
+            >
+                🚚
+            </div>
+
+
+            <div
+                id="destinationMarker"
+                class="map-marker destination-marker"
+            >
+                D
+            </div>
+
+
+            <div
+                id="mapMessage"
+                class="map-message"
+            >
+                Waiting for live location
+            </div>
+
+        </div>
+
+
+        <div class="coordinates">
+
+            <div>
+
+                <span>
+                    Latitude
+                </span>
+
+                <strong id="latitude">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Longitude
+                </span>
+
+                <strong id="longitude">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Updated
+                </span>
+
+                <strong id="lastUpdated">
+                    —
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="info-grid">
+
+        <div class="info-card">
+
+            <span>
+                DISTANCE
+            </span>
+
+            <strong id="distance">
+                —
+            </strong>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span>
+                ESTIMATED TIME
+            </span>
+
+            <strong id="estimatedTime">
+                —
+            </strong>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span>
+                DELIVERY METHOD
+            </span>
+
+            <strong id="deliveryMethod">
+                —
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <section class="timeline-card">
+
+        <h2>
+            Delivery Progress
+        </h2>
+
+
+        <div class="timeline">
+
+
+            <div
+                id="timelineConfirmed"
+                class="timeline-item"
+            >
+
+                <div class="timeline-dot">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Delivery Confirmed
+                    </strong>
+
+                    <span>
+                        Your request has been received.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                id="timelineAssigned"
+                class="timeline-item"
+            >
+
+                <div class="timeline-dot">
+                    2
+                </div>
+
+                <div>
+
+                    <strong>
+                        Partner Assigned
+                    </strong>
+
+                    <span>
+                        A Dreypella partner has been assigned.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                id="timelinePickup"
+                class="timeline-item"
+            >
+
+                <div class="timeline-dot">
+                    3
+                </div>
+
+                <div>
+
+                    <strong>
+                        Package Picked Up
+                    </strong>
+
+                    <span>
+                        Your package has been collected.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                id="timelineTransit"
+                class="timeline-item"
+            >
+
+                <div class="timeline-dot">
+                    4
+                </div>
+
+                <div>
+
+                    <strong>
+                        In Transit
+                    </strong>
+
+                    <span>
+                        Your package is on its way.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                id="timelineDelivered"
+                class="timeline-item"
+            >
+
+                <div class="timeline-dot">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Delivered
+                    </strong>
+
+                    <span>
+                        Package delivered successfully.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <button
+        class="support-button"
+        onclick="contactSupport()"
+    >
+        Need Help?
+    </button>
+
+
+</main>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+
+<script src="firebase-config.js"></script>
+
+<script src="delivery-firebase.js"></script>
+
+<script src="customer-delivery-tracking.js"></script>
+
+
+</body>
+
+</html>

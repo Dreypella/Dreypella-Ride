@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ride Checkout | Dreypella Ride</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
+
+    <style>
+
+        .checkout-page {
+
+            background: #F5F7FA;
+
+            min-height: 80vh;
+
+            padding: 50px 0 80px;
+
+        }
+
+
+        .checkout-container {
+
+            max-width: 800px;
+
+            margin: auto;
+
+        }
+
+
+        .checkout-card {
+
+            background: #FFFFFF;
+
+            border-radius: 18px;
+
+            padding: 28px;
+
+            border: 1px solid #E5E7EB;
+
+            box-shadow:
+                0 10px 30px
+                rgba(8,27,90,.07);
+
+        }
+
+
+        .checkout-card h1 {
+
+            color: #081B5A;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .checkout-intro {
+
+            color: #6B7280;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .booking-summary {
+
+            background: #F5F7FA;
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .summary-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 10px 0;
+
+            border-bottom:
+                1px solid #E5E7EB;
+
+        }
+
+
+        .summary-row:last-child {
+
+            border-bottom: none;
+
+        }
+
+
+        .summary-row span {
+
+            color: #6B7280;
+
+            font-size: 13px;
+
+        }
+
+
+        .summary-row strong {
+
+            color: #081B5A;
+
+            text-align: right;
+
+        }
+
+
+        .form-group {
+
+            margin-bottom: 17px;
+
+        }
+
+
+        .form-group label {
+
+            display: block;
+
+            color: #081B5A;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            margin-bottom: 7px;
+
+        }
+
+
+        .form-group input {
+
+            width: 100%;
+
+            min-height: 48px;
+
+            padding: 0 14px;
+
+            border: 1px solid #D1D5DB;
+
+            border-radius: 9px;
+
+            outline: none;
+
+        }
+
+
+        .confirm-button {
+
+            width: 100%;
+
+            min-height: 50px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #E31B23;
+
+            color: #FFFFFF;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            margin-top: 10px;
+
+        }
+
+
+        .back-link {
+
+            display: inline-block;
+
+            margin-bottom: 20px;
+
+            color: #081B5A;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<section class="page-header">
+
+    <div class="container">
+
+        <h1>Confirm Booking</h1>
+
+        <p>
+            Review your trip before continuing.
+        </p>
+
+    </div>
+
+</section>
+
+
+<section class="checkout-page">
+
+    <div class="container checkout-container">
+
+        <a
+            href="ride.html"
+            class="back-link"
+        >
+            ← Back to rides
+        </a>
+
+
+        <div class="checkout-card">
+
+            <h1>
+                Your Trip
+            </h1>
+
+            <p class="checkout-intro">
+
+                Confirm your details.
+
+            </p>
+
+
+            <div
+                id="bookingSummary"
+                class="booking-summary"
+            >
+
+                Loading trip...
+
+            </div>
+
+
+            <form id="bookingForm">
+
+
+                <div class="form-group">
+
+                    <label>
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="customerName"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Phone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="customerPhone"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="customerEmail"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="confirm-button"
+                >
+                    CONTINUE TO PAYMENT
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const storedTrip =
+            localStorage.getItem(
+                "dreypellaSelectedTrip"
+            );
+
+
+        const summary =
+            document.getElementById(
+                "bookingSummary"
+            );
+
+
+        if (!storedTrip) {
+
+            summary.innerHTML = `
+
+                <p>
+                    No trip has been selected.
+                </p>
+
+                <br>
+
+                <a href="ride.html">
+                    Return to available rides
+                </a>
+
+            `;
+
+            return;
+
+        }
+
+
+        const trip =
+            JSON.parse(
+                storedTrip
+            );
+
+
+        const price =
+            Number(trip.price)
+                .toLocaleString(
+                    "en-NG"
+                );
+
+
+        summary.innerHTML = `
+
+            <div class="summary-row">
+
+                <span>
+                    Route
+                </span>
+
+                <strong>
+                    ${trip.origin}
+                    →
+                    ${trip.destination}
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Pickup / Gathering Point
+                </span>
+
+                <strong>
+                    ${trip.origin}
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Departure
+                </span>
+
+                <strong>
+                    ${trip.time}
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Vehicle
+                </span>
+
+                <strong>
+                    ${trip.vehicle}
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Trip Price
+                </span>
+
+                <strong>
+                    ₦${price}
+                </strong>
+
+            </div>
+
+        `;
+
+
+        const form =
+            document.getElementById(
+                "bookingForm"
+            );
+
+
+        form.addEventListener(
+            "submit",
+            function (event) {
+
+                event.preventDefault();
+
+
+                /*
+                    This is where the real
+                    Paystack/Firebase booking
+                    process will eventually go.
+                */
+
+                alert(
+                    "Booking details received. Payment integration will be connected next."
+                );
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>

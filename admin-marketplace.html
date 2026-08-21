@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Admin Marketplace Management | Dreypella Ride
+</title>
+
+<link
+    rel="stylesheet"
+    href="admin-marketplace.css"
+>
+
+</head>
+
+
+<body>
+
+
+<header class="admin-header">
+
+    <div class="brand">
+
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+
+    </div>
+
+
+    <div class="admin-title">
+
+        <span>ADMIN</span>
+
+        <strong>
+            Marketplace Management
+        </strong>
+
+    </div>
+
+
+    <button
+        id="logoutButton"
+        class="logout-button"
+    >
+        LOGOUT
+    </button>
+
+</header>
+
+
+
+<main class="admin-container">
+
+
+    <!-- PAGE HEADING -->
+
+    <section class="page-heading">
+
+        <div>
+
+            <span>
+                MARKETPLACE CONTROL
+            </span>
+
+            <h1>
+                Marketplace Management
+            </h1>
+
+            <p>
+                Manage vendors, products, orders,
+                platform fees and marketplace activity.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ANALYTICS -->
+
+    <section class="stats-grid">
+
+
+        <div class="stat-card">
+
+            <span>
+                TOTAL VENDORS
+            </span>
+
+            <strong id="totalVendors">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                PENDING VENDORS
+            </span>
+
+            <strong id="pendingVendors">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                TOTAL PRODUCTS
+            </span>
+
+            <strong id="totalProducts">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                PENDING PRODUCTS
+            </span>
+
+            <strong id="pendingProducts">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                TOTAL ORDERS
+            </span>
+
+            <strong id="totalOrders">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card revenue">
+
+            <span>
+                PLATFORM REVENUE
+            </span>
+
+            <strong id="platformRevenue">
+                ₦0
+            </strong>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- TABS -->
+
+    <nav class="admin-tabs">
+
+        <button
+            class="tab-button active"
+            data-section="vendors"
+        >
+            Vendors
+        </button>
+
+
+        <button
+            class="tab-button"
+            data-section="products"
+        >
+            Products
+        </button>
+
+
+        <button
+            class="tab-button"
+            data-section="orders"
+        >
+            Orders
+        </button>
+
+
+        <button
+            class="tab-button"
+            data-section="categories"
+        >
+            Categories
+        </button>
+
+    </nav>
+
+
+
+    <!-- ============================= -->
+    <!-- VENDORS -->
+    <!-- ============================= -->
+
+    <section
+        id="vendorsSection"
+        class="management-section active"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>
+                    Vendor Management
+                </h2>
+
+                <p>
+                    Approve, suspend and monitor marketplace vendors.
+                </p>
+
+            </div>
+
+
+            <select id="vendorFilter">
+
+                <option value="ALL">
+                    All Vendors
+                </option>
+
+                <option value="PENDING">
+                    Pending
+                </option>
+
+                <option value="APPROVED">
+                    Approved
+                </option>
+
+                <option value="SUSPENDED">
+                    Suspended
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            id="vendorList"
+            class="data-list"
+        >
+
+            <div class="loading">
+                Loading vendors...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ============================= -->
+    <!-- PRODUCTS -->
+    <!-- ============================= -->
+
+    <section
+        id="productsSection"
+        class="management-section"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>
+                    Product Management
+                </h2>
+
+                <p>
+                    Review and control products uploaded by vendors.
+                </p>
+
+            </div>
+
+
+            <select id="productFilter">
+
+                <option value="ALL">
+                    All Products
+                </option>
+
+                <option value="PENDING">
+                    Pending
+                </option>
+
+                <option value="APPROVED">
+                    Approved
+                </option>
+
+                <option value="REJECTED">
+                    Rejected
+                </option>
+
+                <option value="OUT_OF_STOCK">
+                    Out of Stock
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            id="productList"
+            class="data-list"
+        >
+
+            <div class="loading">
+                Loading products...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ============================= -->
+    <!-- ORDERS -->
+    <!-- ============================= -->
+
+    <section
+        id="ordersSection"
+        class="management-section"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>
+                    Marketplace Orders
+                </h2>
+
+                <p>
+                    Monitor customer orders and platform earnings.
+                </p>
+
+            </div>
+
+
+            <select id="orderFilter">
+
+                <option value="ALL">
+                    All Orders
+                </option>
+
+                <option value="PENDING">
+                    Pending
+                </option>
+
+                <option value="PROCESSING">
+                    Processing
+                </option>
+
+                <option value="SHIPPED">
+                    Shipped
+                </option>
+
+                <option value="DELIVERED">
+                    Delivered
+                </option>
+
+                <option value="CANCELLED">
+                    Cancelled
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            id="orderList"
+            class="data-list"
+        >
+
+            <div class="loading">
+                Loading orders...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ============================= -->
+    <!-- CATEGORIES -->
+    <!-- ============================= -->
+
+    <section
+        id="categoriesSection"
+        class="management-section"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>
+                    Marketplace Categories
+                </h2>
+
+                <p>
+                    Categories available to marketplace vendors.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="categoryList"
+            class="category-grid"
+        >
+
+        </div>
+
+
+        <div class="add-category">
+
+            <input
+                id="categoryInput"
+                type="text"
+                placeholder="New category"
+            >
+
+
+            <button
+                id="addCategoryButton"
+            >
+                ADD CATEGORY
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ============================= -->
+    <!-- PRODUCT/VENDOR MODAL -->
+    <!-- ============================= -->
+
+    <div
+        id="managementModal"
+        class="modal"
+    >
+
+        <div class="modal-content">
+
+            <button
+                id="closeModal"
+                class="close-modal"
+            >
+                ×
+            </button>
+
+
+            <div id="modalContent">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</main>
+
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+
+<script src="firebase-config.js"></script>
+
+<script src="admin-marketplace.js"></script>
+
+
+</body>
+
+</html>

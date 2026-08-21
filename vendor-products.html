@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>My Products | Dreypella Ride</title>
+
+<link
+    rel="stylesheet"
+    href="vendor-products.css"
+>
+
+</head>
+
+<body>
+
+
+<header class="vendor-header">
+
+    <a
+        href="vendor-dashboard.html"
+        class="brand"
+    >
+
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+
+    </a>
+
+
+    <a
+        href="vendor-dashboard.html"
+        class="back-button"
+    >
+        Dashboard
+    </a>
+
+</header>
+
+
+
+<main class="products-container">
+
+
+    <!-- PAGE HEADER -->
+
+    <section class="page-header">
+
+        <div>
+
+            <span class="eyebrow">
+                VENDOR CENTER
+            </span>
+
+            <h1>
+                My Products
+            </h1>
+
+            <p>
+                Manage the products and services available
+                on your Dreypella marketplace.
+            </p>
+
+        </div>
+
+
+        <button
+            id="addProductButton"
+            class="primary-button"
+        >
+            + ADD PRODUCT
+        </button>
+
+    </section>
+
+
+
+    <!-- SUMMARY -->
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+
+            <span>
+                TOTAL PRODUCTS
+            </span>
+
+            <strong id="totalProducts">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                ACTIVE
+            </span>
+
+            <strong id="activeProducts">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                OUT OF STOCK
+            </span>
+
+            <strong id="outOfStockProducts">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                CATEGORIES
+            </span>
+
+            <strong id="categoryCount">
+                0
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- FILTERS -->
+
+    <section class="filter-card">
+
+        <div class="search-box">
+
+            <input
+                type="search"
+                id="productSearch"
+                placeholder="Search your products..."
+            >
+
+        </div>
+
+
+        <select id="categoryFilter">
+
+            <option value="ALL">
+                All Categories
+            </option>
+
+            <option value="FOOD">
+                Food
+            </option>
+
+            <option value="FASHION">
+                Clothes / Fashion
+            </option>
+
+            <option value="ELECTRONICS">
+                Electronics
+            </option>
+
+            <option value="GROCERIES">
+                Groceries
+            </option>
+
+            <option value="BEAUTY">
+                Beauty / Cosmetics
+            </option>
+
+            <option value="ACCESSORIES">
+                Accessories
+            </option>
+
+            <option value="SERVICES">
+                Services
+            </option>
+
+            <option value="OTHER">
+                Other
+            </option>
+
+        </select>
+
+
+        <select id="statusFilter">
+
+            <option value="ALL">
+                All Status
+            </option>
+
+            <option value="ACTIVE">
+                Active
+            </option>
+
+            <option value="INACTIVE">
+                Inactive
+            </option>
+
+            <option value="OUT_OF_STOCK">
+                Out of Stock
+            </option>
+
+        </select>
+
+    </section>
+
+
+
+    <!-- MESSAGE -->
+
+    <div
+        id="productMessage"
+        class="message"
+    ></div>
+
+
+
+    <!-- PRODUCTS -->
+
+    <section
+        id="productsGrid"
+        class="products-grid"
+    >
+
+        <div class="loading">
+            Loading products...
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- PRODUCT MODAL -->
+
+<div
+    id="productModal"
+    class="modal hidden"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+
+                <span class="eyebrow">
+                    PRODUCT
+                </span>
+
+                <h2 id="modalTitle">
+                    Add Product
+                </h2>
+
+            </div>
+
+
+            <button
+                id="closeModal"
+                class="close-button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+
+        <form id="productForm">
+
+
+            <input
+                type="hidden"
+                id="productId"
+            >
+
+
+            <!-- PRODUCT NAME -->
+
+            <label>
+                Product / Service Name
+            </label>
+
+            <input
+                type="text"
+                id="productName"
+                placeholder="e.g. Jollof Rice"
+                required
+            >
+
+
+
+            <!-- CATEGORY -->
+
+            <label>
+                Category
+            </label>
+
+            <select
+                id="productCategory"
+                required
+            >
+
+                <option value="">
+                    Select category
+                </option>
+
+                <option value="FOOD">
+                    Food
+                </option>
+
+                <option value="FASHION">
+                    Clothes / Fashion
+                </option>
+
+                <option value="ELECTRONICS">
+                    Electronics
+                </option>
+
+                <option value="GROCERIES">
+                    Groceries
+                </option>
+
+                <option value="BEAUTY">
+                    Beauty / Cosmetics
+                </option>
+
+                <option value="ACCESSORIES">
+                    Accessories
+                </option>
+
+                <option value="SERVICES">
+                    Services
+                </option>
+
+                <option value="OTHER">
+                    Other
+                </option>
+
+            </select>
+
+
+
+            <!-- DESCRIPTION -->
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="productDescription"
+                rows="4"
+                placeholder="Describe your product..."
+                required
+            ></textarea>
+
+
+
+            <!-- PRICE -->
+
+            <div class="two-columns">
+
+                <div>
+
+                    <label>
+                        Your Selling Price (₦)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="vendorPrice"
+                        min="0"
+                        step="0.01"
+                        placeholder="10000"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Stock Quantity
+                    </label>
+
+                    <input
+                        type="number"
+                        id="stockQuantity"
+                        min="0"
+                        step="1"
+                        value="1"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+
+            <!-- AUTOMATIC PLATFORM FEE -->
+
+            <div class="price-preview">
+
+                <div>
+
+                    <span>
+                        Your Price
+                    </span>
+
+                    <strong id="vendorPricePreview">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Platform Fee (5%)
+                    </span>
+
+                    <strong id="platformFeePreview">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+                <div class="customer-price">
+
+                    <span>
+                        Customer Pays
+                    </span>
+
+                    <strong id="customerPricePreview">
+                        ₦0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- OPTIONAL VARIANTS -->
+
+            <label>
+                Variants
+                <small>
+                    Optional
+                </small>
+            </label>
+
+            <input
+                type="text"
+                id="productVariants"
+                placeholder="e.g. Small, Medium, Large / Red, Blue"
+            >
+
+
+
+            <!-- IMAGE -->
+
+            <label>
+                Product Image URL
+                <small>
+                    Optional
+                </small>
+            </label>
+
+            <input
+                type="url"
+                id="productImage"
+                placeholder="https://..."
+            >
+
+
+
+            <!-- STATUS -->
+
+            <label>
+                Product Status
+            </label>
+
+            <select id="productStatus">
+
+                <option value="ACTIVE">
+                    Active
+                </option>
+
+                <option value="INACTIVE">
+                    Inactive
+                </option>
+
+            </select>
+
+
+
+            <div
+                id="formMessage"
+                class="message"
+            ></div>
+
+
+
+            <button
+                type="submit"
+                id="saveProductButton"
+                class="primary-button full"
+            >
+                SAVE PRODUCT
+            </button>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="vendor-products.js"></script>
+
+</body>
+
+</html>

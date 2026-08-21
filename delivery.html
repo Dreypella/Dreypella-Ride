@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Send a Package | Dreypella Ride</title>
+
+    <link
+        rel="stylesheet"
+        href="delivery.css"
+    >
+</head>
+
+<body>
+
+<header class="delivery-header">
+
+    <a href="index.html" class="logo">
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </a>
+
+    <a href="customer-dashboard.html" class="dashboard-link">
+        Dashboard
+    </a>
+
+</header>
+
+
+<main class="delivery-container">
+
+    <section class="delivery-card">
+
+        <div class="page-heading">
+
+            <span class="heading-icon">📦</span>
+
+            <div>
+                <h1>Send a Package</h1>
+
+                <p>
+                    Enter your pickup and destination.
+                </p>
+            </div>
+
+        </div>
+
+
+        <form id="deliveryForm">
+
+
+            <!-- PICKUP -->
+
+            <div class="location-section">
+
+                <label for="pickup">
+                    Pickup Location
+                </label>
+
+                <div class="location-input">
+
+                    <input
+                        type="text"
+                        id="pickup"
+                        placeholder="Street, landmark, hostel or business"
+                        autocomplete="off"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        id="currentLocationBtn"
+                        title="Use my current location"
+                    >
+                        📍
+                    </button>
+
+                </div>
+
+                <div
+                    id="pickupSuggestions"
+                    class="suggestions"
+                ></div>
+
+            </div>
+
+
+            <!-- DESTINATION -->
+
+            <div class="location-section">
+
+                <label for="destination">
+                    Destination
+                </label>
+
+                <input
+                    type="text"
+                    id="destination"
+                    placeholder="Where should we deliver it?"
+                    autocomplete="off"
+                    required
+                >
+
+                <div
+                    id="destinationSuggestions"
+                    class="suggestions"
+                ></div>
+
+            </div>
+
+
+            <!-- PACKAGE -->
+
+            <div class="section-title">
+                Package Details
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="packageCategory">
+                    Package Category
+                </label>
+
+                <select
+                    id="packageCategory"
+                    required
+                >
+
+                    <option value="">
+                        Select category
+                    </option>
+
+                    <option value="food">
+                        Food
+                    </option>
+
+                    <option value="document">
+                        Document
+                    </option>
+
+                    <option value="clothing">
+                        Clothing
+                    </option>
+
+                    <option value="electronics">
+                        Electronics
+                    </option>
+
+                    <option value="medicine">
+                        Medicine
+                    </option>
+
+                    <option value="parcel">
+                        General Parcel
+                    </option>
+
+                    <option value="other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="packageSize">
+                        Package Size
+                    </label>
+
+                    <select id="packageSize">
+
+                        <option value="small">
+                            Small
+                        </option>
+
+                        <option value="medium">
+                            Medium
+                        </option>
+
+                        <option value="large">
+                            Large
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="packageWeight">
+                        Approx. Weight
+                    </label>
+
+                    <select id="packageWeight">
+
+                        <option value="1">
+                            Up to 1kg
+                        </option>
+
+                        <option value="5">
+                            1kg - 5kg
+                        </option>
+
+                        <option value="10">
+                            5kg - 10kg
+                        </option>
+
+                        <option value="20">
+                            10kg - 20kg
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- RECIPIENT -->
+
+            <div class="section-title">
+                Recipient
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="recipientName">
+                    Recipient Name
+                </label>
+
+                <input
+                    type="text"
+                    id="recipientName"
+                    placeholder="Full name"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="recipientPhone">
+                    Recipient Phone
+                </label>
+
+                <input
+                    type="tel"
+                    id="recipientPhone"
+                    placeholder="08012345678"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="instructions">
+                    Delivery Instructions
+                </label>
+
+                <textarea
+                    id="instructions"
+                    placeholder="Add landmark or special instructions"
+                    rows="3"
+                ></textarea>
+
+            </div>
+
+
+            <!-- DELIVERY METHOD -->
+
+            <div class="section-title">
+                Delivery Method
+            </div>
+
+
+            <div class="delivery-methods">
+
+
+                <label class="method-card">
+
+                    <input
+                        type="radio"
+                        name="deliveryMethod"
+                        value="WALKER"
+                        checked
+                    >
+
+                    <div class="method-content">
+
+                        <span class="method-icon">
+                            🚶
+                        </span>
+
+                        <strong>
+                            Walker
+                        </strong>
+
+                        <small>
+                            For suitable nearby packages
+                        </small>
+
+                    </div>
+
+                </label>
+
+
+                <label class="method-card">
+
+                    <input
+                        type="radio"
+                        name="deliveryMethod"
+                        value="RIDER"
+                    >
+
+                    <div class="method-content">
+
+                        <span class="method-icon">
+                            🏍️
+                        </span>
+
+                        <strong>
+                            Rider
+                        </strong>
+
+                        <small>
+                            Motorcycle delivery
+                        </small>
+
+                    </div>
+
+                </label>
+
+
+                <label class="method-card">
+
+                    <input
+                        type="radio"
+                        name="deliveryMethod"
+                        value="VEHICLE"
+                    >
+
+                    <div class="method-content">
+
+                        <span class="method-icon">
+                            🚗
+                        </span>
+
+                        <strong>
+                            Vehicle
+                        </strong>
+
+                        <small>
+                            Larger packages
+                        </small>
+
+                    </div>
+
+                </label>
+
+
+            </div>
+
+
+            <!-- CALCULATE -->
+
+            <button
+                type="button"
+                id="calculateBtn"
+                class="calculate-btn"
+            >
+                CALCULATE DELIVERY
+            </button>
+
+
+            <!-- RESULT -->
+
+            <div
+                id="deliveryResult"
+                class="delivery-result hidden"
+            >
+
+                <div class="route-summary">
+
+                    <div>
+
+                        <span>
+                            PICKUP
+                        </span>
+
+                        <strong id="resultPickup">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="route-arrow">
+                        ↓
+                    </div>
+
+                    <div>
+
+                        <span>
+                            DESTINATION
+                        </span>
+
+                        <strong id="resultDestination">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="route-info">
+
+                    <div>
+                        <span>Distance</span>
+                        <strong id="distanceDisplay">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Estimated Time</span>
+                        <strong id="timeDisplay">—</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="price-box">
+
+                    <span>
+                        Delivery Fee
+                    </span>
+
+                    <strong id="priceDisplay">
+                        ₦0
+                    </strong>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="confirm-btn"
+                >
+                    CONTINUE TO BOOKING
+                </button>
+
+            </div>
+
+
+            <div
+                id="deliveryMessage"
+                class="message"
+            ></div>
+
+
+        </form>
+
+    </section>
+
+</main>
+
+
+<script src="delivery.js"></script>
+
+</body>
+</html>
