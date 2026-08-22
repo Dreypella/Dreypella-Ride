@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Dreypella Ride | Admin Dashboard</title>
+
+<link
+    rel="stylesheet"
+    href="admin.css"
+>
+
+</head>
+
+<body>
+
+
+<!-- MOBILE HEADER -->
+
+<header class="mobile-header">
+
+    <div class="brand">
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </div>
+
+    <button
+        id="menuButton"
+        class="menu-button"
+    >
+        ☰
+    </button>
+
+</header>
+
+
+
+<!-- SIDEBAR -->
+
+<aside
+    id="sidebar"
+    class="sidebar"
+>
+
+    <div class="sidebar-brand">
+
+        <strong>
+            DREYPELLA
+        </strong>
+
+        <span>
+            ADMIN
+        </span>
+
+    </div>
+
+
+    <nav>
+
+
+        <button
+            class="nav-item active"
+            data-section="overview"
+        >
+            <span>▦</span>
+            Overview
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="rides"
+        >
+            <span>🚐</span>
+            Rides
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="deliveries"
+        >
+            <span>📦</span>
+            Deliveries
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="users"
+        >
+            <span>👥</span>
+            Users
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="partners"
+        >
+            <span>🛵</span>
+            Partners
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="vendors"
+        >
+            <span>🛍</span>
+            Vendors
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="pricing"
+        >
+            <span>₦</span>
+            Pricing
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="withdrawals"
+        >
+            <span>↗</span>
+            Withdrawals
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="finance"
+        >
+            <span>₦</span>
+            Finance
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="support"
+        >
+            <span>?</span>
+            Support
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-section="settings"
+        >
+            <span>⚙</span>
+            Settings
+        </button>
+
+
+    </nav>
+
+
+    <button
+        id="logoutButton"
+        class="logout-button"
+    >
+        Logout
+    </button>
+
+
+</aside>
+
+
+
+<!-- MAIN -->
+
+<main class="main-content">
+
+
+    <!-- OVERVIEW -->
+
+    <section
+        id="overview"
+        class="admin-section active"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    ADMIN CONTROL CENTER
+                </small>
+
+                <h1>
+                    Dashboard
+                </h1>
+
+                <p>
+                    Manage Dreypella Ride operations.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+
+            <div class="stat-card">
+
+                <span>
+                    USERS
+                </span>
+
+                <strong id="totalUsers">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    RIDES
+                </span>
+
+                <strong id="totalRides">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    DELIVERIES
+                </span>
+
+                <strong id="totalDeliveries">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    VENDORS
+                </span>
+
+                <strong id="totalVendors">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    ACTIVE TRIPS
+                </span>
+
+                <strong id="activeTrips">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    PENDING WITHDRAWALS
+                </span>
+
+                <strong id="pendingWithdrawals">
+                    0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="dashboard-grid">
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <h2>
+                        Recent Rides
+                    </h2>
+
+                    <button
+                        class="small-button"
+                        data-section-link="rides"
+                    >
+                        View All
+                    </button>
+
+                </div>
+
+                <div id="recentRides">
+                    Loading...
+                </div>
+
+            </div>
+
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <h2>
+                        Recent Deliveries
+                    </h2>
+
+                    <button
+                        class="small-button"
+                        data-section-link="deliveries"
+                    >
+                        View All
+                    </button>
+
+                </div>
+
+                <div id="recentDeliveries">
+                    Loading...
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- RIDES -->
+
+    <section
+        id="rides"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    TRANSPORT OPERATIONS
+                </small>
+
+                <h1>
+                    Available Rides
+                </h1>
+
+                <p>
+                    You control where, when and how rides are offered.
+                </p>
+
+            </div>
+
+
+            <button
+                id="addRideButton"
+                class="primary-button"
+            >
+                + Add Ride
+            </button>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="ridesTable"
+                class="table-container"
+            >
+                Loading rides...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- DELIVERIES -->
+
+    <section
+        id="deliveries"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    LOGISTICS
+                </small>
+
+                <h1>
+                    Deliveries
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="deliveriesTable"
+                class="table-container"
+            >
+                Loading deliveries...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- USERS -->
+
+    <section
+        id="users"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    ACCOUNTS
+                </small>
+
+                <h1>
+                    Users
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="usersTable"
+                class="table-container"
+            >
+                Loading users...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- PARTNERS -->
+
+    <section
+        id="partners"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    DELIVERY PARTNERS
+                </small>
+
+                <h1>
+                    Partners
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="partnersTable"
+                class="table-container"
+            >
+                Loading partners...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- VENDORS -->
+
+    <section
+        id="vendors"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    MARKETPLACE
+                </small>
+
+                <h1>
+                    Vendors
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="vendorsTable"
+                class="table-container"
+            >
+                Loading vendors...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- PRICING -->
+
+    <section
+        id="pricing"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    PRICING CONTROL
+                </small>
+
+                <h1>
+                    Delivery Pricing
+                </h1>
+
+                <p>
+                    Change prices without editing the customer website.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel pricing-panel">
+
+
+            <div class="form-grid">
+
+
+                <div class="field">
+
+                    <label>
+                        Base Fare
+                    </label>
+
+                    <input
+                        type="number"
+                        id="baseFare"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Price Per KM
+                    </label>
+
+                    <input
+                        type="number"
+                        id="pricePerKm"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Minimum Delivery Fee
+                    </label>
+
+                    <input
+                        type="number"
+                        id="minimumDeliveryFee"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Maximum Delivery Fee
+                    </label>
+
+                    <input
+                        type="number"
+                        id="maximumDeliveryFee"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Walker Difference
+                    </label>
+
+                    <input
+                        type="number"
+                        id="walkerDifference"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Medium Package Fee
+                    </label>
+
+                    <input
+                        type="number"
+                        id="mediumPackageFee"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Large Package Fee
+                    </label>
+
+                    <input
+                        type="number"
+                        id="largePackageFee"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Extra Weight Per KG
+                    </label>
+
+                    <input
+                        type="number"
+                        id="extraWeightPerKg"
+                    >
+
+                </div>
+
+
+            </div>
+
+
+            <h2 class="sub-heading">
+                Revenue Split
+            </h2>
+
+
+            <div class="form-grid">
+
+
+                <div class="field">
+
+                    <label>
+                        Partner %
+                    </label>
+
+                    <input
+                        type="number"
+                        id="partnerPercentage"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Platform %
+                    </label>
+
+                    <input
+                        type="number"
+                        id="platformPercentage"
+                    >
+
+                </div>
+
+
+            </div>
+
+
+            <button
+                id="savePricing"
+                class="primary-button full-button"
+            >
+                SAVE PRICING
+            </button>
+
+
+            <div
+                id="pricingMessage"
+                class="message"
+            ></div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- WITHDRAWALS -->
+
+    <section
+        id="withdrawals"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    FINANCIAL OPERATIONS
+                </small>
+
+                <h1>
+                    Withdrawals
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="withdrawalsTable"
+                class="table-container"
+            >
+                Loading withdrawals...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- FINANCE -->
+
+    <section
+        id="finance"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    FINANCIAL ANALYTICS
+                </small>
+
+                <h1>
+                    Finance
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="finance-grid">
+
+
+            <div class="finance-card">
+
+                <span>
+                    Gross Revenue
+                </span>
+
+                <strong id="grossRevenue">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div class="finance-card">
+
+                <span>
+                    Partner Payouts
+                </span>
+
+                <strong id="partnerPayouts">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div class="finance-card">
+
+                <span>
+                    Platform Revenue
+                </span>
+
+                <strong id="platformRevenue">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div class="finance-card">
+
+                <span>
+                    Expenses
+                </span>
+
+                <strong id="expenses">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div class="finance-card">
+
+                <span>
+                    Net Revenue
+                </span>
+
+                <strong id="netRevenue">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- SUPPORT -->
+
+    <section
+        id="support"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    CUSTOMER SERVICE
+                </small>
+
+                <h1>
+                    Support
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div
+                id="supportTable"
+                class="table-container"
+            >
+                Loading tickets...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- SETTINGS -->
+
+    <section
+        id="settings"
+        class="admin-section"
+    >
+
+        <div class="page-heading">
+
+            <div>
+
+                <small>
+                    PLATFORM SETTINGS
+                </small>
+
+                <h1>
+                    Settings
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <h2>
+                Dreypella Ride
+            </h2>
+
+            <p>
+                Platform administration and configuration.
+            </p>
+
+            <div class="settings-info">
+
+                <div>
+                    <strong>Location Focus</strong>
+                    <span>LAUTECH / Ogbomoso</span>
+                </div>
+
+                <div>
+                    <strong>Currency</strong>
+                    <span>Nigerian Naira (₦)</span>
+                </div>
+
+                <div>
+                    <strong>Platform</strong>
+                    <span>Dreypella Ride</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- RIDE MODAL -->
+
+<div
+    id="rideModal"
+    class="modal"
+>
+
+
+    <div class="modal-card">
+
+
+        <button
+            id="closeRideModal"
+            class="close-modal"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            Add Available Ride
+        </h2>
+
+
+        <p>
+            Customers choose the route. You determine the actual gathering point, departure time and final destination.
+        </p>
+
+
+        <form
+            id="rideForm"
+        >
+
+
+            <div class="field">
+
+                <label>
+                    Origin / Travel From
+                </label>
+
+                <input
+                    type="text"
+                    id="rideOrigin"
+                    placeholder="e.g. Ogbomoso"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Travel To
+                </label>
+
+                <input
+                    type="text"
+                    id="rideDestination"
+                    placeholder="e.g. Lagos"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Gathering Point
+                </label>
+
+                <input
+                    type="text"
+                    id="meetingPoint"
+                    placeholder="Admin selected gathering point"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Final Bus Destination
+                </label>
+
+                <input
+                    type="text"
+                    id="finalDestination"
+                    placeholder="Where the bus ends"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-row">
+
+
+                <div class="field">
+
+                    <label>
+                        Departure Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="rideDate"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Departure Time
+                    </label>
+
+                    <input
+                        type="time"
+                        id="rideTime"
+                        required
+                    >
+
+                </div>
+
+
+            </div>
+
+
+            <div class="form-row">
+
+
+                <div class="field">
+
+                    <label>
+                        Price
+                    </label>
+
+                    <input
+                        type="number"
+                        id="ridePrice"
+                        placeholder="₦"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Available Seats
+                    </label>
+
+                    <input
+                        type="number"
+                        id="rideSeats"
+                        min="1"
+                        required
+                    >
+
+                </div>
+
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Vehicle Information
+                </label>
+
+                <input
+                    type="text"
+                    id="vehicleInfo"
+                    placeholder="e.g. 18-Seater Bus"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-button full-button"
+            >
+                CREATE RIDE
+            </button>
+
+
+            <div
+                id="rideMessage"
+                class="message"
+            ></div>
+
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="admin.js"></script>
+
+
+</body>
+
+</html>

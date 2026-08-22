@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Payment Successful | Dreypella Ride
+</title>
+
+<link
+    rel="stylesheet"
+    href="payment-success.css"
+>
+
+</head>
+
+
+<body>
+
+
+<header class="header">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+
+    </a>
+
+</header>
+
+
+
+<main class="container">
+
+
+    <div class="success-card">
+
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+
+        <h1>
+            Payment Successful
+        </h1>
+
+
+        <p class="message">
+
+            Your delivery payment has been
+            confirmed successfully.
+
+        </p>
+
+
+
+        <div class="reference-box">
+
+            <span>
+                PAYMENT REFERENCE
+            </span>
+
+            <strong id="paymentReference">
+                —
+            </strong>
+
+        </div>
+
+
+
+        <div class="delivery-status">
+
+            <div class="status-row">
+
+                <span class="status-circle completed">
+                    ✓
+                </span>
+
+                <div>
+
+                    <strong>
+                        Payment Confirmed
+                    </strong>
+
+                    <small>
+                        Delivery fee received
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="status-line"></div>
+
+
+            <div class="status-row">
+
+                <span
+                    id="deliveryCircle"
+                    class="status-circle"
+                >
+                    2
+                </span>
+
+                <div>
+
+                    <strong>
+                        Waiting for Delivery Partner
+                    </strong>
+
+                    <small id="deliveryStatus">
+                        Dreypella will assign a partner.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="details">
+
+            <div>
+
+                <span>
+                    PICKUP
+                </span>
+
+                <strong id="pickup">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    DESTINATION
+                </span>
+
+                <strong id="destination">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    AMOUNT PAID
+                </span>
+
+                <strong id="amount">
+                    —
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <button
+            class="primary-button"
+            onclick="goToTracking()"
+        >
+
+            TRACK DELIVERY
+
+        </button>
+
+
+        <button
+            class="secondary-button"
+            onclick="goHome()"
+        >
+
+            BACK TO HOME
+
+        </button>
+
+
+    </div>
+
+
+</main>
+
+
+<script src="payment-success.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>My Orders | Dreypella Ride</title>
+
+<link
+    rel="stylesheet"
+    href="customer-orders.css"
+>
+
+</head>
+
+<body>
+
+<header class="orders-header">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </a>
+
+    <a
+        href="marketplace.html"
+        class="back-link"
+    >
+        ← Marketplace
+    </a>
+
+</header>
+
+
+<main class="orders-container">
+
+    <section class="page-heading">
+
+        <span>MARKETPLACE</span>
+
+        <h1>
+            My Orders
+        </h1>
+
+        <p>
+            View and track your Dreypella marketplace purchases.
+        </p>
+
+    </section>
+
+
+    <div
+        id="orderMessage"
+        class="message"
+    ></div>
+
+
+    <section class="order-filters">
+
+        <button
+            class="filter-btn active"
+            data-status="ALL"
+        >
+            All
+        </button>
+
+        <button
+            class="filter-btn"
+            data-status="PENDING"
+        >
+            Pending
+        </button>
+
+        <button
+            class="filter-btn"
+            data-status="PROCESSING"
+        >
+            Processing
+        </button>
+
+        <button
+            class="filter-btn"
+            data-status="OUT_FOR_DELIVERY"
+        >
+            On Delivery
+        </button>
+
+        <button
+            class="filter-btn"
+            data-status="DELIVERED"
+        >
+            Delivered
+        </button>
+
+    </section>
+
+
+    <section
+        id="ordersList"
+        class="orders-list"
+    >
+
+        <div class="loading">
+            Loading your orders...
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- ORDER DETAILS MODAL -->
+
+<div
+    id="orderModal"
+    class="modal hidden"
+>
+
+    <div class="modal-box">
+
+        <button
+            id="closeModal"
+            class="close-modal"
+        >
+            ×
+        </button>
+
+        <div id="orderDetails"></div>
+
+    </div>
+
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="customer-orders.js"></script>
+
+</body>
+
+</html>

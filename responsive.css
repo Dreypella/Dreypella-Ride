@@ -1,0 +1,362 @@
+/* =========================================
+   DREYPELLA RESPONSIVE DESIGN
+========================================= */
+
+
+@media (
+    max-width: 1000px
+) {
+
+
+    .main-nav {
+
+        gap:
+            12px;
+
+    }
+
+
+    .service-grid {
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+
+    }
+
+
+    .steps-grid {
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+
+    }
+
+
+    .why-grid {
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+
+    }
+
+
+    .hero-grid {
+
+        gap:
+            30px;
+
+    }
+
+}
+
+
+@media (
+    max-width: 800px
+) {
+
+
+    .top-bar-content {
+
+        font-size:
+            11px;
+
+    }
+
+
+    .menu-toggle {
+
+        display:
+            block;
+
+    }
+
+
+    .main-nav {
+
+        display:
+            none;
+
+        position:
+            absolute;
+
+        top:
+            72px;
+
+        left:
+            0;
+
+        right:
+            0;
+
+        background:
+            var(--white);
+
+        border-top:
+            1px solid var(--border);
+
+        padding:
+            20px;
+
+        flex-direction:
+            column;
+
+        align-items:
+            stretch;
+
+        gap:
+            0;
+
+        box-shadow:
+            0 15px 30px
+            rgba(
+                0,
+                0,
+                0,
+                0.08
+            );
+
+    }
+
+
+    .main-nav.active {
+
+        display:
+            flex;
+
+    }
+
+
+    .main-nav > a {
+
+        padding:
+            13px 5px;
+
+        border-bottom:
+            1px solid var(--border);
+
+    }
+
+
+    .nav-auth {
+
+        margin:
+            15px 0 0;
+
+        flex-direction:
+            column;
+
+    }
+
+
+    .nav-login,
+    .nav-signup {
+
+        text-align:
+            center;
+
+    }
+
+
+    .hero {
+
+        padding:
+            55px 0;
+
+    }
+
+
+    .hero-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .hero-card {
+
+        min-height:
+            350px;
+
+    }
+
+
+    .hero h1 {
+
+        font-size:
+            48px;
+
+    }
+
+
+    .hero p {
+
+        font-size:
+            16px;
+
+    }
+
+
+    .service-grid {
+
+        grid-template-columns:
+            1fr 1fr;
+
+    }
+
+
+    .footer-grid {
+
+        grid-template-columns:
+            1fr 1fr;
+
+    }
+
+}
+
+
+@media (
+    max-width: 520px
+) {
+
+
+    .container {
+
+        width:
+            94%;
+
+    }
+
+
+    .top-bar-content {
+
+        flex-direction:
+            column;
+
+        gap:
+            2px;
+
+    }
+
+
+    .hero h1 {
+
+        font-size:
+            42px;
+
+        letter-spacing:
+            -2px;
+
+    }
+
+
+    .hero-buttons {
+
+        flex-direction:
+            column;
+
+    }
+
+
+    .hero-buttons .btn {
+
+        width:
+            100%;
+
+    }
+
+
+    .hero-secondary {
+
+        flex-direction:
+            column;
+
+        gap:
+            10px;
+
+    }
+
+
+    .hero-card {
+
+        padding:
+            25px;
+
+        min-height:
+            320px;
+
+    }
+
+
+    .hero-card-icon {
+
+        margin-top:
+            30px;
+
+    }
+
+
+    .hero-mini-stats {
+
+        gap:
+            6px;
+
+    }
+
+
+    .hero-mini-stats div {
+
+        padding:
+            8px;
+
+    }
+
+
+    .quick-services,
+    .how-section,
+    .why-section {
+
+        padding:
+            55px 0;
+
+    }
+
+
+    .section-heading h2 {
+
+        font-size:
+            28px;
+
+    }
+
+
+    .service-grid,
+    .steps-grid,
+    .why-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .footer-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            25px;
+
+    }
+
+}

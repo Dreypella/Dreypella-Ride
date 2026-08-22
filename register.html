@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Create Account | Dreypella Ride</title>
+
+    <link
+        rel="stylesheet"
+        href="register.css"
+    >
+
+</head>
+
+<body>
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <a
+            href="index.html"
+            class="back-link"
+        >
+            ← Back to Dreypella
+        </a>
+
+        <div class="logo">
+            <strong>DREYPELLA</strong>
+            <span>RIDE</span>
+        </div>
+
+        <h1>Create Account</h1>
+
+        <p class="subtitle">
+            Join Dreypella Ride
+        </p>
+
+        <form id="registerForm">
+
+            <label for="fullName">
+                Full Name
+            </label>
+
+            <input
+                type="text"
+                id="fullName"
+                placeholder="Enter your full name"
+                autocomplete="name"
+                required
+            >
+
+
+            <label for="email">
+                Email
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                autocomplete="email"
+                required
+            >
+
+
+            <label for="phone">
+                Phone Number
+            </label>
+
+            <input
+                type="tel"
+                id="phone"
+                placeholder="08012345678"
+                autocomplete="tel"
+                required
+            >
+
+
+            <label for="password">
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Create a password"
+                minlength="6"
+                autocomplete="new-password"
+                required
+            >
+
+
+            <label for="role">
+                Account Type
+            </label>
+
+            <select
+                id="role"
+                required
+            >
+
+                <option value="">
+                    Select account type
+                </option>
+
+                <option value="CUSTOMER">
+                    Customer
+                </option>
+
+                <option value="AMBASSADOR">
+                    Campus Ambassador
+                </option>
+
+                <option value="VENDOR">
+                    Vendor
+                </option>
+
+                <option value="WALKER">
+                    Walker
+                </option>
+
+                <option value="RIDER">
+                    Rider
+                </option>
+
+                <option value="DRIVER">
+                    Driver
+                </option>
+
+            </select>
+
+
+            <div class="referral-box">
+
+                <label for="referralCode">
+
+                    Referral Code
+
+                    <span>
+                        Optional
+                    </span>
+
+                </label>
+
+                <input
+                    type="text"
+                    id="referralCode"
+                    placeholder="Enter referral code"
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="registerButton"
+            >
+                CREATE ACCOUNT
+            </button>
+
+
+            <div
+                id="registerMessage"
+                role="alert"
+            ></div>
+
+        </form>
+
+
+        <p class="login-text">
+
+            Already have an account?
+
+            <a href="login.html">
+                Login
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- FIREBASE CORE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+
+<!-- FIREBASE AUTH -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+
+<!-- FIRESTORE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+
+<!-- FIREBASE STORAGE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+
+
+<!-- FIREBASE CONFIG -->
+<script src="firebase-config.js"></script>
+
+
+<!-- REGISTRATION -->
+<script src="register.js"></script>
+
+</body>
+
+</html>

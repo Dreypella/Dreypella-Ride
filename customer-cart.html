@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Shopping Cart | Dreypella Ride
+</title>
+
+<link
+    rel="stylesheet"
+    href="customer-cart.css"
+>
+
+</head>
+
+
+<body>
+
+
+<header class="cart-header">
+
+    <a
+        href="marketplace.html"
+        class="logo"
+    >
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </a>
+
+
+    <a
+        href="marketplace.html"
+        class="continue-shopping"
+    >
+        Continue Shopping
+    </a>
+
+</header>
+
+
+
+<main class="cart-container">
+
+
+    <section class="page-heading">
+
+        <span>
+            DREYPELLA MARKETPLACE
+        </span>
+
+        <h1>
+            Your Cart
+        </h1>
+
+        <p>
+            Review your items before proceeding to checkout.
+        </p>
+
+    </section>
+
+
+
+    <div
+        id="cartMessage"
+        class="cart-message"
+    ></div>
+
+
+
+    <section class="cart-layout">
+
+
+        <!-- CART ITEMS -->
+
+        <div class="cart-items-section">
+
+            <div
+                id="cartItems"
+                class="cart-items"
+            ></div>
+
+        </div>
+
+
+
+        <!-- SUMMARY -->
+
+        <aside class="cart-summary">
+
+            <h2>
+                Order Summary
+            </h2>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Items
+                </span>
+
+                <strong id="itemCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Subtotal
+                </span>
+
+                <strong id="cartSubtotal">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Platform Charge
+                </span>
+
+                <strong id="platformFee">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <div class="summary-note">
+
+                The marketplace platform charge is
+                calculated automatically.
+
+            </div>
+
+
+            <div class="summary-total">
+
+                <span>
+                    Marketplace Total
+                </span>
+
+                <strong id="cartTotal">
+                    ₦0
+                </strong>
+
+            </div>
+
+
+            <button
+                id="checkoutButton"
+                class="checkout-button"
+                type="button"
+            >
+                PROCEED TO CHECKOUT
+            </button>
+
+
+            <p class="secure-note">
+                🔒 Secure marketplace checkout
+            </p>
+
+        </aside>
+
+
+    </section>
+
+
+</main>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="customer-cart.js"></script>
+
+</body>
+
+</html>

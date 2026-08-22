@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Delivery Job | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="delivery-tracking.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="partner-header">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+    </a>
+
+
+    <div class="header-status">
+
+        <span id="gpsHeaderStatus">
+            GPS OFF
+        </span>
+
+    </div>
+
+</header>
+
+
+
+<main class="partner-container">
+
+
+    <!-- PAGE HEADING -->
+
+    <section class="page-heading">
+
+        <div>
+
+            <span class="eyebrow">
+                DELIVERY JOB
+            </span>
+
+            <h1>
+                Your Delivery
+            </h1>
+
+            <p id="bookingReference">
+                Loading booking...
+            </p>
+
+        </div>
+
+
+        <div
+            id="statusBadge"
+            class="status-badge"
+        >
+            LOADING
+        </div>
+
+    </section>
+
+
+
+    <!-- DELIVERY ROUTE -->
+
+    <section class="route-card">
+
+
+        <div class="section-title">
+
+            <h2>
+                Delivery Route
+            </h2>
+
+        </div>
+
+
+        <div class="route-point">
+
+            <div class="route-dot pickup-dot">
+                P
+            </div>
+
+            <div>
+
+                <span>
+                    PICKUP
+                </span>
+
+                <strong id="pickupLocation">
+                    Loading...
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="route-line"></div>
+
+
+        <div class="route-point">
+
+            <div class="route-dot destination-dot">
+                D
+            </div>
+
+            <div>
+
+                <span>
+                    DESTINATION
+                </span>
+
+                <strong id="destinationLocation">
+                    Loading...
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="route-details">
+
+            <div>
+
+                <span>
+                    DISTANCE
+                </span>
+
+                <strong id="distance">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    EST. TIME
+                </span>
+
+                <strong id="estimatedTime">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    METHOD
+                </span>
+
+                <strong id="deliveryMethod">
+                    —
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- LOCATION SHARING -->
+
+    <section class="gps-card">
+
+
+        <div class="gps-heading">
+
+            <div>
+
+                <span class="eyebrow">
+                    LIVE LOCATION
+                </span>
+
+                <h2>
+                    Location Sharing
+                </h2>
+
+                <p id="gpsMessage">
+                    Your location is not being shared.
+                </p>
+
+            </div>
+
+
+            <div
+                id="gpsIndicator"
+                class="gps-indicator"
+            ></div>
+
+        </div>
+
+
+        <div class="coordinates">
+
+
+            <div>
+
+                <span>
+                    LATITUDE
+                </span>
+
+                <strong id="latitude">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    LONGITUDE
+                </span>
+
+                <strong id="longitude">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    LAST UPDATE
+                </span>
+
+                <strong id="lastUpdated">
+                    —
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <button
+            id="gpsButton"
+            class="primary-button"
+            type="button"
+        >
+            START LOCATION SHARING
+        </button>
+
+
+    </section>
+
+
+
+    <!-- DELIVERY ACTIONS -->
+
+    <section class="actions-card">
+
+
+        <div class="section-title">
+
+            <span class="eyebrow">
+                DELIVERY ACTIONS
+            </span>
+
+            <h2>
+                Update Delivery
+            </h2>
+
+        </div>
+
+
+        <div class="action-list">
+
+
+            <button
+                id="acceptButton"
+                class="action-button primary"
+                type="button"
+            >
+                ACCEPT DELIVERY
+            </button>
+
+
+            <button
+                id="pickupButton"
+                class="action-button"
+                type="button"
+            >
+                CONFIRM PACKAGE PICKUP
+            </button>
+
+
+            <button
+                id="transitButton"
+                class="action-button"
+                type="button"
+            >
+                START TRANSIT
+            </button>
+
+
+            <button
+                id="deliveredButton"
+                class="action-button success"
+                type="button"
+            >
+                CONFIRM DELIVERY
+            </button>
+
+        </div>
+
+
+        <p
+            id="actionMessage"
+            class="action-message"
+        ></p>
+
+
+    </section>
+
+
+
+    <!-- CURRENT STATUS -->
+
+    <section class="status-card">
+
+
+        <div>
+
+            <span class="eyebrow">
+                CURRENT STATUS
+            </span>
+
+            <h2 id="currentStatus">
+                Loading...
+            </h2>
+
+            <p id="statusDescription">
+                Checking delivery status.
+            </p>
+
+        </div>
+
+
+        <div
+            id="statusCircle"
+            class="status-circle"
+        ></div>
+
+    </section>
+
+
+
+    <!-- DELIVERY PARTNER INFORMATION -->
+
+    <section class="partner-card">
+
+
+        <div class="partner-avatar">
+            DP
+        </div>
+
+
+        <div>
+
+            <span class="eyebrow">
+                ASSIGNED PARTNER
+            </span>
+
+            <h2 id="partnerName">
+                Loading...
+            </h2>
+
+            <p id="partnerType">
+                —
+            </p>
+
+            <p id="vehicleInfo">
+                —
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <a
+        href="support.html"
+        class="support-link"
+    >
+        Need help? Contact Dreypella Support
+    </a>
+
+
+</main>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="delivery-firebase.js"></script>
+
+<script src="delivery-tracking.js"></script>
+
+
+</body>
+
+</html>

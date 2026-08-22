@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        My Deliveries | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="partner-deliveries.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="partner-header">
+
+    <div class="brand">
+
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+
+    </div>
+
+
+    <div class="partner-info">
+
+        <span id="partnerName">
+            Loading...
+        </span>
+
+        <span
+            id="partnerRole"
+            class="role"
+        >
+            Partner
+        </span>
+
+    </div>
+
+</header>
+
+
+
+<main class="partner-container">
+
+
+    <section class="page-heading">
+
+        <div>
+
+            <h1>
+                My Deliveries
+            </h1>
+
+            <p>
+                Manage your assigned deliveries.
+            </p>
+
+        </div>
+
+        <button
+            onclick="loadDeliveries()"
+            class="refresh-btn"
+        >
+            ↻ Refresh
+        </button>
+
+    </section>
+
+
+
+    <div
+        id="message"
+        class="message"
+    ></div>
+
+
+
+    <!-- ACTIVE DELIVERY -->
+
+    <section
+        id="activeDeliverySection"
+        class="section"
+        style="display:none;"
+    >
+
+        <div class="section-title">
+
+            <h2>
+                Active Delivery
+            </h2>
+
+            <span
+                id="activeStatus"
+                class="status-badge"
+            >
+                ACTIVE
+            </span>
+
+        </div>
+
+
+        <div
+            id="activeDelivery"
+            class="active-delivery-card"
+        ></div>
+
+
+        <div class="tracking-panel">
+
+            <div class="tracking-header">
+
+                <div>
+
+                    <h3>
+                        Live Location
+                    </h3>
+
+                    <p id="gpsStatus">
+                        GPS not started
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="gpsButton"
+                    class="primary-btn"
+                    onclick="toggleGPS()"
+                >
+                    START GPS
+                </button>
+
+            </div>
+
+
+            <div class="location-info">
+
+                <div>
+
+                    <span>
+                        Latitude
+                    </span>
+
+                    <strong id="latitude">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Longitude
+                    </span>
+
+                    <strong id="longitude">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Accuracy
+                    </span>
+
+                    <strong id="accuracy">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PICKUP -->
+
+        <div
+            id="pickupActions"
+            class="action-card"
+        >
+
+            <h3>
+                Package Pickup
+            </h3>
+
+            <p>
+                Enter the pickup OTP provided by the sender.
+            </p>
+
+
+            <div class="otp-row">
+
+                <input
+                    type="text"
+                    id="pickupOtp"
+                    maxlength="6"
+                    placeholder="Enter OTP"
+                >
+
+                <button
+                    class="primary-btn"
+                    onclick="verifyPickup()"
+                >
+                    VERIFY PICKUP
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DELIVERY -->
+
+        <div
+            id="deliveryActions"
+            class="action-card"
+            style="display:none;"
+        >
+
+            <h3>
+                Complete Delivery
+            </h3>
+
+            <p>
+                Enter the delivery OTP provided by the recipient.
+            </p>
+
+
+            <div class="otp-row">
+
+                <input
+                    type="text"
+                    id="deliveryOtp"
+                    maxlength="6"
+                    placeholder="Enter OTP"
+                >
+
+                <button
+                    class="primary-btn"
+                    onclick="verifyDelivery()"
+                >
+                    VERIFY DELIVERY
+                </button>
+
+            </div>
+
+
+            <label class="proof-label">
+
+                Delivery proof photo
+
+                <input
+                    type="file"
+                    id="deliveryPhoto"
+                    accept="image/*"
+                >
+
+            </label>
+
+
+            <button
+                class="complete-btn"
+                onclick="completeDelivery()"
+            >
+                COMPLETE DELIVERY
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- AVAILABLE DELIVERIES -->
+
+    <section class="section">
+
+        <div class="section-title">
+
+            <h2>
+                Assigned Deliveries
+            </h2>
+
+        </div>
+
+
+        <div
+            id="deliveryList"
+            class="delivery-list"
+        >
+
+            <div class="loading">
+                Loading deliveries...
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- ACCEPT DELIVERY MODAL -->
+
+<div
+    id="acceptModal"
+    class="modal"
+>
+
+    <div class="modal-card">
+
+        <button
+            class="close-modal"
+            onclick="closeAcceptModal()"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            Accept Delivery
+        </h2>
+
+
+        <div
+            id="acceptDetails"
+            class="modal-details"
+        ></div>
+
+
+        <button
+            class="primary-btn full-btn"
+            onclick="acceptSelectedDelivery()"
+        >
+            ACCEPT DELIVERY
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+
+
+<script src="firebase-config.js"></script>
+
+<script src="delivery-firebase.js"></script>
+
+<script src="partner-deliveries.js"></script>
+
+
+</body>
+
+</html>

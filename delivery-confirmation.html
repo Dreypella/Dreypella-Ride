@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Confirm Delivery | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="delivery-confirmation.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="page-header">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </a>
+
+    <a
+        href="customer-dashboard.html"
+        class="dashboard-link"
+    >
+        Dashboard
+    </a>
+
+</header>
+
+
+
+<main class="confirmation-container">
+
+
+    <div class="confirmation-card">
+
+
+        <div class="page-title">
+
+            <div class="icon">
+                📦
+            </div>
+
+            <div>
+
+                <h1>
+                    Confirm Delivery
+                </h1>
+
+                <p>
+                    Review your delivery details
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ROUTE -->
+
+        <section class="section">
+
+            <h2>
+                Delivery Route
+            </h2>
+
+
+            <div class="route-box">
+
+                <div class="location">
+
+                    <span class="dot pickup-dot"></span>
+
+                    <div>
+
+                        <small>
+                            PICKUP
+                        </small>
+
+                        <p id="pickupText">
+                            Loading...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="route-line"></div>
+
+
+                <div class="location">
+
+                    <span class="dot destination-dot"></span>
+
+                    <div>
+
+                        <small>
+                            DESTINATION
+                        </small>
+
+                        <p id="destinationText">
+                            Loading...
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- DELIVERY INFORMATION -->
+
+        <section class="section">
+
+            <h2>
+                Delivery Information
+            </h2>
+
+
+            <div class="details-grid">
+
+
+                <div class="detail">
+
+                    <span>
+                        Distance
+                    </span>
+
+                    <strong id="distanceText">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <span>
+                        Estimated Time
+                    </span>
+
+                    <strong id="timeText">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <span>
+                        Delivery Method
+                    </span>
+
+                    <strong id="methodText">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <span>
+                        Package
+                    </span>
+
+                    <strong id="categoryText">
+                        —
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- RECIPIENT -->
+
+        <section class="section">
+
+            <h2>
+                Recipient
+            </h2>
+
+
+            <div class="recipient-box">
+
+                <div>
+
+                    <span>
+                        Name
+                    </span>
+
+                    <strong id="recipientName">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Phone
+                    </span>
+
+                    <strong id="recipientPhone">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- DELIVERY INSTRUCTIONS -->
+
+        <section
+            class="section"
+            id="instructionsSection"
+        >
+
+            <h2>
+                Instructions
+            </h2>
+
+            <p
+                id="instructionsText"
+                class="instructions"
+            >
+                —
+            </p>
+
+        </section>
+
+
+
+        <!-- PRICE -->
+
+        <section class="price-section">
+
+            <div>
+
+                <span>
+                    Delivery Fee
+                </span>
+
+                <strong id="priceText">
+                    ₦0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- INSURANCE -->
+
+        <section class="insurance-section">
+
+            <label class="checkbox-label">
+
+                <input
+                    type="checkbox"
+                    id="insurance"
+                >
+
+                <span>
+
+                    Add package insurance
+
+                    <small>
+                        Optional protection for eligible packages
+                    </small>
+
+                </span>
+
+            </label>
+
+
+            <div
+                id="insuranceInfo"
+                class="insurance-info"
+            >
+                Insurance fee will be added before payment.
+            </div>
+
+        </section>
+
+
+
+        <!-- PAYMENT -->
+
+        <section class="payment-section">
+
+            <h2>
+                Payment
+            </h2>
+
+
+            <div class="payment-option selected">
+
+                <span class="payment-icon">
+                    💳
+                </span>
+
+                <div>
+
+                    <strong>
+                        Online Payment
+                    </strong>
+
+                    <small>
+                        Secure payment
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <div
+            id="confirmationMessage"
+            class="message"
+        ></div>
+
+
+
+        <button
+            id="confirmButton"
+            class="confirm-button"
+        >
+            CONTINUE TO PAYMENT
+        </button>
+
+
+        <button
+            id="backButton"
+            class="back-button"
+        >
+            EDIT DELIVERY
+        </button>
+
+
+    </div>
+
+</main>
+
+
+
+<script src="delivery-confirmation.js"></script>
+
+</body>
+
+</html>

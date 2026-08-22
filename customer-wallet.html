@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Dreypella Ride | Customer Wallet
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="customer-wallet.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header class="wallet-header">
+
+    <a
+        href="customer-dashboard.html"
+        class="back-button"
+    >
+        ←
+    </a>
+
+
+    <div class="header-title">
+
+        <strong>
+            Dreypella
+            <span>Ride</span>
+        </strong>
+
+        <small>
+            Customer Wallet
+        </small>
+
+    </div>
+
+
+    <button
+        id="refreshWalletButton"
+        class="refresh-button"
+        type="button"
+    >
+        ↻
+    </button>
+
+</header>
+
+
+
+<main class="wallet-container">
+
+
+    <!-- WALLET BALANCE -->
+
+    <section class="balance-card">
+
+        <div class="balance-top">
+
+            <div>
+
+                <span>
+                    AVAILABLE BALANCE
+                </span>
+
+                <h1 id="availableBalance">
+                    ₦0.00
+                </h1>
+
+            </div>
+
+
+            <div class="wallet-icon">
+                ₦
+            </div>
+
+        </div>
+
+
+        <div class="balance-bottom">
+
+            <div>
+
+                <small>
+                    Pending
+                </small>
+
+                <strong id="pendingBalance">
+                    ₦0.00
+                </strong>
+
+            </div>
+
+
+            
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ACTIONS -->
+
+    <section class="wallet-actions">
+
+        <button
+            type="button"
+            id="fundWalletButton"
+            class="primary-action"
+        >
+
+            <span class="action-icon">
+                +
+            </span>
+
+            Fund Wallet
+
+        </button>
+
+
+        <button
+            type="button"
+            id="withdrawButton"
+            class="secondary-action"
+        >
+
+            <span class="action-icon">
+                ↓
+            </span>
+
+            Withdraw
+
+        </button>
+
+    </section>
+
+
+
+    <!-- ACCOUNT STATUS -->
+
+    <section class="wallet-status-card">
+
+        <div class="status-left">
+
+            <span class="status-dot"></span>
+
+            <div>
+
+                <strong>
+                    Wallet Status
+                </strong>
+
+                <small id="walletStatus">
+                    Checking...
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <span
+            id="walletType"
+            class="wallet-type"
+        >
+            CUSTOMER
+        </span>
+
+    </section>
+
+
+
+    <!-- TRANSACTIONS -->
+
+    <section class="transactions-card">
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>
+                    Transactions
+                </h2>
+
+                <p>
+                    Your recent wallet activity
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="viewAllTransactions"
+            >
+                View All
+            </button>
+
+        </div>
+
+
+        <div
+            id="transactionList"
+            class="transaction-list"
+        >
+
+            <div class="loading-state">
+
+                <div class="spinner"></div>
+
+                <p>
+                    Loading transactions...
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="emptyTransactions"
+            class="empty-state hidden"
+        >
+
+            <div class="empty-icon">
+                ₦
+            </div>
+
+            <h3>
+                No transactions yet
+            </h3>
+
+            <p>
+                Your wallet transactions will
+                appear here.
+            </p>
+
+        </div>
+
+
+        <button
+            id="loadMoreButton"
+            class="load-more hidden"
+            type="button"
+        >
+            Load More
+        </button>
+
+    </section>
+
+
+
+    <!-- INFORMATION -->
+
+    <section class="wallet-info">
+
+        <h3>
+            How your wallet works
+        </h3>
+
+
+        <div class="info-item">
+
+            <span>
+                01
+            </span>
+
+            <p>
+                Fund your wallet securely to pay
+                for rides, deliveries and marketplace
+                purchases.
+            </p>
+
+        </div>
+
+
+        <div class="info-item">
+
+            <span>
+                02
+            </span>
+
+            <p>
+                Every wallet movement is recorded
+                with a transaction reference.
+            </p>
+
+        </div>
+
+
+        <div class="info-item">
+
+            <span>
+                03
+            </span>
+
+            <p>
+                Refunds and approved wallet credits
+                are automatically reflected in your
+                balance.
+            </p>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- FUND WALLET MODAL -->
+
+<div
+    id="fundWalletModal"
+    class="modal hidden"
+>
+
+    <div class="modal-overlay"></div>
+
+
+    <div class="modal-box">
+
+        <button
+            type="button"
+            class="close-modal"
+            data-close="fundWalletModal"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            Fund Wallet
+        </h2>
+
+        <p>
+            Enter the amount you want to add
+            to your Dreypella wallet.
+        </p>
+
+
+        <form id="fundWalletForm">
+
+            <label>
+                Amount
+            </label>
+
+
+            <div class="amount-input">
+
+                <span>
+                    ₦
+                </span>
+
+                <input
+                    type="number"
+                    id="fundAmount"
+                    min="100"
+                    step="50"
+                    placeholder="0.00"
+                    required
+                >
+
+            </div>
+
+
+            <div class="quick-amounts">
+
+                <button
+                    type="button"
+                    data-amount="1000"
+                >
+                    ₦1,000
+                </button>
+
+                <button
+                    type="button"
+                    data-amount="2000"
+                >
+                    ₦2,000
+                </button>
+
+                <button
+                    type="button"
+                    data-amount="5000"
+                >
+                    ₦5,000
+                </button>
+
+                <button
+                    type="button"
+                    data-amount="10000"
+                >
+                    ₦10,000
+                </button>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="modal-submit"
+                id="fundSubmitButton"
+            >
+                CONTINUE TO PAYMENT
+            </button>
+
+
+            <div
+                id="fundMessage"
+                class="form-message"
+            ></div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- WITHDRAW MODAL -->
+
+<div
+    id="withdrawModal"
+    class="modal hidden"
+>
+
+    <div class="modal-overlay"></div>
+
+
+    <div class="modal-box">
+
+        <button
+            type="button"
+            class="close-modal"
+            data-close="withdrawModal"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            Withdraw Funds
+        </h2>
+
+        <p>
+            Enter your withdrawal amount and
+            bank details.
+        </p>
+
+
+        <form id="withdrawForm">
+
+            <label>
+                Amount
+            </label>
+
+            <div class="amount-input">
+
+                <span>
+                    ₦
+                </span>
+
+                <input
+                    type="number"
+                    id="withdrawAmount"
+                    min="100"
+                    step="50"
+                    required
+                >
+
+            </div>
+
+
+            <label>
+                Bank
+            </label>
+
+            <select id="bankCode" required>
+
+    <option value="">
+        Select bank or financial institution
+    </option>
+
+    <!-- COMMERCIAL / TRADITIONAL BANKS -->
+
+    <option value="044">Access Bank</option>
+    <option value="050">Ecobank</option>
+    <option value="011">First Bank</option>
+    <option value="070">Fidelity Bank</option>
+    <option value="058">GTBank</option>
+    <option value="082">Keystone Bank</option>
+    <option value="076">Polaris Bank</option>
+    <option value="221">Stanbic IBTC</option>
+    <option value="232">Sterling Bank</option>
+    <option value="033">UBA</option>
+    <option value="032">Union Bank</option>
+    <option value="215">Unity Bank</option>
+    <option value="035">Wema Bank</option>
+    <option value="057">Zenith Bank</option>
+
+    <!-- DIGITAL / FINTECH BANKS -->
+
+    <option value="090405">Moniepoint</option>
+    <option value="090267">Kuda Bank</option>
+    <option value="090175">Rubies MFB</option>
+    <option value="090110">VFD Microfinance Bank</option>
+    <option value="090115">TCF Microfinance Bank</option>
+    <option value="090142">FBNQuest Microfinance Bank</option>
+    <option value="090177">Lapo Microfinance Bank</option>
+    <option value="090120">Wetland Microfinance Bank</option>
+    <option value="090166">KUDA Microfinance Bank</option>
+    <option value="090909">Opay</option>
+    <option value="100004">OPay Microfinance Bank</option>
+    <option value="100033">PalmPay</option>
+
+</select>
+
+
+            <label>
+                Account Number
+            </label>
+
+            <input
+                type="text"
+                id="accountNumber"
+                inputmode="numeric"
+                maxlength="10"
+                placeholder="10-digit account number"
+                required
+            >
+
+
+            <label>
+                Account Name
+            </label>
+
+            <input
+                type="text"
+                id="accountName"
+                placeholder="Account name"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="modal-submit"
+                id="withdrawSubmitButton"
+            >
+                REQUEST WITHDRAWAL
+            </button>
+
+
+            <div
+                id="withdrawMessage"
+                class="form-message"
+            ></div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- TRANSACTION DETAILS MODAL -->
+
+<div
+    id="transactionModal"
+    class="modal hidden"
+>
+
+    <div class="modal-overlay"></div>
+
+
+    <div class="modal-box transaction-details">
+
+        <button
+            type="button"
+            class="close-modal"
+            data-close="transactionModal"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            Transaction Details
+        </h2>
+
+
+        <div id="transactionDetails">
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+
+
+<!-- YOUR FIREBASE CONFIG -->
+
+<script src="firebase-config.js"></script>
+
+
+<!-- EXISTING WALLET UTILITIES -->
+
+<script src="wallet-config.js"></script>
+
+<script src="wallet-utils.js"></script>
+
+<script src="wallet-service.js"></script>
+
+
+<!-- CUSTOMER WALLET -->
+
+<script src="customer-wallet.js"></script>
+
+
+</body>
+
+</html>

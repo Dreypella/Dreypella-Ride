@@ -1,0 +1,444 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background: #F5F7FA;
+    color: #081B5A;
+    min-height: 100vh;
+}
+
+
+.delivery-header {
+    height: 70px;
+    background: #081B5A;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6%;
+}
+
+
+.logo {
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 20px;
+}
+
+
+.logo strong {
+    color: white;
+}
+
+
+.logo span {
+    color: #E31B23;
+    font-weight: bold;
+}
+
+
+.dashboard-link {
+    color: white;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,.5);
+    padding: 10px 18px;
+    border-radius: 8px;
+}
+
+
+.delivery-container {
+    width: 100%;
+    max-width: 850px;
+    margin: 35px auto;
+    padding: 0 18px;
+}
+
+
+.delivery-card {
+    background: white;
+    border-radius: 18px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(8,27,90,.08);
+}
+
+
+.page-heading {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+
+.heading-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #E31B23;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+}
+
+
+.page-heading h1 {
+    font-size: 27px;
+    margin-bottom: 5px;
+}
+
+
+.page-heading p {
+    color: #777;
+    font-size: 14px;
+}
+
+
+.location-section,
+.form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #D9DDE5;
+    border-radius: 9px;
+    padding: 14px;
+    font-size: 15px;
+    outline: none;
+    background: white;
+}
+
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #081B5A;
+    box-shadow: 0 0 0 3px rgba(8,27,90,.08);
+}
+
+
+.location-input {
+    position: relative;
+}
+
+
+.location-input input {
+    padding-right: 55px;
+}
+
+
+#currentLocationBtn {
+    position: absolute;
+    right: 8px;
+    top: 7px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: #081B5A;
+    color: white;
+    cursor: pointer;
+}
+
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 10px 10px;
+    z-index: 100;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0,0,0,.1);
+}
+
+
+.suggestion {
+    padding: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+
+.suggestion:hover {
+    background: #F5F7FA;
+}
+
+
+.section-title {
+    margin: 30px 0 15px;
+    font-size: 17px;
+    font-weight: bold;
+    color: #081B5A;
+}
+
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+
+.delivery-methods {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+
+.method-card {
+    border: 1px solid #D9DDE5;
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+
+.method-card:hover {
+    border-color: #081B5A;
+}
+
+
+.method-card input {
+    display: none;
+}
+
+
+.method-card:has(input:checked) {
+    border: 2px solid #E31B23;
+    background: #FFF7F7;
+}
+
+
+.method-content {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+
+.method-icon {
+    font-size: 25px;
+}
+
+
+.method-content small {
+    color: #777;
+    line-height: 1.4;
+}
+
+
+.calculate-btn,
+.confirm-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+
+.calculate-btn {
+    background: #081B5A;
+    margin-top: 15px;
+}
+
+
+.confirm-btn {
+    background: #E31B23;
+    margin-top: 20px;
+}
+
+
+.calculate-btn:hover,
+.confirm-btn:hover {
+    opacity: .92;
+}
+
+
+.delivery-result {
+    margin-top: 25px;
+    border: 1px solid #E3E6EC;
+    border-radius: 15px;
+    padding: 20px;
+}
+
+
+.hidden {
+    display: none;
+}
+
+
+.route-summary {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.route-summary span,
+.route-info span,
+.price-box span {
+    display: block;
+    font-size: 11px;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+
+.route-summary strong {
+    display: block;
+    font-size: 14px;
+}
+
+
+.route-arrow {
+    text-align: center;
+    font-size: 25px;
+    color: #E31B23;
+}
+
+
+.route-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+
+.route-info strong {
+    font-size: 15px;
+}
+
+
+.price-box {
+    margin-top: 20px;
+    background: #F5F7FA;
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.price-box strong {
+    color: #E31B23;
+    font-size: 24px;
+}
+
+
+.message {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 14px;
+}
+
+
+@media (max-width: 650px) {
+
+    .delivery-header {
+        padding: 0 18px;
+        height: 62px;
+    }
+
+
+    .logo {
+        font-size: 17px;
+    }
+
+
+    .dashboard-link {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+
+    .delivery-container {
+        margin: 15px auto;
+        padding: 0 10px;
+    }
+
+
+    .delivery-card {
+        padding: 20px 15px;
+        border-radius: 14px;
+    }
+
+
+    .page-heading h1 {
+        font-size: 22px;
+    }
+
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+
+    .delivery-methods {
+        grid-template-columns: 1fr;
+    }
+
+
+    .method-card {
+        padding: 12px;
+    }
+
+
+    .route-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+
+    .route-arrow {
+        transform: rotate(0deg);
+    }
+
+
+    .route-info {
+        grid-template-columns: 1fr 1fr;
+    }
+
+
+    .price-box strong {
+        font-size: 21px;
+    }
+
+}

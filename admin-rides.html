@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ride Management | Dreypella Admin</title>
+
+    <link
+        rel="stylesheet"
+        href="admin-rides.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+    <div class="admin-logo">
+
+        <strong>DREYPELLA</strong>
+
+        <span>RIDE</span>
+
+        <small>ADMIN</small>
+
+    </div>
+
+
+    <nav>
+
+        <a href="admin-dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="admin-rides.html" class="active">
+            Rides
+        </a>
+
+        <a href="admin-deliveries.html">
+            Deliveries
+        </a>
+
+        <a href="admin-users.html">
+            Users
+        </a>
+
+        <a href="admin-wallet.html">
+            Wallet
+        </a>
+
+        <a href="admin-withdrawals.html">
+            Withdrawals
+        </a>
+
+    </nav>
+
+
+    <button
+        id="logoutButton"
+        class="logout-button"
+    >
+        LOGOUT
+    </button>
+
+</aside>
+
+
+
+<!-- MAIN -->
+
+<main class="main-content">
+
+
+    <!-- TOP -->
+
+    <header class="topbar">
+
+        <div>
+
+            <h1>
+                Ride Management
+            </h1>
+
+            <p>
+                Manage customer ride requests and scheduled trips.
+            </p>
+
+        </div>
+
+
+        <button
+            id="newTripButton"
+            class="primary-button"
+        >
+            + CREATE TRIP
+        </button>
+
+    </header>
+
+
+
+    <!-- STATS -->
+
+    <section class="stats">
+
+        <div class="stat-card">
+
+            <span>
+                Pending Requests
+            </span>
+
+            <strong id="pendingCount">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                Scheduled Trips
+            </span>
+
+            <strong id="tripCount">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                Active Trips
+            </span>
+
+            <strong id="activeCount">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span>
+                Completed Trips
+            </span>
+
+            <strong id="completedCount">
+                0
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- REQUESTS -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    Customer Ride Requests
+                </h2>
+
+                <p>
+                    Requests submitted by customers.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="requestsContainer"
+            class="requests-container"
+        >
+
+            <div class="loading">
+                Loading requests...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- TRIPS -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    Scheduled Trips
+                </h2>
+
+                <p>
+                    Trips created and controlled by admin.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="tripsContainer"
+            class="trips-container"
+        >
+
+            <div class="loading">
+                Loading trips...
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+</main>
+
+
+
+<!-- CREATE / EDIT TRIP MODAL -->
+
+<div
+    id="tripModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Create Ride Trip
+                </h2>
+
+                <p>
+                    Admin controls the final schedule.
+                </p>
+
+            </div>
+
+
+            <button
+                id="closeModalButton"
+                class="close-button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+
+        <form id="tripForm">
+
+
+            <div class="form-grid">
+
+
+                <!-- FROM -->
+
+                <div class="form-group">
+
+                    <label>
+                        Departure City
+                    </label>
+
+                    <select
+                        id="tripFrom"
+                        required
+                    >
+
+                        <option value="">
+                            Select city
+                        </option>
+
+                        <option value="Ogbomosho">
+                            Ogbomosho
+                        </option>
+
+                        <option value="Iseyin">
+                            Iseyin
+                        </option>
+
+                        <option value="Oyo">
+                            Oyo
+                        </option>
+
+                        <option value="Ibadan">
+                            Ibadan
+                        </option>
+
+                        <option value="Lagos">
+                            Lagos
+                        </option>
+
+                        <option value="Ilorin">
+                            Ilorin
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- TO -->
+
+                <div class="form-group">
+
+                    <label>
+                        Destination City
+                    </label>
+
+                    <select
+                        id="tripTo"
+                        required
+                    >
+
+                        <option value="">
+                            Select city
+                        </option>
+
+                        <option value="Ogbomosho">
+                            Ogbomosho
+                        </option>
+
+                        <option value="Iseyin">
+                            Iseyin
+                        </option>
+
+                        <option value="Oyo">
+                            Oyo
+                        </option>
+
+                        <option value="Ibadan">
+                            Ibadan
+                        </option>
+
+                        <option value="Lagos">
+                            Lagos
+                        </option>
+
+                        <option value="Ilorin">
+                            Ilorin
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- DATE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Travel Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="tripDate"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- TIME -->
+
+                <div class="form-group">
+
+                    <label>
+                        Departure Time
+                    </label>
+
+                    <input
+                        type="time"
+                        id="tripTime"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- MEETING POINT -->
+
+                <div class="form-group full">
+
+                    <label>
+                        Meeting / Gathering Point
+                    </label>
+
+                    <input
+                        type="text"
+                        id="meetingPoint"
+                        placeholder="e.g. LAUTECH Main Gate"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- FINAL DESTINATION -->
+
+                <div class="form-group full">
+
+                    <label>
+                        Final Destination Point
+                    </label>
+
+                    <input
+                        type="text"
+                        id="finalDestination"
+                        placeholder="Where the bus will finally stop"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- PRICE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Customer Fare (₦)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="tripPrice"
+                        min="0"
+                        placeholder="8000"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- VEHICLE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Vehicle
+                    </label>
+
+                    <input
+                        type="text"
+                        id="vehicle"
+                        placeholder="Bus / Vehicle details"
+                    >
+
+                </div>
+
+
+
+                <!-- DRIVER -->
+
+                <div class="form-group">
+
+                    <label>
+                        Driver Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="driverName"
+                        placeholder="Driver name"
+                    >
+
+                </div>
+
+
+
+                <!-- CAPACITY -->
+
+                <div class="form-group">
+
+                    <label>
+                        Passenger Capacity
+                    </label>
+
+                    <input
+                        type="number"
+                        id="capacity"
+                        min="1"
+                        value="14"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- STATUS -->
+
+                <div class="form-group">
+
+                    <label>
+                        Trip Status
+                    </label>
+
+                    <select id="tripStatus">
+
+                        <option value="AVAILABLE">
+                            AVAILABLE
+                        </option>
+
+                        <option value="FULL">
+                            FULL
+                        </option>
+
+                        <option value="ACTIVE">
+                            ACTIVE
+                        </option>
+
+                        <option value="COMPLETED">
+                            COMPLETED
+                        </option>
+
+                        <option value="CANCELLED">
+                            CANCELLED
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+            </div>
+
+
+
+            <div
+                id="tripFormMessage"
+                class="form-message"
+            ></div>
+
+
+
+            <button
+                type="submit"
+                id="saveTripButton"
+                class="save-button"
+            >
+                CREATE TRIP
+            </button>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="admin-rides.js"></script>
+
+
+</body>
+
+</html>

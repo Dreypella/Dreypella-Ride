@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Dreypella Marketplace</title>
+
+<link
+    rel="stylesheet"
+    href="marketplace.css"
+>
+
+</head>
+
+<body>
+
+<header class="market-header">
+
+    <a href="index.html" class="logo">
+        <strong>DREYPELLA</strong>
+        <span>RIDE</span>
+    </a>
+
+    <div class="header-search">
+
+        <input
+            type="search"
+            id="searchInput"
+            placeholder="Search food, clothes, shoes..."
+        >
+
+        <button id="searchButton">
+            SEARCH
+        </button>
+
+    </div>
+
+    <div class="header-actions">
+
+        <a href="vendor-register.html">
+            Sell on Dreypella
+        </a>
+
+        <button id="cartButton">
+            🛒 Cart
+            <span id="cartCount">0</span>
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="market-container">
+
+
+<section class="market-hero">
+
+    <div>
+
+        <span>
+            DREYPELLA MARKETPLACE
+        </span>
+
+        <h1>
+            Shop from businesses around you.
+        </h1>
+
+        <p>
+            Food, fashion, electronics, groceries
+            and more from trusted vendors.
+        </p>
+
+    </div>
+
+</section>
+
+
+<section class="categories-section">
+
+    <h2>
+        Shop by Category
+    </h2>
+
+    <div
+        id="categoryList"
+        class="category-list"
+    >
+
+        <button data-category="ALL">
+            🛍️ All
+        </button>
+
+        <button data-category="FOOD">
+            🍔 Food
+        </button>
+
+        <button data-category="FASHION">
+            👕 Fashion
+        </button>
+
+        <button data-category="SHOES">
+            👟 Shoes
+        </button>
+
+        <button data-category="ELECTRONICS">
+            📱 Electronics
+        </button>
+
+        <button data-category="GROCERIES">
+            🛒 Groceries
+        </button>
+
+        <button data-category="BEAUTY">
+            💄 Beauty
+        </button>
+
+        <button data-category="PHARMACY">
+            💊 Pharmacy
+        </button>
+
+        <button data-category="BOOKS">
+            📚 Books
+        </button>
+
+        <button data-category="OTHER">
+            📦 Other
+        </button>
+
+    </div>
+
+</section>
+
+
+<section class="products-section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <span>
+                MARKETPLACE
+            </span>
+
+            <h2>
+                Products
+            </h2>
+
+        </div>
+
+        <select id="sortProducts">
+
+            <option value="newest">
+                Newest
+            </option>
+
+            <option value="priceLow">
+                Price: Low to High
+            </option>
+
+            <option value="priceHigh">
+                Price: High to Low
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div
+        id="productMessage"
+        class="message"
+    ></div>
+
+
+    <div
+        id="productGrid"
+        class="product-grid"
+    ></div>
+
+</section>
+
+
+</main>
+
+
+<div
+    id="cartPanel"
+    class="cart-panel hidden"
+>
+
+    <div class="cart-header">
+
+        <h2>
+            Your Cart
+        </h2>
+
+        <button id="closeCart">
+            ×
+        </button>
+
+    </div>
+
+    <div
+        id="cartItems"
+        class="cart-items"
+    ></div>
+
+    <div class="cart-summary">
+
+        <div>
+            <span>Subtotal</span>
+            <strong id="cartSubtotal">
+                ₦0
+            </strong>
+        </div>
+
+        <div>
+            <span>Platform fee</span>
+            <strong id="cartPlatformFee">
+                ₦0
+            </strong>
+        </div>
+
+        <div class="cart-total">
+
+            <span>Total</span>
+
+            <strong id="cartTotal">
+                ₦0
+            </strong>
+
+        </div>
+
+        <button
+            id="checkoutButton"
+            class="primary-button"
+        >
+            CHECKOUT
+        </button>
+
+    </div>
+
+</div>
+
+
+<div
+    id="cartOverlay"
+    class="cart-overlay hidden"
+></div>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+
+<script src="marketplace.js"></script>
+
+</body>
+
+</html>
