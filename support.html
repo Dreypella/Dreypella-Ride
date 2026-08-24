@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Support | Dreypella Ride</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #081b5a;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .back {
+            color: #081b5a;
+            text-decoration: none;
+            font-size: 22px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(8,27,90,.08);
+            margin-bottom: 15px;
+        }
+
+        .support-link {
+            display: block;
+            text-decoration: none;
+            color: #081b5a;
+            font-weight: 700;
+            padding: 16px 0;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .support-link:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="header">
+        <a href="customer-dashboard.html" class="back">←</a>
+        <h1>Support</h1>
+    </header>
+
+    <section class="card">
+
+        <h2>How can we help?</h2>
+
+        <p>
+            Contact Dreypella Ride support for help with rides,
+            deliveries, payments, orders or your account.
+        </p>
+
+        <a href="contact.html" class="support-link">
+            Contact Dreypella Ride →
+        </a>
+
+    </section>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
+
+</body>
+</html>

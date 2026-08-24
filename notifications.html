@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Notifications | Dreypella Ride</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #081b5a;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .back {
+            text-decoration: none;
+            color: #081b5a;
+            font-size: 22px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 5px 20px rgba(8,27,90,.08);
+        }
+
+        .notification-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .notification-text {
+            color: #667085;
+            line-height: 1.5;
+        }
+
+        .notification-date {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #98a2b3;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #667085;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="header">
+        <a href="customer-dashboard.html" class="back">←</a>
+        <h1>Notifications</h1>
+    </header>
+
+    <div id="notificationsList">
+        <div class="loading">
+            Loading notifications...
+        </div>
+    </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
+
+<script>
+const notificationsList =
+    document.getElementById("notificationsList");
+
+dreypellaAuth.onAuthStateChanged(async function(user) {
+
+    if (!user) {
+        return;
+    }
+
+    try {
+
+        const snapshot = await dreypellaDB
+            .collection("notifications")
+            .where("userId", "==", user.uid)
+            .get();
+
+        if (snapshot.empty) {
+            notificationsList.innerHTML = `
+                <div class="empty">
+                    <h3>No notifications</h3>
+                    <p>Your Dreypella Ride updates will appear here.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const notifications = [];
+
+        snapshot.forEach(function(doc) {
+            notifications.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        notifications.sort(function(a, b) {
+
+            const aTime =
+                a.createdAt && a.createdAt.toDate
+                    ? a.createdAt.toDate().getTime()
+                    : 0;
+
+            const bTime =
+                b.createdAt && b.createdAt.toDate
+                    ? b.createdAt.toDate().getTime()
+                    : 0;
+
+            return bTime - aTime;
+        });
+
+        notificationsList.innerHTML =
+            notifications.map(function(notification) {
+
+                const title =
+                    notification.title ||
+                    notification.type ||
+                    "Dreypella Ride";
+
+                const text =
+                    notification.message ||
+                    notification.body ||
+                    "You have a new notification.";
+
+                let date = "";
+
+                if (
+                    notification.createdAt &&
+                    notification.createdAt.toDate
+                ) {
+                    date =
+                        notification.createdAt
+                            .toDate()
+                            .toLocaleString("en-NG");
+                }
+
+                return `
+                    <div class="card">
+                        <div class="notification-title">
+                            ${escapeHTML(title)}
+                        </div>
+
+                        <div class="notification-text">
+                            ${escapeHTML(text)}
+                        </div>
+
+                        ${
+                            date
+                                ? `<div class="notification-date">${escapeHTML(date)}</div>`
+                                : ""
+                        }
+                    </div>
+                `;
+
+            }).join("");
+
+    } catch (error) {
+
+        console.error(
+            "Notification loading error:",
+            error
+        );
+
+        notificationsList.innerHTML = `
+            <div class="empty">
+                <h3>Unable to load notifications</h3>
+                <p>Please try again later.</p>
+            </div>
+        `;
+    }
+});
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+</script>
+
+</body>
+</html>
