@@ -39,4 +39,4 @@ const dreypellaAuth = firebase.auth();
 
 const dreypellaDB = firebase.firestore();
 
-const dreypellaStorage = firebase.storage();
+const dreypellaStorage = (typeof firebase.storage === "function") ? firebase.storage() : null;
