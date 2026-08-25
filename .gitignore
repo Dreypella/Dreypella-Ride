@@ -31,3 +31,11 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Local security/recovery backups
+auth-guard.backup.js
+firebase-config.backup.js
+index.before-homepage-reduction.html
+index.before-homepage-reduction.html
+index.before-faq-cleanup.html
+index.before-faq-cleanup.html

@@ -1,3 +1,16 @@
+/*
+======================================================
+DREYPELLA RIDE — GLOBAL AUTHENTICATION GUARD
+======================================================
+Public pages:
+- login.html
+- register.html
+- forgot-password.html
+
+Every other customer-facing page requires authentication.
+======================================================
+*/
+
 (function () {
     "use strict";
 
@@ -21,31 +34,36 @@
             window.location.search +
             window.location.hash;
 
-        window.location.replace(
+        const loginUrl =
             "login.html?returnUrl=" +
-            encodeURIComponent(returnUrl)
-        );
+            encodeURIComponent(returnUrl);
+
+        window.location.replace(loginUrl);
     }
 
     function startAuthGuard() {
         if (
             typeof firebase === "undefined" ||
-            typeof firebase.auth !== "function"
+            !firebase.auth
         ) {
-            console.error("Dreypella: Firebase Auth is unavailable.");
+            console.error(
+                "Dreypella authentication could not be initialized."
+            );
+            redirectToLogin();
             return;
         }
 
         const auth = firebase.auth();
 
         auth.onAuthStateChanged(function (user) {
-            if (user) {
-                document.documentElement.classList.add(
-                    "dreypella-authenticated"
-                );
-            } else {
+            if (!user) {
                 redirectToLogin();
+                return;
             }
+
+            document.documentElement.classList.add(
+                "dreypella-authenticated"
+            );
         });
     }
 
