@@ -309,10 +309,42 @@ function normalizeCart() {
                         item.productName ||
                         "Marketplace Product",
 
+                    vendorPrice:
+                        Number(
+                            item.vendorPrice ??
+                            item.price ??
+                            0
+                        ),
+
+                    platformFee:
+                        Number(
+                            item.platformFee ??
+                            (
+                                Number(
+                                    item.vendorPrice ??
+                                    item.price ??
+                                    0
+                                ) * 0.05
+                            )
+                        ),
+
+                    customerPrice:
+                        Number(
+                            item.customerPrice ??
+                            (
+                                Number(
+                                    item.vendorPrice ??
+                                    item.price ??
+                                    0
+                                ) * 1.05
+                            )
+                        ),
+
+                    // PRICE_COMPATIBILITY
                     price:
                         Number(
-                            item.price ||
-                            item.vendorPrice ||
+                            item.vendorPrice ??
+                            item.price ??
                             0
                         ),
 
@@ -474,7 +506,7 @@ function calculateTotals() {
                 return total +
                     (
                         Number(
-                            item.price
+                            item.vendorPrice
                         ) *
                         Number(
                             item.quantity
@@ -494,7 +526,25 @@ function calculateTotals() {
      */
 
     platformFee =
-        subtotal * 0.05;
+        Number(
+            cartItems.reduce(
+                function(total, item) {
+
+                    return total +
+                        (
+                            Number(
+                                item.vendorPrice
+                            ) *
+                            Number(
+                                item.quantity
+                            ) *
+                            0.05
+                        );
+
+                },
+                0
+            )
+        );
 
 
     /*
@@ -676,7 +726,7 @@ function renderCart() {
                     <div class="product-price">
 
                         ₦${formatMoney(
-                            item.price
+                            item.customerPrice
                         )}
 
                     </div>
@@ -714,7 +764,7 @@ function renderCart() {
                 <div class="item-total">
 
                     ₦${formatMoney(
-                        item.price *
+                        item.customerPrice *
                         item.quantity
                     )}
 
@@ -1041,11 +1091,31 @@ async function submitOrder(event) {
                         quantity:
                             item.quantity,
 
+                        vendorPrice:
+                            Number(
+                                item.vendorPrice
+                            ),
+
+                        platformFee:
+                            Number(
+                                item.vendorPrice
+                            ) *
+                            0.05,
+
+                        customerPrice:
+                            Number(
+                                item.customerPrice
+                            ),
+
                         unitPrice:
-                            item.price,
+                            Number(
+                                item.customerPrice
+                            ),
 
                         total:
-                            item.price *
+                            Number(
+                                item.customerPrice
+                            ) *
                             item.quantity
 
                     };
@@ -1128,6 +1198,8 @@ async function submitOrder(event) {
 
                 platformFee,
 
+
+            // PRICING_BREAKDOWN
 
             deliveryFee:
 
@@ -1308,39 +1380,118 @@ async function processWalletPayment(
     orderData
 ) {
 
-    /*
-     * IMPORTANT:
-     *
-     * The actual wallet deduction should
-     * be performed by a trusted backend /
-     * Cloud Function.
-     *
-     * Never allow the browser to directly
-     * subtract wallet money.
-     */
+    try {
 
-    showMessage(
-        "Your order has been created. Wallet payment is being processed securely.",
-        "success"
-    );
+        const functions =
+            firebase.functions();
 
+        const payWithWallet =
+            functions.httpsCallable(
+                "payWithWallet"
+            );
 
-    /*
-     * Temporary redirect until the
-     * wallet Cloud Function is connected.
-     */
+        const reference =
+            orderData.orderReference ||
+            ("DRM-WALLET-" + Date.now());
 
-    setTimeout(
-        function() {
+        const result =
+            await payWithWallet({
 
-            window.location.href =
-                "customer-orders.html";
+                paymentType:
+                    "MARKETPLACE",
 
-        },
-        1500
-    );
+                amount:
+                    Number(orderData.total),
+
+                reference,
+
+                orderId,
+
+                item:
+                    "Marketplace Order"
+
+            });
+
+        if (
+            !result.data ||
+            result.data.success !== true
+        ) {
+
+            throw new Error(
+                "Wallet payment was not completed."
+            );
+
+        }
+
+        await db
+            .collection("marketplaceOrders")
+            .doc(orderId)
+            .update({
+
+                paymentStatus:
+                    "PAID",
+
+                orderStatus:
+                    "CONFIRMED",
+
+                paymentReference:
+                    reference,
+
+                walletTransactionId:
+                    result.data.transactionId,
+
+                paidAmount:
+                    Number(orderData.total),
+
+                paidAt:
+                    firebase.firestore
+                        .FieldValue
+                        .serverTimestamp(),
+
+                updatedAt:
+                    firebase.firestore
+                        .FieldValue
+                        .serverTimestamp()
+
+            });
+
+        showMessage(
+            "Payment successful. Your order has been confirmed.",
+            "success"
+        );
+
+        setTimeout(
+            function() {
+                window.location.href =
+                    "customer-orders.html";
+            },
+            1200
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Wallet payment error:",
+            error
+        );
+
+        showMessage(
+            error.message ||
+            "Wallet payment failed.",
+            "error"
+        );
+
+        placeOrderButton.disabled =
+            false;
+
+        placeOrderButton.textContent =
+            "PLACE ORDER";
+
+    }
 
 }
+
 
 
 

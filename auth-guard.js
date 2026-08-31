@@ -18,7 +18,8 @@ Every other customer-facing page requires authentication.
         "index.html",
         "login.html",
         "register.html",
-        "forgot-password.html"
+        "forgot-password.html",
+        "contact.html",
     ];
 
     const currentPage =

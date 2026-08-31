@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -9,90 +11,1371 @@
 
     <title>Support | Dreypella Ride</title>
 
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
+
     <style>
-        * {
-            box-sizing: border-box;
-        }
 
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
+        .support-page {
+            min-height: 100vh;
             background: #f5f7fb;
-            color: #081b5a;
+            padding: 30px 0 60px;
         }
 
-        .container {
-            max-width: 650px;
+        .support-container {
+            max-width: 900px;
             margin: auto;
-            padding: 20px;
+            padding: 0 20px;
         }
 
-        .header {
+        .support-header {
             display: flex;
             align-items: center;
             gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .support-back {
+            text-decoration: none;
+            font-size: 26px;
+            color: #081b5a;
+        }
+
+        .support-header h1 {
+            margin: 0;
+            color: #081b5a;
+        }
+
+        .support-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(8,27,90,.08);
+        }
+
+        .support-card h2 {
+            margin-top: 0;
+            color: #081b5a;
+        }
+
+        .bot-box {
+            background: #081b5a;
+            color: #ffffff;
+            border-radius: 18px;
+            padding: 25px;
             margin-bottom: 20px;
         }
 
-        .back {
-            color: #081b5a;
-            text-decoration: none;
-            font-size: 22px;
+        .bot-box h2 {
+            color: #ffffff;
+            margin-top: 0;
         }
 
-        .card {
-            background: #fff;
-            border-radius: 18px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(8,27,90,.08);
-            margin-bottom: 15px;
+        .bot-message {
+            background: rgba(255,255,255,.12);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            line-height: 1.6;
         }
 
-        .support-link {
-            display: block;
-            text-decoration: none;
-            color: #081b5a;
+        .support-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .support-form label {
             font-weight: 700;
-            padding: 16px 0;
-            border-bottom: 1px solid #edf0f5;
+            color: #081b5a;
         }
 
-        .support-link:last-child {
-            border-bottom: none;
+        .support-form input,
+        .support-form select,
+        .support-form textarea {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #dfe4ee;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
         }
+
+        .support-form textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .support-form input:focus,
+        .support-form select:focus,
+        .support-form textarea:focus {
+            border-color: #081b5a;
+        }
+
+        .support-submit {
+            border: none;
+            background: #e31b23;
+            color: #ffffff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .support-submit:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .ticket-card {
+            border: 1px solid #e5e9f0;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 12px;
+        }
+
+        .ticket-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .ticket-subject {
+            font-weight: 700;
+            color: #081b5a;
+        }
+
+        .ticket-status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #edf1f7;
+        }
+
+        .ticket-meta {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .ticket-messages {
+            margin-top: 15px;
+            border-top: 1px solid #edf0f5;
+            padding-top: 15px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .message.bot {
+            background: #f1f4f9;
+        }
+
+        .message.customer {
+            background: #eef3ff;
+        }
+
+        .message.admin {
+            background: #fff3f3;
+        }
+
+        .message-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .empty-support {
+            color: #6b7280;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .support-alert {
+            display: none;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .support-alert.show {
+            display: block;
+        }
+
+        .support-alert.success {
+            background: #eaf7ee;
+            color: #176b36;
+        }
+
+        .support-alert.error {
+            background: #fff0f0;
+            color: #a31319;
+        }
+
+        .escalate-button {
+            border: 1px solid #ffffff;
+            background: transparent;
+            color: #ffffff;
+            padding: 10px 15px;
+            border-radius: 9px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+
+            .support-page {
+                padding-top: 20px;
+            }
+
+            .support-card,
+            .bot-box {
+                padding: 18px;
+            }
+
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<main class="support-page">
 
-    <header class="header">
-        <a href="customer-dashboard.html" class="back">←</a>
-        <h1>Support</h1>
-    </header>
+    <div class="support-container">
 
-    <section class="card">
+        <header class="support-header">
 
-        <h2>How can we help?</h2>
+            <a
+                href="customer-dashboard.html"
+                class="support-back"
+                aria-label="Back"
+            >
+                ←
+            </a>
 
-        <p>
-            Contact Dreypella Ride support for help with rides,
-            deliveries, payments, orders or your account.
-        </p>
+            <div>
+                <small>CUSTOMER SERVICE</small>
+                <h1>Support</h1>
+            </div>
 
-        <a href="contact.html" class="support-link">
-            Contact Dreypella Ride →
-        </a>
+        </header>
 
-    </section>
 
-</div>
+        <!-- BOT -->
+
+        <section class="bot-box">
+
+            <h2>🤖 Dreypella Support Bot</h2>
+
+            <div class="bot-message" id="botMessage">
+
+                Hello! I'm the Dreypella Support Bot.
+
+                <br><br>
+
+                I can help with common questions about rides,
+                deliveries, wallets, payments, orders and accounts.
+
+                <br><br>
+
+                If I can't confidently answer your question,
+                you can send it directly to Dreypella Support.
+
+            </div>
+
+            <button
+                type="button"
+                class="escalate-button"
+                id="quickEscalate"
+            >
+                Send a message to Support
+            </button>
+
+        </section>
+
+
+        <!-- ALERT -->
+
+        <div
+            id="supportAlert"
+            class="support-alert"
+        ></div>
+
+
+        <!-- NEW TICKET -->
+
+        <section
+            class="support-card"
+            id="newTicketSection"
+        >
+
+            <h2>Send a Complaint or Question</h2>
+
+            <p>
+                Tell us what happened and our support team
+                will review your request.
+            </p>
+
+
+            <form
+                id="supportForm"
+                class="support-form"
+            >
+
+                <div>
+
+                    <label for="category">
+                        Category
+                    </label>
+
+                    <select
+                        id="category"
+                        required
+                    >
+
+                        <option value="">
+                            Select a category
+                        </option>
+
+                        <option value="RIDE">
+                            Ride
+                        </option>
+
+                        <option value="DELIVERY">
+                            Delivery
+                        </option>
+
+                        <option value="PAYMENT_WALLET">
+                            Payment / Wallet
+                        </option>
+
+                        <option value="MARKETPLACE_ORDER">
+                            Marketplace / Order
+                        </option>
+
+                        <option value="ACCOUNT">
+                            Account
+                        </option>
+
+                        <option value="PARTNER">
+                            Rider / Walker / Driver issue
+                        </option>
+
+                        <option value="OTHER">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label for="subject">
+                        Subject
+                    </label>
+
+                    <input
+                        type="text"
+                        id="subject"
+                        maxlength="120"
+                        placeholder="Briefly describe the issue"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label for="message">
+                        Message
+                    </label>
+
+                    <textarea
+                        id="message"
+                        maxlength="3000"
+                        placeholder="Explain your complaint or question..."
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="support-submit"
+                    id="submitTicket"
+                >
+                    Send to Dreypella Support
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- TICKETS -->
+
+        <section class="support-card">
+
+            <h2>My Support Requests</h2>
+
+            <div id="ticketList">
+
+                <div class="empty-support">
+                    Loading your support requests...
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
 <script src="firebase-config.js"></script>
+
 <script src="auth-guard.js"></script>
+
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    let currentUser = null;
+
+
+    const form =
+        document.getElementById("supportForm");
+
+    const ticketList =
+        document.getElementById("ticketList");
+
+    const alertBox =
+        document.getElementById("supportAlert");
+
+    const submitButton =
+        document.getElementById("submitTicket");
+
+    const quickEscalate =
+        document.getElementById("quickEscalate");
+
+
+    function showAlert(message, type) {
+
+        alertBox.textContent = message;
+
+        alertBox.className =
+            "support-alert show " + type;
+
+    }
+
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    function formatDate(timestamp) {
+
+        if (!timestamp) {
+            return "";
+        }
+
+        try {
+
+            const date =
+                timestamp.toDate
+                    ? timestamp.toDate()
+                    : new Date(timestamp);
+
+            return date.toLocaleString("en-NG", {
+                dateStyle: "medium",
+                timeStyle: "short"
+            });
+
+        } catch (error) {
+
+            return "";
+
+        }
+
+    }
+
+
+    function getBotResponse(text) {
+
+    const value = text.toLowerCase().trim();
+
+
+    // RIDE BOOKING
+
+    if (
+        (value.includes("book") || value.includes("booking")) &&
+        (value.includes("ride") || value.includes("trip"))
+    ) {
+        return {
+            answer:
+                "To book a ride, open the Ride section, select your departure and destination, choose an available trip and continue with the booking process.",
+            handled: true
+        };
+    }
+
+
+    // RIDE CANCELLATION
+
+    if (
+        value.includes("cancel") &&
+        (
+            value.includes("ride") ||
+            value.includes("trip") ||
+            value.includes("booking")
+        )
+    ) {
+        return {
+            answer:
+                "If you need to cancel a ride, open your booked trip and check the available cancellation option. If you cannot cancel it or need help with a refund, send the issue to Dreypella Support for review.",
+            handled: false
+        };
+    }
+
+
+    // DELIVERY TRACKING
+
+    if (
+        (
+            value.includes("delivery") ||
+            value.includes("package") ||
+            value.includes("parcel")
+        ) &&
+        (
+            value.includes("track") ||
+            value.includes("tracking") ||
+            value.includes("where")
+        )
+    ) {
+        return {
+            answer:
+                "You can use the delivery tracking option associated with your order to follow its status and available location information.",
+            handled: true
+        };
+    }
+
+
+    // DELIVERY BOOKING
+
+    if (
+        (
+            value.includes("delivery") ||
+            value.includes("package") ||
+            value.includes("parcel")
+        ) &&
+        (
+            value.includes("send") ||
+            value.includes("book") ||
+            value.includes("create")
+        )
+    ) {
+        return {
+            answer:
+                "To send a package, open the Delivery section and enter the required pickup and destination information. The available delivery option and price will then be shown.",
+            handled: true
+        };
+    }
+
+
+    // WALLET FUNDING
+
+    if (
+        value.includes("wallet") &&
+        (
+            value.includes("fund") ||
+            value.includes("add money") ||
+            value.includes("deposit") ||
+            value.includes("top up") ||
+            value.includes("funding")
+        )
+    ) {
+        return {
+            answer:
+                "You can manage your Dreypella wallet from the Wallet section of your account. Select the available option for adding money and follow the payment instructions.",
+            handled: true
+        };
+    }
+
+
+    // WITHDRAWALS
+
+    if (
+        value.includes("withdraw") ||
+        value.includes("withdrawal")
+    ) {
+        return {
+            answer:
+                "Withdrawal requests are processed through the Dreypella wallet system. If your withdrawal is pending, delayed, rejected or unsuccessful, Dreypella Support needs to review the transaction and your account.",
+            handled: false
+        };
+    }
+
+
+    // PAYMENT PROBLEMS
+
+    if (
+        (
+            value.includes("payment") ||
+            value.includes("pay") ||
+            value.includes("transaction") ||
+            value.includes("charged")
+        ) &&
+        (
+            value.includes("failed") ||
+            value.includes("fail") ||
+            value.includes("error") ||
+            value.includes("wrong") ||
+            value.includes("problem") ||
+            value.includes("issue") ||
+            value.includes("missing")
+        )
+    ) {
+        return {
+            answer:
+                "Payment or transaction problems may require account and transaction verification. Please send this request to Dreypella Support so an administrator can review it.",
+            handled: false
+        };
+    }
+
+
+    // MARKETPLACE / ORDERS
+
+    if (
+        (
+            value.includes("marketplace") ||
+            value.includes("order") ||
+            value.includes("vendor") ||
+            value.includes("shop")
+        ) &&
+        (
+            value.includes("how") ||
+            value.includes("buy") ||
+            value.includes("order") ||
+            value.includes("purchase")
+        )
+    ) {
+        return {
+            answer:
+                "Marketplace orders can be started from the Marketplace section. Choose a vendor, review the available products or services and continue with the order process.",
+            handled: true
+        };
+    }
+
+
+    // PASSWORD
+
+    if (
+        value.includes("password") &&
+        (
+            value.includes("forgot") ||
+            value.includes("reset") ||
+            value.includes("change")
+        )
+    ) {
+        return {
+            answer:
+                "Use the Forgot Password option on the login page to request a password reset.",
+            handled: true
+        };
+    }
+
+
+    // ACCOUNT
+
+    if (
+        value.includes("account") &&
+        (
+            value.includes("profile") ||
+            value.includes("edit") ||
+            value.includes("update")
+        )
+    ) {
+        return {
+            answer:
+                "You can manage your account information from your account or profile section after signing in. If you cannot update your information, send the issue to Dreypella Support.",
+            handled: true
+        };
+    }
+
+
+    // VERIFICATION
+
+    if (
+        value.includes("verification") ||
+        value.includes("verify") ||
+        value.includes("verified")
+    ) {
+        return {
+            answer:
+                "Dreypella may require account or identity verification for certain services and roles. If your verification is pending, rejected or not working, send the issue to Dreypella Support for review.",
+            handled: false
+        };
+    }
+
+
+    // RIDER / WALKER / DRIVER
+
+    if (
+        (
+            value.includes("rider") ||
+            value.includes("walker") ||
+            value.includes("driver")
+        ) &&
+        (
+            value.includes("join") ||
+            value.includes("become") ||
+            value.includes("register") ||
+            value.includes("earn")
+        )
+    ) {
+        return {
+            answer:
+                "You can explore available earning and partner opportunities through the Earn section. Choose the role that interests you and follow the application or registration process.",
+            handled: true
+        };
+    }
+
+
+    // CAMPUS AMBASSADOR
+
+    if (
+        value.includes("ambassador") ||
+        (
+            value.includes("campus") &&
+            value.includes("earn")
+        )
+    ) {
+        return {
+            answer:
+                "Dreypella Campus Ambassador opportunities are available through the Earn section. Open that section to learn about the role and available application options.",
+            handled: true
+        };
+    }
+
+
+    // CONTACT
+
+    if (
+        value.includes("contact") ||
+        value.includes("whatsapp")
+    ) {
+        return {
+            answer:
+                "You can contact Dreypella Ride through the Contact page. WhatsApp support is also available from the contact information provided there.",
+            handled: true
+        };
+    }
+
+
+    // GENERAL COMPLAINT / HUMAN SUPPORT
+
+    if (
+        value.includes("complaint") ||
+        value.includes("complain") ||
+        value.includes("fraud") ||
+        value.includes("scam") ||
+        value.includes("stolen") ||
+        value.includes("urgent") ||
+        value.includes("emergency") ||
+        value.includes("problem") ||
+        value.includes("issue") ||
+        value.includes("not working") ||
+        value.includes("wrong")
+    ) {
+        return {
+            answer:
+                "This sounds like something that may require human review. Your message will be sent to Dreypella Support so an administrator can investigate and reply to you.",
+            handled: false
+        };
+    }
+
+
+    // UNKNOWN QUESTION
+
+    return {
+        answer:
+            "I couldn't confidently find an answer to that question. Please send it to Dreypella Support so a member of the team can review it and reply to you.",
+        handled: false
+    };
+
+}
+
+
+async function createTicket(
+        category,
+        subject,
+        message,
+        botResponse
+    ) {
+
+        if (!currentUser) {
+
+            throw new Error(
+                "Please sign in before contacting support."
+            );
+
+        }
+
+
+        const now =
+            firebase.firestore.FieldValue.serverTimestamp();
+
+
+        const ticketRef =
+            await dreypellaDB
+                .collection("supportTickets")
+                .add({
+
+                    userId:
+                        currentUser.uid,
+
+                    userEmail:
+                        currentUser.email || "",
+
+                    category:
+                        category,
+
+                    subject:
+                        subject,
+
+                    status:
+                        botResponse && botResponse.handled
+                            ? "RESOLVED"
+                            : "OPEN",
+
+                    botHandled:
+                        Boolean(
+                            botResponse &&
+                            botResponse.handled
+                        ),
+
+                    escalated:
+                        !(
+                            botResponse &&
+                            botResponse.handled
+                        ),
+
+                    createdAt:
+                        now,
+
+                    updatedAt:
+                        now
+
+                });
+
+
+        await ticketRef
+            .collection("messages")
+            .add({
+
+                senderId:
+                    currentUser.uid,
+
+                senderRole:
+                    "CUSTOMER",
+
+                message:
+                    message,
+
+                createdAt:
+                    now
+
+            });
+
+
+        if (botResponse) {
+
+            await ticketRef
+                .collection("messages")
+                .add({
+
+                    senderId:
+                        "dreypella-bot",
+
+                    senderRole:
+                        "BOT",
+
+                    message:
+                        botResponse.answer,
+
+                    createdAt:
+                        firebase.firestore.FieldValue.serverTimestamp()
+
+                });
+
+        }
+
+
+        return ticketRef.id;
+
+    }
+
+
+    async function loadTickets() {
+
+        if (!currentUser) {
+            return;
+        }
+
+
+        ticketList.innerHTML =
+            '<div class="empty-support">Loading your support requests...</div>';
+
+
+        try {
+
+            const snapshot =
+                await dreypellaDB
+                    .collection("supportTickets")
+                    .where(
+                        "userId",
+                        "==",
+                        currentUser.uid
+                    )
+                    .get();
+
+
+            if (snapshot.empty) {
+
+                ticketList.innerHTML =
+                    '<div class="empty-support">You have no support requests yet.</div>';
+
+                return;
+
+            }
+
+
+            const tickets =
+                snapshot.docs
+                    .map(function (doc) {
+
+                        return {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+
+                    })
+                    .sort(function (a, b) {
+
+                        const aTime =
+                            a.createdAt &&
+                            a.createdAt.toMillis
+                                ? a.createdAt.toMillis()
+                                : 0;
+
+                        const bTime =
+                            b.createdAt &&
+                            b.createdAt.toMillis
+                                ? b.createdAt.toMillis()
+                                : 0;
+
+                        return bTime - aTime;
+
+                    });
+
+
+            ticketList.innerHTML = "";
+
+
+            for (
+                const ticket of tickets
+            ) {
+
+                const card =
+                    document.createElement("div");
+
+                card.className =
+                    "ticket-card";
+
+
+                card.innerHTML = `
+
+                    <div class="ticket-top">
+
+                        <div class="ticket-subject">
+
+                            ${escapeHTML(
+                                ticket.subject || "Support Request"
+                            )}
+
+                        </div>
+
+                        <span class="ticket-status">
+
+                            ${escapeHTML(
+                                ticket.status || "OPEN"
+                            )}
+
+                        </span>
+
+                    </div>
+
+                    <div class="ticket-meta">
+
+                        Ticket: ${escapeHTML(ticket.id)}
+
+                        <br>
+
+                        Category:
+                        ${escapeHTML(ticket.category || "OTHER")}
+
+                        <br>
+
+                        ${escapeHTML(
+                            formatDate(ticket.createdAt)
+                        )}
+
+                    </div>
+
+                    <div
+                        class="ticket-messages"
+                        id="messages-${escapeHTML(ticket.id)}"
+                    >
+                        Loading conversation...
+                    </div>
+
+                `;
+
+
+                ticketList.appendChild(card);
+
+
+                await loadMessages(
+                    ticket.id,
+                    card.querySelector(
+                        ".ticket-messages"
+                    )
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Support tickets error:",
+                error
+            );
+
+
+            ticketList.innerHTML =
+                '<div class="empty-support">Unable to load support requests right now.</div>';
+
+        }
+
+    }
+
+
+    async function loadMessages(
+        ticketId,
+        container
+    ) {
+
+        try {
+
+            const snapshot =
+                await dreypellaDB
+                    .collection("supportTickets")
+                    .doc(ticketId)
+                    .collection("messages")
+                    .get();
+
+
+            if (snapshot.empty) {
+
+                container.innerHTML =
+                    "<p>No messages yet.</p>";
+
+                return;
+
+            }
+
+
+            const messages =
+                snapshot.docs
+                    .map(function (doc) {
+
+                        return doc.data();
+
+                    })
+                    .sort(function (a, b) {
+
+                        const aTime =
+                            a.createdAt &&
+                            a.createdAt.toMillis
+                                ? a.createdAt.toMillis()
+                                : 0;
+
+                        const bTime =
+                            b.createdAt &&
+                            b.createdAt.toMillis
+                                ? b.createdAt.toMillis()
+                                : 0;
+
+                        return aTime - bTime;
+
+                    });
+
+
+            container.innerHTML =
+                messages.map(function (message) {
+
+                    const role =
+                        String(
+                            message.senderRole || "CUSTOMER"
+                        ).toLowerCase();
+
+
+                    let label =
+                        "You";
+
+
+                    if (role === "bot") {
+                        label = "Dreypella Bot";
+                    }
+
+                    if (role === "admin") {
+                        label = "Dreypella Support";
+                    }
+
+
+                    return `
+
+                        <div class="message ${escapeHTML(role)}">
+
+                            <span class="message-label">
+
+                                ${escapeHTML(label)}
+
+                            </span>
+
+                            ${escapeHTML(
+                                message.message || ""
+                            )}
+
+                        </div>
+
+                    `;
+
+                }).join("");
+
+
+        } catch (error) {
+
+            console.error(
+                "Messages error:",
+                error
+            );
+
+            container.innerHTML =
+                "<p>Unable to load conversation.</p>";
+
+        }
+
+    }
+
+
+    form.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+
+            const category =
+                document.getElementById(
+                    "category"
+                ).value;
+
+
+            const subject =
+                document.getElementById(
+                    "subject"
+                ).value.trim();
+
+
+            const message =
+                document.getElementById(
+                    "message"
+                ).value.trim();
+
+
+            if (
+                !category ||
+                !subject ||
+                !message
+            ) {
+
+                showAlert(
+                    "Please complete all required fields.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            submitButton.disabled = true;
+
+            submitButton.textContent =
+                "Sending...";
+
+
+            try {
+
+                const botResponse =
+                    getBotResponse(message);
+
+
+                const ticketId =
+                    await createTicket(
+                        category,
+                        subject,
+                        message,
+                        botResponse
+                    );
+
+
+                if (botResponse.handled) {
+
+                    showAlert(
+                        "Your question was answered by the Dreypella Support Bot.",
+                        "success"
+                    );
+
+                } else {
+
+                    showAlert(
+                        "Your request has been sent to Dreypella Support for human review.",
+                        "success"
+                    );
+
+                }
+
+
+                form.reset();
+
+
+                document.getElementById(
+                    "botMessage"
+                ).textContent =
+                    botResponse.answer;
+
+
+                await loadTickets();
+
+
+                console.log(
+                    "Support ticket created:",
+                    ticketId
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Support ticket creation failed:",
+                    error
+                );
+
+
+                showAlert(
+                    error.message ||
+                    "Unable to send your support request.",
+                    "error"
+                );
+
+            } finally {
+
+                submitButton.disabled = false;
+
+                submitButton.textContent =
+                    "Send to Dreypella Support";
+
+            }
+
+        }
+    );
+
+
+    quickEscalate.addEventListener(
+        "click",
+        function () {
+
+            document
+                .getElementById("newTicketSection")
+                .scrollIntoView({
+                    behavior: "smooth"
+                });
+
+
+            document
+                .getElementById("message")
+                .focus();
+
+        }
+    );
+
+
+    dreypellaAuth.onAuthStateChanged(
+        async function (user) {
+
+            if (!user) {
+                return;
+            }
+
+            currentUser = user;
+
+            await loadTickets();
+
+        }
+    );
+
+
+})();
+
+</script>
 
 </body>
 </html>

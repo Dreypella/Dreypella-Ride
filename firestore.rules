@@ -1,0 +1,107 @@
+rules_version = '2';
+
+service cloud.firestore {
+
+  match /databases/{database}/documents {
+
+    // =====================================================
+    // SUPPORT TICKETS
+    // =====================================================
+
+    match /supportTickets/{ticketId} {
+
+      // Authenticated users can create their own tickets.
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+
+      // Customers can read only their own tickets.
+      // Admins and Super Admins can read all tickets.
+      allow read: if request.auth != null
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+      // Customers may update only their own ticket.
+      // Admins can update any ticket.
+      allow update: if request.auth != null
+        && (
+          (
+            resource.data.userId == request.auth.uid
+            && request.resource.data.userId == resource.data.userId
+          )
+          || isAdmin()
+        );
+
+      // Tickets should normally never be deleted by customers.
+      // Admins can delete if necessary.
+      allow delete: if request.auth != null
+        && isAdmin();
+
+      // -----------------------------------------------------
+      // SUPPORT TICKET MESSAGES
+      // -----------------------------------------------------
+
+      match /messages/{messageId} {
+
+        // Ticket owner and admins can read messages.
+        allow read: if request.auth != null
+          && (
+            get(/databases/$(database)/documents/supportTickets/$(ticketId))
+              .data.userId == request.auth.uid
+            || isAdmin()
+          );
+
+        // Authenticated ticket owner or admin can create messages.
+        allow create: if request.auth != null
+          && (
+            get(/databases/$(database)/documents/supportTickets/$(ticketId))
+              .data.userId == request.auth.uid
+            || isAdmin()
+          );
+
+        // Messages should not be modified by customers.
+        allow update: if request.auth != null
+          && isAdmin();
+
+        allow delete: if request.auth != null
+          && isAdmin();
+      }
+    }
+
+
+    // =====================================================
+    // ADMIN CHECK
+    // =====================================================
+
+    function isAdmin() {
+
+      return request.auth != null
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        )
+        && (
+          get(
+            /databases/$(database)/documents/users/$(request.auth.uid)
+          ).data.role == "ADMIN"
+
+          || get(
+            /databases/$(database)/documents/users/$(request.auth.uid)
+          ).data.role == "SUPER_ADMIN"
+        );
+    }
+
+
+    // =====================================================
+    // TEMPORARY FALLBACK
+    // =====================================================
+    //
+    // Existing application collections are not changed by
+    // this Step 26 support rule file yet.
+    //
+    // We will inspect and secure those collections separately
+    // rather than accidentally breaking existing functionality.
+    //
+
+  }
+}
