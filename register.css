@@ -339,3 +339,75 @@ button:disabled {
     }
 
 }
+
+/* ======================================================
+   REGISTRATION AGREEMENTS
+====================================================== */
+
+.agreement-box {
+    margin-top: 22px;
+    padding: 16px;
+    background: #f8f9fc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.agreement-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 14px;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.6;
+}
+
+.agreement-item:last-child {
+    margin-bottom: 0;
+}
+
+.agreement-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin: 1px 0 0;
+    padding: 0;
+    accent-color: var(--red);
+    cursor: pointer;
+}
+
+.agreement-item span {
+    flex: 1;
+}
+
+.agreement-item a {
+    color: var(--navy);
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.partner-agreement-box {
+    margin-top: 15px;
+    padding: 14px;
+    background: #fff5f5;
+    border: 1px solid rgba(227, 27, 35, .25);
+    border-radius: 9px;
+}
+
+.partner-agreement-title {
+    color: var(--red);
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.partner-agreement-box p {
+    margin: 0 0 12px;
+    color: #666;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.partner-agreement-box .agreement-item {
+    margin-bottom: 0;
+}

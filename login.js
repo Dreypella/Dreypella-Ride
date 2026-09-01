@@ -151,7 +151,7 @@ function redirectUser(role) {
         case "WALKER":
 
             window.location.href =
-                "walker-dashboard.html";
+                "partner-deliveries.html";
 
             break;
 
@@ -163,7 +163,7 @@ function redirectUser(role) {
         case "RIDER":
 
             window.location.href =
-                "rider-dashboard.html";
+                "partner-deliveries.html";
 
             break;
 
@@ -175,7 +175,7 @@ function redirectUser(role) {
         case "DRIVER":
 
             window.location.href =
-                "driver-dashboard.html";
+                "partner-deliveries.html";
 
             break;
 
@@ -223,7 +223,7 @@ function redirectUser(role) {
         case "ADMIN":
 
             window.location.href =
-                "admin-dashboard.html";
+                "admin.html";
 
             break;
 
@@ -235,7 +235,7 @@ function redirectUser(role) {
         case "SUPER_ADMIN":
 
             window.location.href =
-                "admin-dashboard.html";
+                "admin.html";
 
             break;
 

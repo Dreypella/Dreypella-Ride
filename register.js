@@ -35,6 +35,46 @@ const registerButton =
 const registerMessage =
     document.getElementById("registerMessage");
 
+const termsAgreement =
+    document.getElementById("termsAgreement");
+
+const privacyAgreement =
+    document.getElementById("privacyAgreement");
+
+const partnerAgreementBox =
+    document.getElementById("partnerAgreementBox");
+
+const partnerAgreement =
+    document.getElementById("partnerAgreement");
+
+const partnerRoles = [
+    "AMBASSADOR",
+    "VENDOR",
+    "WALKER",
+    "RIDER",
+    "DRIVER"
+];
+
+function updatePartnerAgreementVisibility() {
+
+    const isPartner =
+        partnerRoles.includes(roleInput.value);
+
+    partnerAgreementBox.hidden = !isPartner;
+
+    if (!isPartner) {
+        partnerAgreement.checked = false;
+    }
+}
+
+roleInput.addEventListener(
+    "change",
+    updatePartnerAgreementVisibility
+);
+
+updatePartnerAgreementVisibility();
+
+
 
 // ======================================================
 // MESSAGE
@@ -173,6 +213,45 @@ function validateForm() {
     }
 
 
+    if (!termsAgreement.checked) {
+
+        showMessage(
+            "Please agree to the Dreypella Ride Terms & Conditions.",
+            "error"
+        );
+
+        return false;
+
+    }
+
+
+    if (!privacyAgreement.checked) {
+
+        showMessage(
+            "Please agree to the Dreypella Ride Privacy Policy.",
+            "error"
+        );
+
+        return false;
+
+    }
+
+
+    if (
+        partnerRoles.includes(role) &&
+        !partnerAgreement.checked
+    ) {
+
+        showMessage(
+            "Please agree to the Dreypella Ride Partner Agreement.",
+            "error"
+        );
+
+        return false;
+
+    }
+
+
     return true;
 
 }
@@ -298,6 +377,45 @@ registerForm.addEventListener(
                     phoneVerified: false,
 
                     profileCompleted: false,
+
+                    // ==========================================
+                    // AGREEMENT ACCEPTANCE RECORDS
+                    // ==========================================
+
+                    termsAccepted: true,
+
+                    termsVersion: "1.0",
+
+                    termsAcceptedAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp(),
+
+                    privacyAccepted: true,
+
+                    privacyVersion: "1.0",
+
+                    privacyAcceptedAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp(),
+
+                    partnerAgreementAccepted:
+                        partnerRoles.includes(role),
+
+                    partnerAgreementVersion:
+                        partnerRoles.includes(role)
+                            ? "1.0"
+                            : null,
+
+                    partnerAgreementAcceptedAt:
+                        partnerRoles.includes(role)
+                            ? firebase.firestore
+                                .FieldValue
+                                .serverTimestamp()
+                            : null,
+
+                    agreementRole: role,
 
                     createdAt:
                         firebase.firestore

@@ -266,48 +266,52 @@ functions.https.onCall(
                         );
 
 
+                        const transactionId =
+                            withdrawal.transactionId;
+
+                        if (!transactionId) {
+                            throw new functions.https.HttpsError(
+                                "failed-precondition",
+                                "Withdrawal has no linked wallet transaction."
+                            );
+                        }
+
                         const transactionRef =
                             db.collection(
                                 "walletTransactions"
-                            ).doc();
+                            ).doc(transactionId);
 
+                        const transactionSnap =
+                            await transaction.get(
+                                transactionRef
+                            );
 
-                        transaction.set(
+                        if (!transactionSnap.exists) {
+                            throw new functions.https.HttpsError(
+                                "failed-precondition",
+                                "Linked wallet transaction does not exist."
+                            );
+                        }
+
+                        transaction.update(
                             transactionRef,
                             {
-
-                                transactionId:
-                                    transactionRef.id,
-
-                                userId,
-
-                                walletId:
-                                    userId,
-
-                                type:
-                                    "WITHDRAWAL",
-
-                                direction:
-                                    "DEBIT",
-
-                                amount,
 
                                 status:
                                     "APPROVED",
 
-                                reference:
-                                    withdrawal.withdrawalReference ||
-                                    withdrawalId,
+                                performedBy:
+                                    adminUser.uid,
 
-                                withdrawalId,
+                                approvedAt:
+                                    admin.firestore
+                                        .FieldValue
+                                        .serverTimestamp(),
 
                                 description:
                                     "Wallet withdrawal approved by admin.",
 
-                                performedBy:
-                                    adminUser.uid,
-
-                                createdAt:
+                                updatedAt:
                                     admin.firestore
                                         .FieldValue
                                         .serverTimestamp()
@@ -581,6 +585,60 @@ functions.https.onCall(
 
                             }
                         );
+
+
+                          const linkedTransactionId =
+                              withdrawal.transactionId;
+
+                          if (!linkedTransactionId) {
+                              throw new functions.https.HttpsError(
+                                  "failed-precondition",
+                                  "Withdrawal has no linked wallet transaction."
+                              );
+                          }
+
+                          const linkedTransactionRef =
+                              db.collection(
+                                  "walletTransactions"
+                              ).doc(linkedTransactionId);
+
+                          const linkedTransactionSnap =
+                              await transaction.get(
+                                  linkedTransactionRef
+                              );
+
+                          if (!linkedTransactionSnap.exists) {
+                              throw new functions.https.HttpsError(
+                                  "failed-precondition",
+                                  "Linked wallet transaction does not exist."
+                              );
+                          }
+
+                          transaction.update(
+                              linkedTransactionRef,
+                              {
+
+                                  status:
+                                      "DECLINED",
+
+                                  performedBy:
+                                      adminUser.uid,
+
+                                  declinedAt:
+                                      admin.firestore
+                                          .FieldValue
+                                          .serverTimestamp(),
+
+                                  description:
+                                      "Wallet withdrawal declined by admin.",
+
+                                  updatedAt:
+                                      admin.firestore
+                                          .FieldValue
+                                          .serverTimestamp()
+
+                              }
+                          );
 
 
                         const transactionRef =

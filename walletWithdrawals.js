@@ -218,6 +218,9 @@ async function requestWalletWithdrawal(
                         uid,
 
                     amount,
+                      transactionId:
+                          transactionRef.id,
+
 
                     bankName,
 
