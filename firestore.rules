@@ -22,16 +22,10 @@ service cloud.firestore {
           || isAdmin()
         );
 
-      // Customers may update only their own ticket.
-      // Admins can update any ticket.
+      // Customers cannot modify tickets after creation.
+      // Admins and Super Admins can manage any ticket.
       allow update: if request.auth != null
-        && (
-          (
-            resource.data.userId == request.auth.uid
-            && request.resource.data.userId == resource.data.userId
-          )
-          || isAdmin()
-        );
+        && isAdmin();
 
       // Tickets should normally never be deleted by customers.
       // Admins can delete if necessary.
@@ -52,11 +46,16 @@ service cloud.firestore {
             || isAdmin()
           );
 
-        // Authenticated ticket owner or admin can create messages.
+        // Customers can create only their own CUSTOMER messages.
+        // Admins can create staff messages.
         allow create: if request.auth != null
           && (
-            get(/databases/$(database)/documents/supportTickets/$(ticketId))
-              .data.userId == request.auth.uid
+            (
+              get(/databases/$(database)/documents/supportTickets/$(ticketId))
+                .data.userId == request.auth.uid
+              && request.resource.data.senderId == request.auth.uid
+              && request.resource.data.senderRole == "CUSTOMER"
+            )
             || isAdmin()
           );
 
