@@ -445,6 +445,8 @@ registerForm.addEventListener(
 
                     pendingBalance: 0,
 
+                    pendingWithdrawal: 0,
+
                     totalEarnings: 0,
 
                     totalSpent: 0,

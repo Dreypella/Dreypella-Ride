@@ -18,187 +18,215 @@
     <style>
 
         .checkout-page {
-
             background: #F5F7FA;
-
             min-height: 80vh;
-
-            padding: 50px 0 80px;
-
+            padding: 40px 0 70px;
         }
-
 
         .checkout-container {
-
-            max-width: 800px;
-
+            max-width: 850px;
             margin: auto;
-
         }
-
 
         .checkout-card {
-
             background: #FFFFFF;
-
             border-radius: 18px;
-
             padding: 28px;
-
             border: 1px solid #E5E7EB;
-
-            box-shadow:
-                0 10px 30px
-                rgba(8,27,90,.07);
-
+            box-shadow: 0 10px 30px rgba(8,27,90,.07);
         }
 
-
-        .checkout-card h1 {
-
+        .checkout-card h1,
+        .checkout-card h2 {
             color: #081B5A;
-
-            margin-bottom: 8px;
-
         }
-
 
         .checkout-intro {
-
             color: #6B7280;
-
-            margin-bottom: 25px;
-
+            margin-bottom: 24px;
         }
-
-
-        .booking-summary {
-
-            background: #F5F7FA;
-
-            border-radius: 12px;
-
-            padding: 20px;
-
-            margin-bottom: 25px;
-
-        }
-
-
-        .summary-row {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            gap: 20px;
-
-            padding: 10px 0;
-
-            border-bottom:
-                1px solid #E5E7EB;
-
-        }
-
-
-        .summary-row:last-child {
-
-            border-bottom: none;
-
-        }
-
-
-        .summary-row span {
-
-            color: #6B7280;
-
-            font-size: 13px;
-
-        }
-
-
-        .summary-row strong {
-
-            color: #081B5A;
-
-            text-align: right;
-
-        }
-
-
-        .form-group {
-
-            margin-bottom: 17px;
-
-        }
-
-
-        .form-group label {
-
-            display: block;
-
-            color: #081B5A;
-
-            font-size: 13px;
-
-            font-weight: 700;
-
-            margin-bottom: 7px;
-
-        }
-
-
-        .form-group input {
-
-            width: 100%;
-
-            min-height: 48px;
-
-            padding: 0 14px;
-
-            border: 1px solid #D1D5DB;
-
-            border-radius: 9px;
-
-            outline: none;
-
-        }
-
-
-        .confirm-button {
-
-            width: 100%;
-
-            min-height: 50px;
-
-            border: none;
-
-            border-radius: 10px;
-
-            background: #E31B23;
-
-            color: #FFFFFF;
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            margin-top: 10px;
-
-        }
-
 
         .back-link {
-
             display: inline-block;
-
-            margin-bottom: 20px;
-
+            margin-bottom: 18px;
             color: #081B5A;
-
             font-size: 13px;
-
             font-weight: 700;
+        }
+
+        .booking-summary {
+            background: #F5F7FA;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 26px;
+        }
+
+        .summary-route {
+            color: #081B5A;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 11px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row span {
+            color: #6B7280;
+            font-size: 13px;
+        }
+
+        .summary-row strong {
+            color: #081B5A;
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        .section-label {
+            display: block;
+            color: #E31B23;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .payment-section {
+            margin-top: 28px;
+        }
+
+        .payment-section h2 {
+            margin-bottom: 16px;
+        }
+
+        .payment-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid #D1D5DB;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: border-color .15s ease;
+        }
+
+        .payment-option:hover {
+            border-color: #081B5A;
+        }
+
+        .payment-option input {
+            margin-top: 4px;
+            accent-color: #E31B23;
+        }
+
+        .payment-option strong {
+            display: block;
+            color: #081B5A;
+            margin-bottom: 4px;
+        }
+
+        .payment-option span {
+            display: block;
+            color: #6B7280;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .payment-note {
+            margin-top: 16px;
+            padding: 14px;
+            background: #FFF8E1;
+            border: 1px solid #F3D37A;
+            border-radius: 10px;
+            color: #6B4E00;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .checkout-button {
+            width: 100%;
+            min-height: 50px;
+            margin-top: 22px;
+            border: none;
+            border-radius: 10px;
+            background: #E31B23;
+            color: #FFFFFF;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .checkout-button:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+        }
+
+        .checkout-message {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .checkout-message.show {
+            display: block;
+        }
+
+        .checkout-message.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .checkout-message.success {
+            background: #DCFCE7;
+            color: #166534;
+        }
+
+        .loading-state,
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: #6B7280;
+        }
+
+        @media (max-width: 600px) {
+
+            .checkout-page {
+                padding: 25px 0 50px;
+            }
+
+            .checkout-card {
+                padding: 20px;
+                border-radius: 14px;
+            }
+
+            .summary-row {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .summary-row strong {
+                text-align: left;
+            }
+
+            .summary-route {
+                font-size: 18px;
+            }
 
         }
 
@@ -209,280 +237,854 @@
 
 <body>
 
+    <section class="page-header">
 
-<section class="page-header">
+        <div class="container">
 
-    <div class="container">
+            <h1>Confirm Booking</h1>
 
-        <h1>Confirm Booking</h1>
-
-        <p>
-            Review your trip before continuing.
-        </p>
-
-    </div>
-
-</section>
-
-
-<section class="checkout-page">
-
-    <div class="container checkout-container">
-
-        <a
-            href="ride.html"
-            class="back-link"
-        >
-            ← Back to rides
-        </a>
-
-
-        <div class="checkout-card">
-
-            <h1>
-                Your Trip
-            </h1>
-
-            <p class="checkout-intro">
-
-                Confirm your details.
-
+            <p>
+                Review your trip and choose how to pay.
             </p>
-
-
-            <div
-                id="bookingSummary"
-                class="booking-summary"
-            >
-
-                Loading trip...
-
-            </div>
-
-
-            <form id="bookingForm">
-
-
-                <div class="form-group">
-
-                    <label>
-                        Full Name
-                    </label>
-
-                    <input
-                        type="text"
-                        id="customerName"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
-                        Phone Number
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="customerPhone"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
-                        Email Address
-                    </label>
-
-                    <input
-                        type="email"
-                        id="customerEmail"
-                        required
-                    >
-
-                </div>
-
-
-                <button
-                    type="submit"
-                    class="confirm-button"
-                >
-                    CONTINUE TO PAYMENT
-                </button>
-
-            </form>
 
         </div>
 
-    </div>
-
-</section>
+    </section>
 
 
-<script>
+    <section class="checkout-page">
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+        <div class="container checkout-container">
 
-        const storedTrip =
-            localStorage.getItem(
-                "dreypellaSelectedTrip"
-            );
-
-
-        const summary =
-            document.getElementById(
-                "bookingSummary"
-            );
+            <a
+                href="ride.html"
+                class="back-link"
+            >
+                ← Back to rides
+            </a>
 
 
-        if (!storedTrip) {
+            <div class="checkout-card">
 
-            summary.innerHTML = `
+                <h1>Your Trip</h1>
 
-                <p>
-                    No trip has been selected.
+                <p class="checkout-intro">
+                    Confirm your booking details before continuing.
                 </p>
 
-                <br>
 
-                <a href="ride.html">
-                    Return to available rides
-                </a>
+                <div
+                    id="bookingSummary"
+                    class="booking-summary"
+                >
 
-            `;
+                    <div class="loading-state">
+                        Loading booking...
+                    </div>
 
-            return;
-
-        }
-
-
-        const trip =
-            JSON.parse(
-                storedTrip
-            );
+                </div>
 
 
-        const price =
-            Number(trip.price)
-                .toLocaleString(
-                    "en-NG"
-                );
+                <section class="payment-section">
+
+                    <span class="section-label">
+                        PAYMENT
+                    </span>
+
+                    <h2>
+                        Choose Payment Method
+                    </h2>
 
 
-        summary.innerHTML = `
+                    <div class="payment-options">
 
-            <div class="summary-row">
+                        <label class="payment-option">
 
-                <span>
-                    Route
-                </span>
+                            <input
+                                type="radio"
+                                name="paymentMethod"
+                                value="WALLET"
+                                checked
+                            >
 
-                <strong>
-                    ${trip.origin}
-                    →
-                    ${trip.destination}
-                </strong>
+                            <div>
+
+                                <strong>
+                                    Dreypella Wallet
+                                </strong>
+
+                                <span>
+                                    Pay using your available wallet balance.
+                                </span>
+
+                            </div>
+
+                        </label>
+
+
+                        <label class="payment-option">
+
+                            <input
+                                type="radio"
+                                name="paymentMethod"
+                                value="PAYSTACK"
+                            >
+
+                            <div>
+
+                                <strong>
+                                    Pay Online
+                                </strong>
+
+                                <span>
+                                    Pay securely online with Paystack.
+                                </span>
+
+                            </div>
+
+                        </label>
+
+
+                        <label class="payment-option">
+
+                            <input
+                                type="radio"
+                                name="paymentMethod"
+                                value="PAY_ON_DEPARTURE"
+                            >
+
+                            <div>
+
+                                <strong>
+                                    Pay on Departure
+                                </strong>
+
+                                <span>
+                                    Reserve your seat and pay before boarding.
+                                </span>
+
+                            </div>
+
+                        </label>
+
+                    </div>
+
+
+                    <div class="payment-note">
+
+                        Your booking information and payment status
+                        will be handled securely. Payment is not confirmed
+                        until the selected payment method is successfully
+                        processed.
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        id="continuePaymentButton"
+                        class="checkout-button"
+                    >
+                        CONTINUE
+                    </button>
+
+
+                    <div
+                        id="checkoutMessage"
+                        class="checkout-message"
+                    ></div>
+
+                </section>
 
             </div>
 
+        </div>
 
-            <div class="summary-row">
-
-                <span>
-                    Pickup / Gathering Point
-                </span>
-
-                <strong>
-                    ${trip.origin}
-                </strong>
-
-            </div>
+    </section>
 
 
-            <div class="summary-row">
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 
-                <span>
-                    Departure
-                </span>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
-                <strong>
-                    ${trip.time}
-                </strong>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
-            </div>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 
+    <script src="firebase-config.js"></script>
 
-            <div class="summary-row">
-
-                <span>
-                    Vehicle
-                </span>
-
-                <strong>
-                    ${trip.vehicle}
-                </strong>
-
-            </div>
+    <script src="auth-guard.js"></script>
 
 
-            <div class="summary-row">
+    <script>
 
-                <span>
-                    Trip Price
-                </span>
+        document.addEventListener(
+            "DOMContentLoaded",
+            function() {
 
-                <strong>
-                    ₦${price}
-                </strong>
+                const bookingSummary =
+                    document.getElementById(
+                        "bookingSummary"
+                    );
 
-            </div>
+                const continueButton =
+                    document.getElementById(
+                        "continuePaymentButton"
+                    );
 
-        `;
+                const checkoutMessage =
+                    document.getElementById(
+                        "checkoutMessage"
+                    );
+
+                const params =
+                    new URLSearchParams(
+                        window.location.search
+                    );
+
+                const bookingId =
+                    params.get("bookingId");
 
 
-        const form =
-            document.getElementById(
-                "bookingForm"
-            );
+                function showMessage(
+                    message,
+                    type
+                ) {
+
+                    checkoutMessage.textContent =
+                        message;
+
+                    checkoutMessage.className =
+                        "checkout-message show " +
+                        type;
+
+                }
 
 
-        form.addEventListener(
-            "submit",
-            function (event) {
+                function formatMoney(
+                    amount
+                ) {
 
-                event.preventDefault();
+                    return Number(
+                        amount || 0
+                    ).toLocaleString(
+                        "en-NG"
+                    );
+
+                }
 
 
-                /*
-                    This is where the real
-                    Paystack/Firebase booking
-                    process will eventually go.
-                */
+                function formatDateTime(
+                    travelDate,
+                    preferredTime,
+                    confirmedDeparture
+                ) {
 
-                alert(
-                    "Booking details received. Payment integration will be connected next."
+                    const date =
+                        travelDate ||
+                        "";
+
+                    const time =
+                        confirmedDeparture ||
+                        preferredTime ||
+                        "";
+
+                    if (!date && !time) {
+                        return "To be confirmed";
+                    }
+
+                    return (
+                        date +
+                        (time ? " • " + time : "")
+                    );
+
+                }
+
+
+                function escapeHTML(
+                    value
+                ) {
+
+                    return String(
+                        value || ""
+                    )
+                        .replace(
+                            /&/g,
+                            "&amp;"
+                        )
+                        .replace(
+                            /</g,
+                            "&lt;"
+                        )
+                        .replace(
+                            />/g,
+                            "&gt;"
+                        )
+                        .replace(
+                            /"/g,
+                            "&quot;"
+                        )
+                        .replace(
+                            /'/g,
+                            "&#039;"
+                        );
+
+                }
+
+
+                if (!bookingId) {
+
+                    bookingSummary.innerHTML = `
+                        <div class="empty-state">
+                            No booking was supplied.
+                            <br><br>
+                            <a href="ride.html">
+                                Return to available rides
+                            </a>
+                        </div>
+                    `;
+
+                    continueButton.disabled =
+                        true;
+
+                    return;
+
+                }
+
+
+                firebase.auth().onAuthStateChanged(
+                    async function(user) {
+
+                        if (!user) {
+                            return;
+                        }
+
+                        try {
+
+                            const bookingSnapshot =
+                                await firebase
+                                    .firestore()
+                                    .collection(
+                                        "rideBookings"
+                                    )
+                                    .doc(
+                                        bookingId
+                                    )
+                                    .get();
+
+
+                            if (
+                                !bookingSnapshot.exists
+                            ) {
+
+                                throw new Error(
+                                    "Booking not found."
+                                );
+
+                            }
+
+
+                            const booking =
+                                bookingSnapshot.data();
+
+
+                            if (
+                                booking.userId !==
+                                user.uid
+                            ) {
+
+                                throw new Error(
+                                    "You cannot access this booking."
+                                );
+
+                            }
+
+
+                            const totalFare =
+                                Number(
+                                    booking.totalFare ||
+                                    0
+                                );
+
+
+                            bookingSummary.innerHTML = `
+
+                                <div class="summary-route">
+                                    ${escapeHTML(
+                                        booking.fromCity
+                                    )}
+                                    →
+                                    ${escapeHTML(
+                                        booking.toCity
+                                    )}
+                                </div>
+
+
+                                <div class="summary-row">
+
+                                    <span>
+                                        Gathering Point
+                                    </span>
+
+                                    <strong>
+                                        ${escapeHTML(
+                                            booking.gatheringPoint ||
+                                            "To be confirmed"
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="summary-row">
+
+                                    <span>
+                                        Final Destination
+                                    </span>
+
+                                    <strong>
+                                        ${escapeHTML(
+                                            booking.finalDestination ||
+                                            booking.toCity
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="summary-row">
+
+                                    <span>
+                                        Departure
+                                    </span>
+
+                                    <strong>
+                                        ${escapeHTML(
+                                            formatDateTime(
+                                                booking.travelDate,
+                                                booking.preferredTime,
+                                                booking.confirmedDeparture
+                                            )
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="summary-row">
+
+                                    <span>
+                                        Number of Seats
+                                    </span>
+
+                                    <strong>
+                                        ${Number(
+                                            booking.seats || 1
+                                        )}
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="summary-row">
+
+                                    <span>
+                                        Total Fare
+                                    </span>
+
+                                    <strong>
+                                        ₦${formatMoney(
+                                            totalFare
+                                        )}
+                                    </strong>
+
+                                </div>
+
+                            `;
+
+
+                            continueButton.addEventListener(
+                                "click",
+                                async function() {
+
+                                    const selectedInput =
+                                        document.querySelector(
+                                            'input[name="paymentMethod"]:checked'
+                                        );
+
+                                    if (!selectedInput) {
+                                        showMessage(
+                                            "Please select a payment method.",
+                                            "error"
+                                        );
+                                        return;
+                                    }
+
+                                    const selectedMethod =
+                                        selectedInput.value;
+
+                                    if (
+                                        selectedMethod ===
+                                        "WALLET"
+                                    ) {
+
+                                        if (
+                                            !Number.isFinite(
+                                                totalFare
+                                            ) ||
+                                            totalFare <= 0
+                                        ) {
+                                            showMessage(
+                                                "This booking does not have a valid fare.",
+                                                "error"
+                                            );
+                                            return;
+                                        }
+
+                                        continueButton.disabled =
+                                            true;
+
+                                        continueButton.textContent =
+                                            "PROCESSING...";
+
+                                        showMessage(
+                                            "Processing wallet payment...",
+                                            "success"
+                                        );
+
+                                        try {
+
+                                            const functions =
+                                                firebase.functions();
+
+                                            const payWithWallet =
+                                                functions.httpsCallable(
+                                                    "payWithWallet"
+                                                );
+
+                                            const reference =
+                                                "DR-RIDE-" +
+                                                bookingId +
+                                                "-" +
+                                                Date.now();
+
+                                            const result =
+                                                await payWithWallet({
+                                                    paymentType:
+                                                        "RIDE",
+
+                                                    amount:
+                                                        totalFare,
+
+                                                    reference:
+                                                        reference,
+
+                                                    orderId:
+                                                        bookingId,
+
+                                                    item:
+                                                        booking.fromCity +
+                                                        " to " +
+                                                        booking.toCity
+                                                });
+
+                                            const response =
+                                                result.data ||
+                                                {};
+
+                                            if (
+                                                response.success !==
+                                                true
+                                            ) {
+                                                throw new Error(
+                                                    response.message ||
+                                                    "Wallet payment failed."
+                                                );
+                                            }
+
+                                            showMessage(
+                                                "Payment successful. Your ride booking is confirmed.",
+                                                "success"
+                                            );
+
+                                            continueButton.textContent =
+                                                "PAYMENT COMPLETED";
+
+                                            setTimeout(
+                                                function() {
+                                                    window.location.href =
+                                                        "customer-dashboard.html";
+                                                },
+                                                1200
+                                            );
+
+                                        }
+                                        catch(error) {
+
+                                            console.error(
+                                                "Ride wallet payment error:",
+                                                error
+                                            );
+
+                                            const message =
+                                                error.message ||
+                                                "Wallet payment failed.";
+
+                                            if (
+                                                message.includes(
+                                                    "Insufficient wallet balance"
+                                                )
+                                            ) {
+
+                                                const shortfall =
+                                                    Number(
+                                                        error.details &&
+                                                        error.details.shortfall
+                                                    );
+
+                                                const requiredAmount =
+                                                    Number.isFinite(
+                                                        shortfall
+                                                    ) &&
+                                                    shortfall > 0
+                                                        ? Math.max(
+                                                            100,
+                                                            Math.ceil(
+                                                                shortfall
+                                                            )
+                                                        )
+                                                        : Math.max(
+                                                            100,
+                                                            Math.ceil(
+                                                                totalFare
+                                                            )
+                                                        );
+
+                                                window.location.href =
+                                                    "customer-wallet.html" +
+                                                    "?fundAmount=" +
+                                                    encodeURIComponent(
+                                                        requiredAmount
+                                                    );
+
+                                                return;
+                                            }
+
+                                            showMessage(
+                                                message,
+                                                "error"
+                                            );
+
+                                            continueButton.disabled =
+                                                false;
+
+                                            continueButton.textContent =
+                                                "CONTINUE";
+                                        }
+
+                                    }
+                                    else if (
+                                        selectedMethod ===
+                                        "PAYSTACK"
+                                    ) {
+
+                                        if (
+                                            !bookingId
+                                        ) {
+                                            showMessage(
+                                                "Booking information is missing.",
+                                                "error"
+                                            );
+                                            return;
+                                        }
+
+                                        continueButton.disabled =
+                                            true;
+
+                                        continueButton.textContent =
+                                            "PROCESSING...";
+
+                                        showMessage(
+                                            "Preparing secure online payment...",
+                                            "success"
+                                        );
+
+                                        try {
+
+                                            const functions =
+                                                firebase.functions();
+
+                                            const initializeRidePayment =
+                                                functions.httpsCallable(
+                                                    "initializeRidePayment"
+                                                );
+
+                                            const result =
+                                                await initializeRidePayment({
+                                                    bookingId:
+                                                        bookingId
+                                                });
+
+                                            const response =
+                                                result.data ||
+                                                {};
+
+                                            if (
+                                                response.success !==
+                                                    true ||
+                                                !response.authorizationUrl
+                                            ) {
+                                                throw new Error(
+                                                    response.message ||
+                                                    "Unable to start online payment."
+                                                );
+                                            }
+
+                                            window.location.href =
+                                                response.authorizationUrl;
+
+                                        }
+                                        catch(error) {
+
+                                            console.error(
+                                                "Ride Paystack initialization error:",
+                                                error
+                                            );
+
+                                            showMessage(
+                                                error.message ||
+                                                "Unable to start online payment.",
+                                                "error"
+                                            );
+
+                                            continueButton.disabled =
+                                                false;
+
+                                            continueButton.textContent =
+                                                "CONTINUE";
+                                        }
+
+                                    }
+                                    else if (
+                                        selectedMethod ===
+                                        "PAY_ON_DEPARTURE"
+                                    ) {
+
+                                        if (
+                                            !bookingId
+                                        ) {
+                                            showMessage(
+                                                "Booking information is missing.",
+                                                "error"
+                                            );
+                                            return;
+                                        }
+
+                                        continueButton.disabled =
+                                            true;
+
+                                        continueButton.textContent =
+                                            "PROCESSING...";
+
+                                        try {
+
+                                            const functions =
+                                                firebase.functions();
+
+                                            const reserveRide =
+                                                functions.httpsCallable(
+                                                    "reserveRideForPayOnDeparture"
+                                                );
+
+                                            const result =
+                                                await reserveRide({
+                                                    bookingId:
+                                                        bookingId
+                                                });
+
+                                            const response =
+                                                result.data ||
+                                                {};
+
+                                            if (
+                                                response.success !==
+                                                    true
+                                            ) {
+                                                throw new Error(
+                                                    response.message ||
+                                                    "Unable to reserve this ride."
+                                                );
+                                            }
+
+                                            window.location.href =
+                                                "ride-reservation-success.html?bookingId=" +
+                                                encodeURIComponent(
+                                                    bookingId
+                                                );
+
+                                        }
+                                        catch(error) {
+
+                                            console.error(
+                                                "Pay on Departure reservation error:",
+                                                error
+                                            );
+
+                                            showMessage(
+                                                error.message ||
+                                                "Unable to reserve this ride.",
+                                                "error"
+                                            );
+
+                                            continueButton.disabled =
+                                                false;
+
+                                            continueButton.textContent =
+                                                "CONTINUE";
+
+                                        }
+
+                                    }
+
+                                }
+                            );
+
+                        }
+                        catch(error) {
+
+                            console.error(
+                                "Checkout booking error:",
+                                error
+                            );
+
+                            bookingSummary.innerHTML = `
+                                <div class="empty-state">
+                                    ${escapeHTML(
+                                        error.message ||
+                                        "Unable to load booking."
+                                    )}
+                                </div>
+                            `;
+
+                            continueButton.disabled =
+                                true;
+
+                            showMessage(
+                                error.message ||
+                                "Unable to load booking.",
+                                "error"
+                            );
+
+                        }
+
+                    }
                 );
 
             }
         );
 
-    }
-);
+    </script>
 
-</script>
-
-
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="auth-guard.js"></script>
 </body>
 
 </html>

@@ -11,50 +11,44 @@ ADMIN AUTHORIZATION
 */
 
 async function requireAdmin(context) {
-
     if (!context.auth) {
-
         throw new functions.https.HttpsError(
             "unauthenticated",
             "You must be logged in."
         );
-
     }
 
-    const uid = context.auth.uid;
+    const adminUid = context.auth.uid;
 
-    const adminRef =
-        db.collection("admins").doc(uid);
+    const userRef = db
+        .collection("users")
+        .doc(adminUid);
 
-    const adminSnap =
-        await adminRef.get();
+    const userSnap = await userRef.get();
 
-    if (!adminSnap.exists) {
-
+    if (!userSnap.exists) {
         throw new functions.https.HttpsError(
             "permission-denied",
             "Admin access is required."
         );
-
     }
 
-    const adminData =
-        adminSnap.data();
+    const userData = userSnap.data();
 
-    if (adminData.active === false) {
-
+    if (
+        userData.role !== "ADMIN" &&
+        userData.role !== "SUPER_ADMIN"
+    ) {
         throw new functions.https.HttpsError(
             "permission-denied",
-            "This admin account is disabled."
+            "Admin access is required."
         );
-
     }
 
     return {
-        uid,
-        ...adminData
+        uid: adminUid,
+        ...userData
     };
-
 }
 
 

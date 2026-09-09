@@ -1260,9 +1260,10 @@ async function submitBooking(event) {
          */
 
 
-        await db
-            .collection("rideBookings")
-            .add({
+        const bookingDoc =
+            await db
+                .collection("rideBookings")
+                .add({
 
                 bookingReference:
 
@@ -1400,8 +1401,20 @@ async function submitBooking(event) {
         setTimeout(
             function() {
 
-                window.location.href =
-                    "customer-dashboard.html";
+                if (selectedTripData) {
+
+                    window.location.href =
+                        "checkout.html?bookingId=" +
+                        encodeURIComponent(
+                            bookingDoc.id
+                        );
+
+                } else {
+
+                    window.location.href =
+                        "customer-dashboard.html";
+
+                }
 
             },
             1800

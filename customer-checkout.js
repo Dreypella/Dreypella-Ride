@@ -1423,38 +1423,6 @@ async function processWalletPayment(
 
         }
 
-        await db
-            .collection("marketplaceOrders")
-            .doc(orderId)
-            .update({
-
-                paymentStatus:
-                    "PAID",
-
-                orderStatus:
-                    "CONFIRMED",
-
-                paymentReference:
-                    reference,
-
-                walletTransactionId:
-                    result.data.transactionId,
-
-                paidAmount:
-                    Number(orderData.total),
-
-                paidAt:
-                    firebase.firestore
-                        .FieldValue
-                        .serverTimestamp(),
-
-                updatedAt:
-                    firebase.firestore
-                        .FieldValue
-                        .serverTimestamp()
-
-            });
-
         showMessage(
             "Payment successful. Your order has been confirmed.",
             "success"

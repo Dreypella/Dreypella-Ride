@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Dreypella Ride | Wallet Funding
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="wallet-funding-success.css"
+    >
+</head>
+
+<body>
+
+    <header class="funding-header">
+
+        <a
+            href="customer-wallet.html"
+            class="back-button"
+        >
+            ←
+        </a>
+
+        <div class="header-title">
+
+            <strong>
+                Dreypella
+                <span>Ride</span>
+            </strong>
+
+            <small>
+                Wallet Funding
+            </small>
+
+        </div>
+
+        <div class="header-spacer"></div>
+
+    </header>
+
+
+    <main class="funding-container">
+
+        <section
+            id="loadingState"
+            class="result-card"
+        >
+
+            <div class="spinner"></div>
+
+            <h1>
+                Confirming Payment
+            </h1>
+
+            <p>
+                Please wait while we securely verify
+                your wallet funding.
+            </p>
+
+        </section>
+
+
+        <section
+            id="successState"
+            class="result-card hidden"
+        >
+
+            <div class="result-icon success-icon">
+                ✓
+            </div>
+
+            <span class="result-label">
+                PAYMENT CONFIRMED
+            </span>
+
+            <h1>
+                Wallet Funded Successfully
+            </h1>
+
+            <p>
+                Your payment has been verified and
+                the funds have been added to your
+                Dreypella Ride wallet.
+            </p>
+
+            <div class="amount-box">
+
+                <small>
+                    AMOUNT ADDED
+                </small>
+
+                <strong id="successAmount">
+                    ₦0.00
+                </strong>
+
+            </div>
+
+            <div class="reference-box">
+
+                <span>
+                    TRANSACTION REFERENCE
+                </span>
+
+                <strong id="successReference">
+                    —
+                </strong>
+
+            </div>
+
+            <div
+                id="successMessage"
+                class="message success-message"
+            ></div>
+
+            <button
+                type="button"
+                id="walletButton"
+                class="primary-button"
+            >
+                GO TO WALLET
+            </button>
+
+        </section>
+
+
+        <section
+            id="errorState"
+            class="result-card hidden"
+        >
+
+            <div class="result-icon error-icon">
+                !
+            </div>
+
+            <span class="result-label error-label">
+                PAYMENT NOT CONFIRMED
+            </span>
+
+            <h1>
+                We Could Not Confirm Your Payment
+            </h1>
+
+            <p id="errorMessage">
+                Your wallet has not been credited.
+            </p>
+
+            <div class="reference-box">
+
+                <span>
+                    PAYMENT REFERENCE
+                </span>
+
+                <strong id="errorReference">
+                    —
+                </strong>
+
+            </div>
+
+            <div class="warning-box">
+                <strong>
+                    Your wallet was not credited.
+                </strong>
+
+                <span>
+                    If money was deducted from your
+                    account, please do not pay again
+                    immediately. Contact Dreypella Ride
+                    support with your payment reference.
+                </span>
+            </div>
+
+            <button
+                type="button"
+                id="retryWalletButton"
+                class="primary-button"
+            >
+                RETURN TO WALLET
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
+
+    <script src="firebase-config.js"></script>
+
+    <script src="auth-guard.js"></script>
+
+    <script src="wallet-funding-success.js"></script>
+
+</body>
+
+</html>

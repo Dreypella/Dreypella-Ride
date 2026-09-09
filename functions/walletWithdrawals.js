@@ -1,12 +1,18 @@
 const admin = require("firebase-admin");
 
 const {
+    verifyBankAccount
+} = require("./bankFunctions");
+
+const {
 
     db,
 
     money,
 
-    generateTransactionReference
+    generateTransactionReference,
+
+    generateIdempotencyKey
 
 } = require("./walletHelpers");
 
@@ -36,11 +42,6 @@ async function requestWalletWithdrawal(
         );
 
 
-    const bankName =
-        String(
-            data.bankName || ""
-        ).trim();
-
 
     const accountNumber =
         String(
@@ -48,20 +49,31 @@ async function requestWalletWithdrawal(
         ).trim();
 
 
-    const accountName =
-        String(
-            data.accountName || ""
-        ).trim();
-
 
     const bankCode =
         String(
             data.bankCode || ""
         ).trim();
 
+      const bankName =
+        String(
+            data.bankName || ""
+        ).trim();
+
+    const withdrawalRequestId =
+          String(
+              data.withdrawalRequestId || ""
+          ).trim();
 
 
-    if (
+
+    if (!/^\{?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\}?$/.test(withdrawalRequestId)) {
+    throw new Error(
+        "Invalid withdrawal request ID."
+    );
+}
+
+if (
         amount <= 0
     ) {
 
@@ -73,17 +85,29 @@ async function requestWalletWithdrawal(
 
 
     if (
-        !bankName ||
-        !accountNumber ||
-        !accountName
+        !accountNumber
     ) {
 
         throw new Error(
-            "Complete bank details are required."
+            "Account number is required."
         );
 
     }
 
+
+    if (!bankCode) {
+
+        throw new Error(
+            "Bank code is required."
+        );
+
+    }
+
+    if (!bankName) {
+        throw new Error(
+            "Bank name is required."
+        );
+    }
 
     if (
         !/^\d{10}$/.test(
@@ -99,7 +123,46 @@ async function requestWalletWithdrawal(
 
 
 
-    const walletRef =
+    let verifiedAccount;
+
+    try {
+
+        verifiedAccount =
+            await verifyBankAccount(
+                bankCode,
+                accountNumber
+            );
+
+    }
+    catch(error) {
+
+        throw new Error(
+            error.message ||
+            "Unable to verify bank account."
+        );
+
+    }
+
+    const verifiedAccountName =
+        String(
+            verifiedAccount.accountName || ""
+        ).trim();
+
+    if (!verifiedAccountName) {
+
+        throw new Error(
+            "Paystack could not verify this bank account."
+        );
+
+    }
+
+    const idempotencyKey =
+    generateIdempotencyKey(
+        uid,
+        withdrawalRequestId
+    );
+
+const walletRef =
         db
             .collection("wallets")
             .doc(uid);
@@ -108,13 +171,13 @@ async function requestWalletWithdrawal(
     const withdrawalRef =
         db
             .collection("withdrawals")
-            .doc();
+            .doc(idempotencyKey);
 
 
     const transactionRef =
         db
             .collection("walletTransactions")
-            .doc();
+            .doc(idempotencyKey);
 
 
     const withdrawalReference =
@@ -124,16 +187,40 @@ async function requestWalletWithdrawal(
 
 
 
-    await db.runTransaction(
-        async transaction => {
+    const transactionResult =
+        await db.runTransaction(
+            async transaction => {
 
             const walletSnapshot =
                 await transaction.get(
                     walletRef
                 );
 
+              const existingTransaction =
+                  await transaction.get(
+                      transactionRef
+                  );
 
-            if (
+              if (existingTransaction.exists) {
+    const existingData =
+        existingTransaction.data();
+
+    return {
+        success: true,
+        alreadyProcessed: true,
+        withdrawalId:
+            existingData.withdrawalId,
+        withdrawalReference:
+            existingData.reference,
+        status:
+            existingData.status
+    };
+}
+
+
+
+
+      if (
                 !walletSnapshot.exists
             ) {
 
@@ -214,18 +301,22 @@ async function requestWalletWithdrawal(
 
                     withdrawalReference,
 
+
+                    transactionId:
+                        transactionRef.id,
                     userId:
                         uid,
 
                     amount,
 
-                    bankName,
-
                     bankCode,
+
+                    bankName,
 
                     accountNumber,
 
-                    accountName,
+                    accountName:
+                        verifiedAccountName,
 
                     status:
                         "PENDING",
@@ -276,6 +367,8 @@ async function requestWalletWithdrawal(
                     reference:
                         withdrawalReference,
 
+                      withdrawalRequestId,
+
                     withdrawalId:
                         withdrawalRef.id,
 
@@ -296,6 +389,10 @@ async function requestWalletWithdrawal(
         }
     );
 
+
+    if (transactionResult?.alreadyProcessed) {
+        return transactionResult;
+    }
 
     return {
 
