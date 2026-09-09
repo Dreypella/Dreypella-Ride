@@ -27,487 +27,220 @@ const {
 */
 
 
-async function payWithWallet(
-    data,
-    context
-) {
-
+async function payWithWallet(data, context) {
     if (!context.auth) {
-
-        throw new Error(
-            "You must be logged in."
-        );
-
+        throw new Error("You must be logged in.");
     }
 
+    const uid = context.auth.uid;
 
-    const uid =
-        context.auth.uid;
+    const paymentType = String(data.paymentType || "").toUpperCase();
+    const amount = assertPositiveAmount(data.amount);
+    const reference = String(data.reference || "").trim();
+    const orderId = String(data.orderId || "").trim();
+    const item = String(data.item || "").trim();
 
+    const allowedTypes = ["RIDE", "DELIVERY", "MARKETPLACE"];
 
-    const paymentType =
-        String(
-            data.paymentType || ""
-        ).toUpperCase();
-
-
-    const amount =
-        assertPositiveAmount(
-            data.amount
-        );
-
-
-    const reference =
-        String(
-            data.reference || ""
-        ).trim();
-
-
-    const orderId =
-        String(
-            data.orderId || ""
-        ).trim();
-
-
-    const item =
-        String(
-            data.item || ""
-        ).trim();
-
-
-    const allowedTypes = [
-
-        "RIDE",
-
-        "DELIVERY",
-
-        "MARKETPLACE"
-
-    ];
-
-
-    if (
-        !allowedTypes.includes(
-            paymentType
-        )
-    ) {
-
-        throw new Error(
-            "Invalid payment type."
-        );
-
+    if (!allowedTypes.includes(paymentType)) {
+        throw new Error("Invalid payment type.");
     }
-
 
     if (!reference) {
-
-        throw new Error(
-            "Payment reference is required."
-        );
-
+        throw new Error("Payment reference is required.");
     }
-
 
     if (!orderId) {
-
-        throw new Error(
-            "Order or booking ID is required."
-        );
-
+        throw new Error("Order or booking ID is required.");
     }
-
-
-    /*
-        Idempotency protection.
-
-        Prevents the same payment from
-        being processed twice.
-    */
-
-
-    const idempotencyKey =
-        generateIdempotencyKey(
-            uid,
-            reference
-        );
-
-
-    const transactionRef =
-        db
-            .collection("walletTransactions")
-            .doc(
-                idempotencyKey
-            );
-
-
-    const walletRef =
-        db
-            .collection("wallets")
-            .doc(uid);
-
-
-    const result =
-        await db.runTransaction(
-            async transaction => {
-
-                /*
-                    Check duplicate transaction.
-                */
-
-                const existing =
-                    await transaction.get(
-                        transactionRef
-                    );
-
-
-                if (
-                    existing.exists
-                ) {
-
-                    return {
-
-                        alreadyProcessed:
-                            true,
-
-                        data:
-                            existing.data()
-
-                    };
-
-                }
-
-
-                /*
-                    Read wallet.
-                */
-
-                const walletSnapshot =
-                    await transaction.get(
-                        walletRef
-                    );
-
-
-                if (
-                    !walletSnapshot.exists
-                ) {
-
-                    throw new Error(
-                        "Wallet does not exist."
-                    );
-
-                }
-
-
-                const wallet =
-                    walletSnapshot.data();
-
-
-                const balance =
-                    money(
-                        wallet.availableBalance || 0
-                    );
-
-
-                if (
-                    balance < amount
-                ) {
-
-                    throw new Error(
-                        "Insufficient wallet balance."
-                    );
-
-                }
-
-
-                const newBalance =
-                    money(
-                        balance - amount
-                    );
-
-
-                const transactionId =
-                    generateTransactionReference(
-                        "DR-PAY"
-                    );
-
-
-                /*
-                    Wallet transaction.
-                */
-
-                transaction.set(
-                    transactionRef,
-                    {
-
-                        transactionId,
-
-                        userId:
-                            uid,
-
-                        type:
-                            "PAYMENT",
-
-                        paymentType,
-
-                        amount,
-
-                        direction:
-                            "DEBIT",
-
-                        status:
-                            "SUCCESS",
-
-                        reference,
-
-                        orderId,
-
-                        item,
-
-                        balanceBefore:
-                            balance,
-
-                        balanceAfter:
-                            newBalance,
-
-                        createdAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp()
-
-                    }
-                );
-
-
-                /*
-                    Update wallet.
-                */
-
-                transaction.update(
-                    walletRef,
-                    {
-
-                        availableBalance:
-                            newBalance,
-
-                        updatedAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp()
-
-                    }
-                );
-
-
-                return {
-
-                    alreadyProcessed:
-                        false,
-
-                    transactionId,
-
-                    newBalance
-
-                };
-
-            }
-        );
-
-
-    /*
-        Update the related business
-        record AFTER the wallet transaction.
-
-        We deliberately keep this separate
-        from the wallet transaction because
-        the exact structure of your ride,
-        delivery and marketplace collections
-        may differ.
-    */
-
-
-    await updatePaidRecord({
-
-        uid,
-
-        paymentType,
-
-        orderId,
-
-        amount,
-
-        reference,
-
-        transactionId:
-            result.transactionId ||
-            result.data?.transactionId
-
-    });
-
-
-    return {
-
-        success:
-            true,
-
-        transactionId:
-            result.transactionId ||
-            result.data?.transactionId,
-
-        amount,
-
-        status:
-            "SUCCESS"
-
-    };
-
-}
-
-
-
-/*
-    UPDATE BUSINESS RECORD
-*/
-
-async function updatePaidRecord({
-
-    uid,
-
-    paymentType,
-
-    orderId,
-
-    amount,
-
-    reference,
-
-    transactionId
-
-}) {
 
     let collectionName;
 
-
-    if (
-        paymentType ===
-        "RIDE"
-    ) {
-
-        collectionName =
-            "rideBookings";
-
+    if (paymentType === "RIDE") {
+        collectionName = "rideBookings";
+    } else if (paymentType === "DELIVERY") {
+        collectionName = "deliveries";
+    } else {
+        collectionName = "marketplaceOrders";
     }
 
-    else if (
-        paymentType ===
-        "DELIVERY"
-    ) {
+    const idempotencyKey = generateIdempotencyKey(uid, reference);
+    const transactionRef = db.collection("walletTransactions").doc(idempotencyKey);
+    const walletRef = db.collection("wallets").doc(uid);
+    const recordRef = db.collection(collectionName).doc(orderId);
 
-        collectionName =
-            "deliveryOrders";
+    const result = await db.runTransaction(async transaction => {
+        const existing = await transaction.get(transactionRef);
 
-    }
-
-    else if (
-        paymentType ===
-        "MARKETPLACE"
-    ) {
-
-        collectionName =
-            "marketplaceOrders";
-
-    }
-
-
-    if (!collectionName) {
-
-        return;
-
-    }
-
-
-    const recordRef =
-        db
-            .collection(
-                collectionName
-            )
-            .doc(orderId);
-
-
-    const snapshot =
-        await recordRef.get();
-
-
-    if (!snapshot.exists) {
+        if (existing.exists) {
+            return {
+                alreadyProcessed: true,
+                data: existing.data()
+            };
+        }
 
         /*
-            The wallet payment is already
-            recorded. Do not reverse money
-            automatically just because the
-            business record could not be
-            found.
-
-            This should be investigated by
-            the admin/backend.
+            IMPORTANT:
+            Read and validate the business record BEFORE touching
+            the customer's wallet.
         */
+        const recordSnapshot = await transaction.get(recordRef);
 
-        console.error(
-            `Payment ${reference}: ${collectionName}/${orderId} not found.`
-        );
+        if (!recordSnapshot.exists) {
+            throw new Error(
+                `Payment record not found: ${collectionName}/${orderId}`
+            );
+        }
 
-        return;
+        const record = recordSnapshot.data();
 
-    }
+        const ownerId =
+            record.userId ||
+            record.customerId ||
+            null;
 
+        if (!ownerId || ownerId !== uid) {
+            throw new Error("You cannot pay for this record.");
+        }
 
-    const record =
-        snapshot.data();
+        if (
+            record.paymentStatus === "PAID" ||
+            record.paymentStatus === "SUCCESS"
+        ) {
+            throw new Error("This record has already been paid.");
+        }
 
+        /*
+            Make sure the amount being charged matches
+            the authoritative price stored by the application.
+        */
+        let expectedAmount = 0;
+        let priceLabel = "payment";
 
-    /*
-        Ownership protection.
-    */
+        if (paymentType === "RIDE") {
+            expectedAmount = money(record.totalFare || 0);
+            priceLabel = "ride fare";
+        }
+        else if (paymentType === "DELIVERY") {
+            expectedAmount = money(record.customerPrice || 0);
+            priceLabel = "delivery price";
+        }
+        else if (paymentType === "MARKETPLACE") {
+            expectedAmount = money(record.total || 0);
+            priceLabel = "marketplace order total";
+        }
 
-    if (
-        record.userId &&
-        record.userId !== uid
-    ) {
+        if (expectedAmount <= 0) {
+            throw new Error(
+                `The ${priceLabel} is invalid.`
+            );
+        }
 
-        throw new Error(
-            "You cannot pay for this record."
-        );
+        if (money(amount) !== expectedAmount) {
+            throw new Error(
+                `Payment amount does not match the ${priceLabel}.`
+            );
+        }
 
-    }
+        const walletSnapshot = await transaction.get(walletRef);
 
+        if (!walletSnapshot.exists) {
+            throw new Error("Wallet does not exist.");
+        }
 
-    await recordRef.update({
+        const wallet = walletSnapshot.data();
+        const balance = money(wallet.availableBalance || 0);
 
-        paymentStatus:
-            "PAID",
+        if (balance < amount) {
+            const shortfall =
+                money(amount - balance);
 
-        paidAmount:
-            amount,
+            const error =
+                new Error(
+                    "Insufficient wallet balance."
+                );
 
-        paymentReference:
-            reference,
+            error.code =
+                "INSUFFICIENT_WALLET_BALANCE";
 
-        walletTransactionId:
+            error.shortfall =
+                shortfall;
+
+            error.walletBalance =
+                balance;
+
+            error.requiredAmount =
+                amount;
+
+            throw error;
+        }
+
+        const newBalance = money(balance - amount);
+        const transactionId = generateTransactionReference("DR-PAY");
+
+        transaction.set(transactionRef, {
             transactionId,
+            userId: uid,
+            type: "PAYMENT",
+            paymentType,
+            amount,
+            direction: "DEBIT",
+            status: "SUCCESS",
+            reference,
+            orderId,
+            item,
+            balanceBefore: balance,
+            balanceAfter: newBalance,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
 
-        paidAt:
-            admin.firestore
-                .FieldValue
-                .serverTimestamp(),
+        transaction.update(walletRef, {
+            availableBalance: newBalance,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
 
-        updatedAt:
-            admin.firestore
-                .FieldValue
-                .serverTimestamp()
+        /*
+            Mark the actual business record paid inside the SAME
+            Firestore transaction as the wallet debit.
+        */
+        const paymentUpdate = {
+            paymentStatus: "PAID",
+            paymentMethod: "WALLET",
+            paidAmount: amount,
+            paymentReference: reference,
+            walletTransactionId: transactionId,
+            paidAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
 
+        if (paymentType === "RIDE") {
+            paymentUpdate.status = "CONFIRMED";
+        }
+        else if (paymentType === "DELIVERY") {
+            paymentUpdate.status = "PAYMENT_CONFIRMED";
+        }
+        else {
+            paymentUpdate.orderStatus = "CONFIRMED";
+        }
+
+        transaction.update(recordRef, paymentUpdate);
+
+        return {
+            alreadyProcessed: false,
+            transactionId,
+            newBalance
+        };
     });
 
+    return {
+        success: true,
+        transactionId:
+            result.transactionId ||
+            result.data?.transactionId,
+        amount,
+        status: "SUCCESS"
+    };
 }
-
-
 
 module.exports = {
 
