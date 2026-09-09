@@ -89,6 +89,51 @@
 
 
 
+    <!-- PARTNER AVAILABILITY -->
+
+    <section
+        class="section"
+        id="partnerAvailabilitySection"
+    >
+
+        <div class="section-title">
+
+            <h2>
+                Partner Availability
+            </h2>
+
+            <span
+                id="availabilityStatus"
+                class="status-badge"
+            >
+                OFFLINE
+            </span>
+
+        </div>
+
+        <div class="availability-card">
+
+            <p id="availabilityMessage">
+                Go online and make yourself available to receive nearby delivery requests.
+            </p>
+
+            <div class="availability-controls">
+
+                <button
+                    id="availabilityButton"
+                    class="primary-btn"
+                    onclick="toggleAvailability()"
+                >
+                    GO ONLINE
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
     <!-- ACTIVE DELIVERY -->
 
     <section
@@ -300,6 +345,27 @@
         <div class="section-title">
 
             <h2>
+                Available Deliveries
+            </h2>
+
+        </div>
+
+
+        <div
+            id="availableDeliveryList"
+            class="delivery-list"
+        >
+
+            <div class="loading">
+                Loading available deliveries...
+            </div>
+
+        </div>
+
+
+        <div class="section-title">
+
+            <h2>
                 Assigned Deliveries
             </h2>
 
@@ -312,7 +378,7 @@
         >
 
             <div class="loading">
-                Loading deliveries...
+                Loading assigned deliveries...
             </div>
 
         </div>
@@ -370,6 +436,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
 

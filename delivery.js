@@ -131,7 +131,26 @@ function displaySuggestions(
                         parseFloat(result.lon),
 
                     name:
-                        result.display_name
+                        result.display_name,
+
+                    address:
+                        result.address || {},
+
+                    state:
+                        result.address?.state || "",
+
+                    country:
+                        result.address?.country || "",
+
+                    countryCode:
+                        result.address?.country_code || "",
+
+                    city:
+                        result.address?.city ||
+                        result.address?.town ||
+                        result.address?.municipality ||
+                        result.address?.village ||
+                        ""
                 };
 
 
@@ -308,9 +327,28 @@ currentLocationBtn.addEventListener(
                         "Current Location";
 
 
-                    pickupLocation.name =
-                        data.display_name ||
-                        "Current Location";
+                      pickupLocation.name =
+                          data.display_name ||
+                          "Current Location";
+
+                      pickupLocation.address =
+                          data.address || {};
+
+                      pickupLocation.state =
+                          data.address?.state || "";
+
+                      pickupLocation.country =
+                          data.address?.country || "";
+
+                      pickupLocation.countryCode =
+                          data.address?.country_code || "";
+
+                      pickupLocation.city =
+                          data.address?.city ||
+                          data.address?.town ||
+                          data.address?.municipality ||
+                          data.address?.village ||
+                          "";
 
                 } catch (error) {
 
@@ -628,6 +666,64 @@ calculateBtn.addEventListener(
 
 
 /*
+    DETERMINE DELIVERY TYPE
+*/
+function determineDeliveryType(
+    pickup,
+    destination
+) {
+    const pickupCountry =
+        String(
+            pickup?.countryCode ||
+            ""
+        ).toLowerCase();
+
+    const destinationCountry =
+        String(
+            destination?.countryCode ||
+            ""
+        ).toLowerCase();
+
+    if (
+        !pickupCountry ||
+        !destinationCountry
+    ) {
+        return null;
+    }
+
+    if (
+        pickupCountry !== "ng" ||
+        destinationCountry !== "ng"
+    ) {
+        return "INTERNATIONAL";
+    }
+
+    const pickupState =
+        String(
+            pickup?.state ||
+            ""
+        ).trim().toLowerCase();
+
+    const destinationState =
+        String(
+            destination?.state ||
+            ""
+        ).trim().toLowerCase();
+
+    if (
+        !pickupState ||
+        !destinationState
+    ) {
+        return null;
+    }
+
+    return pickupState === destinationState
+        ? "LOCAL"
+        : "INTERSTATE";
+}
+
+
+/*
     SUBMIT BOOKING
 */
 
@@ -649,10 +745,28 @@ deliveryForm.addEventListener(
         }
 
 
+        const deliveryType =
+            determineDeliveryType(
+                pickupLocation,
+                destinationLocation
+            );
+
+        if (!deliveryType) {
+            showMessage(
+                "We could not determine the delivery type. Please select your pickup and destination again."
+            );
+
+            return;
+        }
+
+
         const booking = {
 
             pickup:
                 pickupLocation,
+
+            deliveryType:
+                deliveryType,
 
             destination:
                 destinationLocation,

@@ -12,6 +12,9 @@ const bookingData =
     );
 
 
+const functions =
+    firebase.functions();
+
 const pickupText =
     document.getElementById(
         "pickupText"
@@ -413,7 +416,7 @@ insurance.addEventListener(
 
 confirmButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
         if (!bookingData) {
 
@@ -438,20 +441,247 @@ confirmButton.addEventListener(
             "AWAITING_PAYMENT";
 
 
-        localStorage.setItem(
-            "dreypellaDeliveryBooking",
-            JSON.stringify(
-                bookingData
-            )
-        );
+        confirmButton.disabled =
+            true;
 
 
-        /*
-            Payment page comes next.
-        */
+        confirmationMessage.textContent =
+            "Creating your delivery booking...";
 
-        window.location.href =
-            "delivery-payment.html";
+
+        try {
+
+            const deliveryResult =
+                await createDelivery({
+
+                    ...bookingData,
+
+                    packageCategory:
+                        bookingData.category,
+
+                    packageDescription:
+                        bookingData.packageDescription ||
+                        "",
+
+                    packageSize:
+                        bookingData.size,
+
+                    packageWeight:
+                        bookingData.weight,
+
+                    deliveryInstructions:
+                        bookingData.instructions,
+
+                    estimatedTime:
+                        bookingData.durationMinutes,
+
+                    pickup: {
+
+                        ...bookingData.pickup,
+
+                        latitude:
+                            bookingData.pickup?.latitude ??
+                            bookingData.pickup?.lat ??
+                            null,
+
+                        longitude:
+                            bookingData.pickup?.longitude ??
+                            bookingData.pickup?.lon ??
+                            null
+
+                    },
+
+                    destination: {
+
+                        ...bookingData.destination,
+
+                        latitude:
+                            bookingData.destination?.latitude ??
+                            bookingData.destination?.lat ??
+                            null,
+
+                        longitude:
+                            bookingData.destination?.longitude ??
+                            bookingData.destination?.lon ??
+                            null
+
+                    }
+
+                });
+
+
+            if (!deliveryResult.success) {
+
+                throw new Error(
+                    deliveryResult.message ||
+                    "Unable to create delivery booking."
+                );
+
+            }
+
+
+            bookingData.deliveryId =
+                deliveryResult.deliveryId;
+
+
+            bookingData.bookingReference =
+                deliveryResult.bookingReference;
+
+
+            localStorage.setItem(
+                "dreypellaDeliveryBooking",
+                JSON.stringify(
+                    bookingData
+                )
+            );
+
+
+            /*
+                PAYMENT ROUTING
+
+                Sender:
+                WALLET   -> wallet-payment.html
+                PAYSTACK -> Paystack checkout
+
+                Receiver payment will be connected
+                through the secure payment-request
+                backend flow separately.
+            */
+
+            if (
+                bookingData.payer ===
+                "SENDER" &&
+                bookingData.paymentMethod ===
+                "WALLET"
+            ) {
+
+                const paymentUrl =
+                    "wallet-payment.html" +
+                    "?type=DELIVERY" +
+                    "&amount=" +
+                    encodeURIComponent(
+                        bookingData.customerPrice
+                    ) +
+                    "&reference=" +
+                    encodeURIComponent(
+                        bookingData.bookingReference
+                    ) +
+                    "&orderId=" +
+                    encodeURIComponent(
+                        bookingData.deliveryId
+                    ) +
+                    "&item=Delivery" +
+                    "&returnUrl=" +
+                    encodeURIComponent(
+                        "customer-dashboard.html"
+                    );
+
+                window.location.href =
+                    paymentUrl;
+
+                return;
+            }
+
+
+            if (
+                bookingData.payer ===
+                "SENDER" &&
+                bookingData.paymentMethod ===
+                "PAYSTACK"
+            ) {
+
+                confirmationMessage.textContent =
+                    "Preparing secure online payment...";
+
+                const initializePayment =
+                    functions.httpsCallable(
+                        "initializeDeliveryPayment"
+                    );
+
+                const paymentResult =
+                    await initializePayment({
+                        deliveryId:
+                            bookingData.deliveryId
+                    });
+
+                const paymentData =
+                    paymentResult.data;
+
+                if (
+                    !paymentData ||
+                    !paymentData.authorizationUrl
+                ) {
+                    throw new Error(
+                        "Unable to initialize online payment."
+                    );
+                }
+
+                window.location.href =
+                    paymentData.authorizationUrl;
+
+                return;
+            }
+
+
+              if (
+                  bookingData.payer ===
+                  "RECEIVER"
+              ) {
+
+                  if (
+                      bookingData.deliveryType !==
+                      "LOCAL"
+                  ) {
+                      throw new Error(
+                          "Pay on Delivery is only available for eligible local deliveries. Interstate and international deliveries must be paid upfront."
+                      );
+                  }
+
+                  confirmationMessage.textContent =
+                      "Delivery created. Receiver will pay on delivery.";
+
+                  bookingData.paymentMethod =
+                      "POD";
+
+                  bookingData.paymentStatus =
+                      "PENDING";
+
+                  bookingData.status =
+                      "PAYMENT_PENDING";
+
+                  localStorage.setItem(
+                      "dreypellaDeliveryBooking",
+                      JSON.stringify(
+                          bookingData
+                      )
+                  );
+
+                  return;
+              }
+
+
+            throw new Error(
+                "Please select a valid payment option."
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Delivery creation error:",
+                error
+            );
+
+
+            confirmationMessage.textContent =
+                error.message ||
+                "Unable to create the delivery booking. Please try again.";
+
+
+            confirmButton.disabled =
+                false;
+
+        }
 
     }
 );

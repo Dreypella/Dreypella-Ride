@@ -79,6 +79,11 @@ const receiverNotice =
         "receiverNotice"
     );
 
+const senderPaymentMethodSection =
+    document.getElementById(
+        "senderPaymentMethodSection"
+    );
+
 const priceText =
     document.getElementById(
         "priceText"
@@ -251,6 +256,9 @@ function updatePayerUI() {
         receiverNotice.style.display =
             "none";
 
+        senderPaymentMethodSection.style.display =
+            "block";
+
 
         checkoutButton.textContent =
             "PAY NOW";
@@ -270,6 +278,9 @@ function updatePayerUI() {
 
         receiverNotice.style.display =
             "block";
+
+        senderPaymentMethodSection.style.display =
+            "none";
 
 
         checkoutButton.textContent =
@@ -416,6 +427,32 @@ checkoutButton.addEventListener(
         bookingData.payer =
             selectedPayer.value;
 
+        if (
+            selectedPayer.value ===
+            "SENDER"
+        ) {
+
+            const selectedPaymentMethod =
+                document.querySelector(
+                    'input[name="senderPaymentMethod"]:checked'
+                );
+
+            if (!selectedPaymentMethod) {
+                showMessage(
+                    "Please select how the sender will pay."
+                );
+                return;
+            }
+
+            bookingData.paymentMethod =
+                selectedPaymentMethod.value;
+
+        } else {
+
+            delete bookingData.paymentMethod;
+
+        }
+
 
         /*
             Generate a booking reference.
@@ -434,7 +471,35 @@ checkoutButton.addEventListener(
             "RECEIVER"
         ) {
 
-            createReceiverPaymentRequest();
+            if (
+                bookingData.deliveryType !==
+                "LOCAL"
+            ) {
+                showMessage(
+                    "Pay on Delivery is only available for eligible local deliveries. Interstate and international deliveries must be paid upfront."
+                );
+
+                return;
+            }
+
+            bookingData.paymentMethod =
+                "POD";
+
+            bookingData.paymentStatus =
+                "PENDING";
+
+            bookingData.status =
+                "PAYMENT_PENDING";
+
+            localStorage.setItem(
+                "dreypellaDeliveryBooking",
+                JSON.stringify(
+                    bookingData
+                )
+            );
+
+            window.location.href =
+                "delivery-confirmation.html";
 
             return;
         }
@@ -571,7 +636,7 @@ function startSenderPayment() {
     */
 
     window.location.href =
-        "delivery-payment.html";
+        "delivery-confirmation.html";
 
 }
 
