@@ -47,36 +47,64 @@ let destinationLocation = null;
 
 async function searchLocation(query) {
 
-    if (!query || query.length < 3) {
+    if (!query || query.trim().length < 3) {
         return [];
     }
 
-    const url =
-        "https://nominatim.openstreetmap.org/search?" +
-        "format=json" +
-        "&addressdetails=1" +
-        "&limit=6" +
-        "&countrycodes=ng" +
-        "&q=" +
-        encodeURIComponent(query);
+    const cleanQuery = query.trim();
 
-    try {
+    async function requestSearch(searchQuery) {
 
-        const response = await fetch(url, {
-            headers: {
-                "Accept": "application/json"
-            }
+        const params = new URLSearchParams({
+            format: "json",
+            addressdetails: "1",
+            limit: "8",
+            countrycodes: "ng",
+            q: searchQuery
         });
+
+        const response = await fetch(
+            "https://nominatim.openstreetmap.org/search?" +
+            params.toString(),
+            {
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
 
         if (!response.ok) {
             throw new Error("Location search failed");
         }
 
         return await response.json();
+    }
+
+    try {
+
+        let results = await requestSearch(cleanQuery);
+
+        if (results.length) {
+            return results;
+        }
+
+        /*
+            FALLBACK SEARCH
+
+            If an exact-looking query returns nothing,
+            try a broader Nigerian place search.
+        */
+        const fallbackQuery =
+            cleanQuery +
+            ", Nigeria";
+
+        results = await requestSearch(fallbackQuery);
+
+        return results;
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Location search error:", error);
 
         return [];
     }
