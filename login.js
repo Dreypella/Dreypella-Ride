@@ -380,7 +380,7 @@ loginForm.addEventListener(
             // GET ROLE FROM FIRESTORE
             // =========================================
 
-            alert("LOGIN UID: " + user.uid); const role =
+            const role =
                 await getUserRole(
                     user.uid
                 );
