@@ -176,147 +176,64 @@ function loadBooking() {
 */
 
 async function calculateConfirmationRoute() {
-
-    if (
-        !bookingData.pickup ||
-        !bookingData.destination
-    ) {
-
+    if (!bookingData.pickup || !bookingData.destination) {
         return;
     }
 
-
-    const pickup =
-        bookingData.pickup;
-
-    const destination =
-        bookingData.destination;
-
-
-    const url =
-        "https://router.project-osrm.org/route/v1/driving/" +
-        pickup.lon +
-        "," +
-        pickup.lat +
-        ";" +
-        destination.lon +
-        "," +
-        destination.lat +
-        "?overview=false";
-
+    const pickup = bookingData.pickup;
+    const destination = bookingData.destination;
 
     try {
-
-        const response =
-            await fetch(url);
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !data.routes ||
-            !data.routes.length
-        ) {
-
-            throw new Error(
-                "Route not found"
-            );
-        }
-
-
         const route =
-            data.routes[0];
-
-
-        const distanceKm =
-            route.distance / 1000;
-
-
-        const durationMinutes =
-            route.duration / 60;
-
-
-        distanceText.textContent =
-            distanceKm.toFixed(1) +
-            " km";
-
-
-        timeText.textContent =
-            formatTime(
-                durationMinutes
-            );
-
-
-        /*
-            Use the same temporary pricing
-            rules as delivery.js.
-
-            Later Firebase will provide
-            the admin-controlled price.
-        */
-
-        const price =
-            calculatePrice(
-                distanceKm,
+            await window.DreypellaLocation.calculateRoute(
+                pickup,
+                destination,
                 bookingData.method
             );
 
+        const distanceKm = route.distanceKm;
+        const durationMinutes = route.durationMinutes;
+
+        distanceText.textContent =
+            distanceKm.toFixed(1) + " km";
+
+        timeText.textContent =
+            formatTime(durationMinutes);
+
+        const price = calculatePrice(
+            distanceKm,
+            bookingData.method
+        );
 
         bookingData.distanceKm =
-            Number(
-                distanceKm.toFixed(2)
-            );
-
+            Number(distanceKm.toFixed(2));
 
         bookingData.durationMinutes =
-            Math.round(
-                durationMinutes
-            );
+            Math.round(durationMinutes);
 
-
-        bookingData.customerPrice =
-            price;
-
+        bookingData.customerPrice = price;
 
         priceText.textContent =
             formatCurrency(price);
 
-
-        /*
-            Update local booking.
-        */
-
         localStorage.setItem(
             "dreypellaDeliveryBooking",
-            JSON.stringify(
-                bookingData
-            )
+            JSON.stringify(bookingData)
         );
-
-
     } catch (error) {
-
-        console.error(error);
+        console.error(
+            "Confirmation route error:",
+            error
+        );
 
         confirmationMessage.textContent =
             "Unable to calculate the route. Please go back and try again.";
 
-        confirmButton.disabled =
-            true;
+        confirmButton.disabled = true;
     }
-
 }
 
-
 /*
-    TEMPORARY CUSTOMER PRICING
-
-    Admin-controlled pricing will later
-    replace these values through Firebase.
-*/
-
 function calculatePrice(
     distanceKm,
     method

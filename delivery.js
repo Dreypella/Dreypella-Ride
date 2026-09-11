@@ -46,71 +46,8 @@ let destinationLocation = null;
 */
 
 async function searchLocation(query) {
-
-    if (!query || query.trim().length < 3) {
-        return [];
-    }
-
-    const cleanQuery = query.trim();
-
-    async function requestSearch(searchQuery) {
-
-        const params = new URLSearchParams({
-            format: "json",
-            addressdetails: "1",
-            limit: "8",
-            countrycodes: "ng",
-            q: searchQuery
-        });
-
-        const response = await fetch(
-            "https://nominatim.openstreetmap.org/search?" +
-            params.toString(),
-            {
-                headers: {
-                    "Accept": "application/json"
-                }
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Location search failed");
-        }
-
-        return await response.json();
-    }
-
-    try {
-
-        let results = await requestSearch(cleanQuery);
-
-        if (results.length) {
-            return results;
-        }
-
-        /*
-            FALLBACK SEARCH
-
-            If an exact-looking query returns nothing,
-            try a broader Nigerian place search.
-        */
-        const fallbackQuery =
-            cleanQuery +
-            ", Nigeria";
-
-        results = await requestSearch(fallbackQuery);
-
-        return results;
-
-    } catch (error) {
-
-        console.error("Location search error:", error);
-
-        return [];
-    }
+    return window.DreypellaLocation.searchLocation(query);
 }
-
-
 /*
     DISPLAY SUGGESTIONS
 */
@@ -295,114 +232,70 @@ destinationInput.addEventListener(
     CURRENT LOCATION
 */
 
+const destinationLocationBtn =
+    document.getElementById("destinationLocationBtn");
+
+
+async function useCurrentLocation(type) {
+    const button =
+        type === "pickup"
+            ? currentLocationBtn
+            : destinationLocationBtn;
+
+    const input =
+        type === "pickup"
+            ? pickupInput
+            : destinationInput;
+
+    if (!button) {
+        return;
+    }
+
+    button.textContent = "⌛";
+
+    try {
+        const location =
+            await window.DreypellaLocation.getCurrentLocation();
+
+        input.value = location.name;
+
+        if (type === "pickup") {
+            pickupLocation = location;
+            pickupSuggestions.innerHTML = "";
+        } else {
+            destinationLocation = location;
+            destinationSuggestions.innerHTML = "";
+        }
+    } catch (error) {
+        console.error("Current location error:", error);
+
+        if (error && error.code === 1) {
+            showMessage(
+                "Unable to access your location. Please allow location permission."
+            );
+        } else {
+            showMessage(
+                "We could not identify your current location. Please try again or enter the address manually."
+            );
+        }
+    } finally {
+        button.textContent = "📍";
+    }
+}
+
 currentLocationBtn.addEventListener(
     "click",
-    () => {
-
-        if (!navigator.geolocation) {
-
-            showMessage(
-                "Location is not supported on this device."
-            );
-
-            return;
-        }
-
-
-        currentLocationBtn.textContent =
-            "⌛";
-
-
-        navigator.geolocation.getCurrentPosition(
-
-            async position => {
-
-                const lat =
-                    position.coords.latitude;
-
-                const lon =
-                    position.coords.longitude;
-
-
-                pickupLocation = {
-
-                    lat: lat,
-                    lon: lon,
-                    name: "Current Location"
-                };
-
-
-                try {
-
-                    const url =
-                        "https://nominatim.openstreetmap.org/reverse?" +
-                        "format=json" +
-                        "&lat=" +
-                        lat +
-                        "&lon=" +
-                        lon;
-
-                    const response =
-                        await fetch(url);
-
-
-                    const data =
-                        await response.json();
-
-
-                    pickupInput.value =
-                        data.display_name ||
-                        "Current Location";
-
-
-                      pickupLocation.name =
-                          data.display_name ||
-                          "Current Location";
-
-                      pickupLocation.address =
-                          data.address || {};
-
-                      pickupLocation.state =
-                          data.address?.state || "";
-
-                      pickupLocation.country =
-                          data.address?.country || "";
-
-                      pickupLocation.countryCode =
-                          data.address?.country_code || "";
-
-                      pickupLocation.city =
-                          data.address?.city ||
-                          data.address?.town ||
-                          data.address?.municipality ||
-                          data.address?.village ||
-                          "";
-
-                } catch (error) {
-
-                    pickupInput.value =
-                        "Current Location";
-                }
-
-
-                currentLocationBtn.textContent =
-                    "📍";
-            },
-
-            error => {
-
-                console.error(error);
-
-                currentLocationBtn.textContent =
-                    "📍";
-
-                showMessage(
-                    "Unable to access your location. Please allow location permission."
-                );
-            }
-        );
-    }
+    () => useCurrentLocation("pickup")
 );
+
+
+if (destinationLocationBtn) {
+
+    destinationLocationBtn.addEventListener(
+        "click",
+        () => useCurrentLocation("destination")
+    );
+}
 
 
 /*
@@ -410,86 +303,39 @@ currentLocationBtn.addEventListener(
 */
 
 async function calculateRoute() {
+    const method =
+        document.querySelector(
+            'input[name="deliveryMethod"]:checked'
+        )?.value || "WALKER";
 
     if (!pickupLocation) {
-
         showMessage(
             "Please select a valid pickup location from the suggestions."
         );
-
         return null;
     }
 
-
     if (!destinationLocation) {
-
         showMessage(
             "Please select a valid destination from the suggestions."
         );
-
         return null;
     }
 
-
-    const url =
-        "https://router.project-osrm.org/route/v1/driving/" +
-        pickupLocation.lon +
-        "," +
-        pickupLocation.lat +
-        ";" +
-        destinationLocation.lon +
-        "," +
-        destinationLocation.lat +
-        "?overview=false";
-
-
     try {
-
-        const response =
-            await fetch(url);
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !data.routes ||
-            !data.routes.length
-        ) {
-
-            throw new Error(
-                "Route unavailable"
-            );
-        }
-
-
-        const route =
-            data.routes[0];
-
-
-        return {
-
-            distanceKm:
-                route.distance / 1000,
-
-            durationMinutes:
-                route.duration / 60
-        };
-
-
+        return await window.DreypellaLocation.calculateRoute(
+            pickupLocation,
+            destinationLocation,
+            method
+        );
     } catch (error) {
-
-        console.error(error);
-
+        console.error("Route calculation error:", error);
         showMessage(
             "We could not calculate the route right now. Please try again."
         );
-
         return null;
     }
 }
-
 
 /*
     DELIVERY PRICE

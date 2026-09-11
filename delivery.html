@@ -88,6 +88,12 @@
                     class="suggestions"
                 ></div>
 
+                <small class="location-help">
+                    Search by street, landmark, business, school or hostel.
+                    You can also use your current GPS location if you are unsure
+                    of the exact address.
+                </small>
+
             </div>
 
 
@@ -99,18 +105,36 @@
                     Destination
                 </label>
 
-                <input
-                    type="text"
-                    id="destination"
-                    placeholder="Where should we deliver it?"
-                    autocomplete="off"
-                    required
-                >
+                <div class="location-input">
+
+                    <input
+                        type="text"
+                        id="destination"
+                        placeholder="Street, landmark, hostel or business"
+                        autocomplete="off"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        id="destinationLocationBtn"
+                        title="Use my current location"
+                        aria-label="Use my current location for destination"
+                    >
+                        📍
+                    </button>
+
+                </div>
 
                 <div
                     id="destinationSuggestions"
                     class="suggestions"
                 ></div>
+
+                <small class="location-help">
+                    You can enter an address or recognizable place, or use
+                    your current location to help identify the destination.
+                </small>
 
             </div>
 
@@ -479,7 +503,7 @@
 </main>
 
 
-<script src="delivery.js"></script>
+<script src="location-service.js"></script><script src="delivery.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
