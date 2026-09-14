@@ -28,6 +28,13 @@ const {
     );
 
 const {
+    getCustomerTransactions
+} =
+    require(
+        "./customerWallet"
+    );
+
+const {
     approveWithdrawal,
     declineWithdrawal
 } =
@@ -89,6 +96,36 @@ exports.payWithWallet =
     );
 
 
+
+/*
+    =========================================
+    GET CUSTOMER TRANSACTIONS
+    =========================================
+*/
+exports.getCustomerTransactions = onCall(
+    async request => {
+        try {
+            return await getCustomerTransactions(
+                request.data || {},
+                {
+                    auth: request.auth
+                }
+            );
+        }
+        catch(error) {
+            console.error(
+                "Customer transactions error:",
+                error
+            );
+
+            throw new HttpsError(
+                "failed-precondition",
+                error.message ||
+                "Unable to load transactions."
+            );
+        }
+    }
+);
 
 /*
     =========================================
@@ -648,9 +685,39 @@ exports.verifyReceiverPayment =
 */
 
 const {
+    createDelivery
+} = require("./deliveryCreation");
+
+const {
     acceptDelivery
 } = require("./deliveryAssignment");
 
+
+exports.createDelivery =
+    onCall(
+        async request => {
+            try {
+                return await createDelivery(
+                    request.data || {},
+                    {
+                        auth: request.auth
+                    }
+                );
+            }
+            catch(error) {
+                console.error(
+                    "Delivery creation error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to create delivery."
+                );
+            }
+        }
+    );
 
 exports.acceptDelivery =
     onCall(
@@ -693,6 +760,50 @@ exports.acceptDelivery =
     PARTNER MATCHING
     =========================================
 */
+
+/*
+    =========================================
+    DELIVERY COMPLETION
+    PARTNER COMPLETES DELIVERY
+    =========================================
+*/
+
+const {
+    completeDelivery
+} = require("./deliveryCompletion");
+
+exports.completeDelivery =
+    onCall(
+        async request => {
+
+            try {
+
+                return await completeDelivery(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Delivery completion error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to complete delivery."
+                );
+
+            }
+
+        }
+    );
 
 const {
     getAvailableDeliveries

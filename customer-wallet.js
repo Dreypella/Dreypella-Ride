@@ -515,84 +515,33 @@ function showNoWallet() {
 
 function listenToTransactions() {
 
-    if (
-        transactionListener
-    ) {
+    const getCustomerTransactions =
+        functions.httpsCallable("getCustomerTransactions");
 
-        transactionListener();
+    getCustomerTransactions({
+        limit: 30
+    })
+        .then(function(result) {
+            transactions =
+                result.data && Array.isArray(result.data.transactions)
+                    ? result.data.transactions
+                    : [];
 
-    }
-
-
-    transactionListener =
-        db
-            .collection(
-                "walletTransactions"
-            )
-            .where(
-                "userId",
-                "==",
-                currentUser.uid
-            )
-            .orderBy(
-                "createdAt",
-                "desc"
-            )
-            .limit(30)
-            .onSnapshot(
-
-                function(snapshot) {
-
-                    transactions = [];
-
-
-                    snapshot.forEach(
-                        function(doc) {
-
-                            transactions.push({
-
-                                id:
-                                    doc.id,
-
-                                ...doc.data()
-
-                            });
-
-                        }
-                    );
-
-
-                    renderTransactions();
-
-                },
-
-                function(error) {
-
-                    console.error(
-                        "Transaction listener error:",
-                        error
-                    );
-
-
-                    transactionList.innerHTML = `
-
-                        <div class="empty-state">
-
-                            <h3>
-                                Unable to load transactions
-                            </h3>
-
-                            <p>
-                                Please refresh and try again.
-                            </p>
-
-                        </div>
-
-                    `;
-
-                }
-
+            renderTransactions();
+        })
+        .catch(function(error) {
+            console.error(
+                "Transaction load error:",
+                error
             );
+
+            transactionList.innerHTML = `
+                <div class="empty-state">
+                    <h3>Unable to load transactions</h3>
+                    <p>Please refresh and try again.</p>
+                </div>
+            `;
+        });
 
 }
 

@@ -409,28 +409,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
 
-            const snapshot = await db
-                .collection("walletTransactions")
-                .where("userId", "==", user.uid)
-                .orderBy("createdAt", "desc")
-                .limit(5)
-                .get();
+            const getCustomerTransactions =
+                firebase.functions().httpsCallable("getCustomerTransactions");
 
+            const result = await getCustomerTransactions({
+                limit: 5
+            });
 
-            if (snapshot.empty) {
+            const transactions =
+                result.data && Array.isArray(result.data.transactions)
+                    ? result.data.transactions
+                    : [];
 
+            if (!transactions.length) {
                 showEmptyActivity();
-
                 return;
             }
 
-
             activityList.innerHTML = "";
 
-
-            snapshot.forEach(function (doc) {
-
-                const data = doc.data();
+            transactions.forEach(function (data) {
 
                 const amount =
                     Number(data.amount || 0);

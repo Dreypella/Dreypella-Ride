@@ -58,61 +58,6 @@ const walletService = {
         =====================================
     */
 
-    async getTransactions(
-        userId,
-        limit = 30
-    ) {
-
-        if (!userId) {
-
-            throw new Error(
-                "User ID is required."
-            );
-
-        }
-
-
-        const snapshot =
-            await db
-                .collection(
-                    "walletTransactions"
-                )
-                .where(
-                    "userId",
-                    "==",
-                    userId
-                )
-                .orderBy(
-                    "createdAt",
-                    "desc"
-                )
-                .limit(
-                    limit
-                )
-                .get();
-
-
-        const transactions = [];
-
-
-        snapshot.forEach(
-            function(doc) {
-
-                transactions.push({
-
-                    id: doc.id,
-
-                    ...doc.data()
-
-                });
-
-            }
-        );
-
-
-        return transactions;
-
-    },
 
 
     /*
