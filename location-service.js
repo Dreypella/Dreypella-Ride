@@ -158,18 +158,70 @@ async function calculateRoute(pickup, destination, method) {
         throw new Error("Invalid pickup or destination coordinates.");
     }
 
-    const normalizedMethod = String(method || "DRIVER").toUpperCase();
+    const normalizedMethod =
+        String(method || "DRIVER").toUpperCase();
+
+    /*
+        CANONICAL DISTANCE
+
+        All delivery methods use the same OSRM
+        driving route for distance.
+
+        This keeps pricing and displayed distance
+        consistent across Walker, Rider and Driver.
+    */
+
+    const osrmUrl =
+        "https://router.project-osrm.org/route/v1/driving/" +
+        pickupLon + "," + pickupLat + ";" +
+        destinationLon + "," + destinationLat +
+        "?overview=false";
+
+    const osrmResponse = await fetch(osrmUrl);
+
+    if (!osrmResponse.ok) {
+        throw new Error("Route calculation failed.");
+    }
+
+    const osrmData = await osrmResponse.json();
+
+    if (
+        !osrmData.routes ||
+        !osrmData.routes.length
+    ) {
+        throw new Error("Route unavailable.");
+    }
+
+    const drivingRoute = osrmData.routes[0];
+
+    const distanceKm =
+        drivingRoute.distance / 1000;
+
+    /*
+        METHOD-SPECIFIC ETA
+
+        Walker and Rider use Valhalla because
+        their travel speeds/routes differ.
+
+        Driver uses the OSRM driving duration.
+    */
+
+    let durationMinutes =
+        drivingRoute.duration / 60;
 
     if (
         normalizedMethod === "WALKER" ||
+        normalizedMethod === "BICYCLIST" ||
         normalizedMethod === "RIDER"
     ) {
         const costing =
             normalizedMethod === "WALKER"
                 ? "pedestrian"
-                : "motorcycle";
+                : normalizedMethod === "BICYCLIST"
+                    ? "bicycle"
+                    : "motorcycle";
 
-        const response = await fetch(
+        const valhallaResponse = await fetch(
             "https://valhalla1.openstreetmap.de/route",
             {
                 method: "POST",
@@ -193,50 +245,36 @@ async function calculateRoute(pickup, destination, method) {
             }
         );
 
-        if (!response.ok) {
-            throw new Error("Valhalla route calculation failed.");
+        if (!valhallaResponse.ok) {
+            throw new Error(
+                "Method-specific ETA calculation failed."
+            );
         }
 
-        const data = await response.json();
-        const summary = data?.trip?.summary;
+        const valhallaData =
+            await valhallaResponse.json();
+
+        const summary =
+            valhallaData?.trip?.summary;
 
         if (
             !summary ||
-            !Number.isFinite(Number(summary.length)) ||
-            !Number.isFinite(Number(summary.time))
+            !Number.isFinite(
+                Number(summary.time)
+            )
         ) {
-            throw new Error("Valhalla route unavailable.");
+            throw new Error(
+                "Method-specific ETA unavailable."
+            );
         }
 
-        return {
-            distanceKm: Number(summary.length),
-            durationMinutes: Number(summary.time) / 60
-        };
+        durationMinutes =
+            Number(summary.time) / 60;
     }
-
-    const url =
-        "https://router.project-osrm.org/route/v1/driving/" +
-        pickupLon + "," + pickupLat + ";" +
-        destinationLon + "," + destinationLat +
-        "?overview=false";
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error("Route calculation failed.");
-    }
-
-    const data = await response.json();
-
-    if (!data.routes || !data.routes.length) {
-        throw new Error("Route unavailable.");
-    }
-
-    const route = data.routes[0];
 
     return {
-        distanceKm: route.distance / 1000,
-        durationMinutes: route.duration / 60
+        distanceKm,
+        durationMinutes
     };
 }
 

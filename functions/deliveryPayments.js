@@ -561,6 +561,30 @@ async function verifyDeliveryPayment(
                     };
                 }
 
+                if (
+                    String(
+                        delivery.payer ||
+                        "SENDER"
+                    ).toUpperCase() !==
+                    "SENDER"
+                ) {
+                    throw new Error(
+                        "This delivery is not configured for sender payment."
+                    );
+                }
+
+                if (
+                    delivery.paymentMethod &&
+                    String(
+                        delivery.paymentMethod
+                    ).toUpperCase() !==
+                    "PAYSTACK"
+                ) {
+                    throw new Error(
+                        "This delivery is not configured for Paystack payment."
+                    );
+                }
+
                 const authoritativeAmount =
                     money(
                         delivery.customerPrice

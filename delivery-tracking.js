@@ -325,9 +325,22 @@ function renderDelivery(
 
 
     destinationLocationElement.textContent =
-        delivery.destination?.address ||
-        delivery.destination?.name ||
-        "Destination";
+        Array.isArray(delivery.destinations) &&
+        delivery.destinations.length
+            ? delivery.destinations.map((item, index) => {
+                const destination =
+                    item?.destination || item || {};
+                return `${index + 1}. ${
+                    destination.address ||
+                    destination.name ||
+                    "Destination"
+                }`;
+            }).join(" | ")
+            : (
+                delivery.destination?.address ||
+                delivery.destination?.name ||
+                "Destination"
+            );
 
 
     distanceElement.textContent =

@@ -12,14 +12,14 @@
 const pickupInput =
     document.getElementById("pickup");
 
-const destinationInput =
-    document.getElementById("destination");
-
 const pickupSuggestions =
     document.getElementById("pickupSuggestions");
 
-const destinationSuggestions =
-    document.getElementById("destinationSuggestions");
+const destinationsContainer =
+    document.getElementById("destinationsContainer");
+
+const addDestinationBtn =
+    document.getElementById("addDestinationBtn");
 
 const currentLocationBtn =
     document.getElementById("currentLocationBtn");
@@ -38,7 +38,7 @@ const deliveryMessage =
 
 
 let pickupLocation = null;
-let destinationLocation = null;
+let destinationLocations = [];
 
 
 /*
@@ -119,28 +119,18 @@ function displaySuggestions(
                 };
 
 
-                if (type === "pickup") {
-
-                    pickupLocation =
-                        location;
-
-                    pickupInput.value =
-                        result.display_name;
-
-                    pickupSuggestions.innerHTML =
-                        "";
-
-                } else {
-
-                    destinationLocation =
-                        location;
-
-                    destinationInput.value =
-                        result.display_name;
-
-                    destinationSuggestions.innerHTML =
-                        "";
+                if (type !== "pickup") {
+                    return;
                 }
+
+                pickupLocation =
+                    location;
+
+                pickupInput.value =
+                    result.display_name;
+
+                pickupSuggestions.innerHTML =
+                    "";
 
             }
         );
@@ -193,107 +183,347 @@ pickupInput.addEventListener(
     DESTINATION SEARCH
 */
 
-let destinationTimer;
+let destinationTimers = {};
 
+function getDestinationCards() {
+    return Array.from(
+        document.querySelectorAll(".destination-card")
+    );
+}
 
-destinationInput.addEventListener(
-    "input",
-    () => {
+function getDestinationIndex(card) {
+    return Number(
+        card.dataset.destinationIndex
+    );
+}
 
-        destinationLocation = null;
+function buildLocationObject(result) {
+    return {
+        lat: parseFloat(result.lat),
+        lon: parseFloat(result.lon),
+        name: result.display_name,
+        address: result.address || {},
+        state: result.address?.state || "",
+        country: result.address?.country || "",
+        countryCode: result.address?.country_code || "",
+        city:
+            result.address?.city ||
+            result.address?.town ||
+            result.address?.municipality ||
+            result.address?.village ||
+            ""
+    };
+}
 
-        clearTimeout(
-            destinationTimer
-        );
+function setupDestinationCard(card) {
 
-        destinationTimer =
-            setTimeout(
-                async () => {
+    const index =
+        getDestinationIndex(card);
 
-                    const results =
-                        await searchLocation(
-                            destinationInput.value
+    const input =
+        card.querySelector(".destination-input");
+
+    const suggestions =
+        card.querySelector(".destination-suggestions");
+
+    const locationButton =
+        card.querySelector(".destination-location-btn");
+
+    if (!input || !suggestions) {
+        return;
+    }
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            destinationLocations[index] = null;
+
+            clearTimeout(
+                destinationTimers[index]
+            );
+
+            destinationTimers[index] =
+                setTimeout(
+                    async () => {
+
+                        const query =
+                            input.value.trim();
+
+                        if (!query) {
+                            suggestions.innerHTML = "";
+                            return;
+                        }
+
+                        const results =
+                            await searchLocation(query);
+
+                        displayDestinationSuggestions(
+                            results,
+                            card,
+                            index
                         );
 
-                    displaySuggestions(
-                        results,
-                        destinationSuggestions,
-                        "destination"
+                    },
+                    600
+                );
+        }
+    );
+
+    if (locationButton) {
+
+        locationButton.addEventListener(
+            "click",
+            async () => {
+
+                locationButton.textContent = "⌛";
+
+                try {
+
+                    const location =
+                        await window.DreypellaLocation
+                            .getCurrentLocation();
+
+                    destinationLocations[index] =
+                        location;
+
+                    input.value =
+                        location.name;
+
+                    suggestions.innerHTML = "";
+
+                } catch (error) {
+
+                    console.error(
+                        "Destination current location error:",
+                        error
                     );
 
-                },
-                600
-            );
+                    if (
+                        error &&
+                        error.code === 1
+                    ) {
+
+                        showMessage(
+                            "Unable to access your location. Please allow location permission."
+                        );
+
+                    } else {
+
+                        showMessage(
+                            "We could not identify your current location. Please try again or enter the address manually."
+                        );
+                    }
+
+                } finally {
+
+                    locationButton.textContent = "📍";
+                }
+            }
+        );
     }
+}
+
+function displayDestinationSuggestions(
+    results,
+    card,
+    index
+) {
+
+    const input =
+        card.querySelector(".destination-input");
+
+    const suggestions =
+        card.querySelector(".destination-suggestions");
+
+    if (!suggestions) {
+        return;
+    }
+
+    suggestions.innerHTML = "";
+
+    if (!results.length) {
+
+        suggestions.innerHTML = `
+            <div class="suggestion">
+                No exact result found. Try a nearby street, landmark or business.
+            </div>
+        `;
+
+        return;
+    }
+
+    results.forEach(result => {
+
+        const item =
+            document.createElement("div");
+
+        item.className = "suggestion";
+
+        item.textContent =
+            result.display_name;
+
+        item.addEventListener(
+            "click",
+            () => {
+
+                destinationLocations[index] =
+                    buildLocationObject(result);
+
+                input.value =
+                    result.display_name;
+
+                suggestions.innerHTML =
+                    "";
+            }
+        );
+
+        suggestions.appendChild(item);
+    });
+}
+
+getDestinationCards().forEach(
+    setupDestinationCard
 );
 
 
 /*
-    CURRENT LOCATION
+    ADD DESTINATION
 */
 
-const destinationLocationBtn =
-    document.getElementById("destinationLocationBtn");
+function addDestinationCard() {
 
+    const cards =
+        getDestinationCards();
 
-async function useCurrentLocation(type) {
-    const button =
-        type === "pickup"
-            ? currentLocationBtn
-            : destinationLocationBtn;
-
-    const input =
-        type === "pickup"
-            ? pickupInput
-            : destinationInput;
-
-    if (!button) {
-        return;
+    if (!cards.length) {
+        return null;
     }
 
-    button.textContent = "⌛";
+    const lastCard =
+        cards[cards.length - 1];
 
-    try {
-        const location =
-            await window.DreypellaLocation.getCurrentLocation();
+    const newIndex =
+        cards.length;
 
-        input.value = location.name;
+    const newCard =
+        lastCard.cloneNode(true);
 
-        if (type === "pickup") {
-            pickupLocation = location;
-            pickupSuggestions.innerHTML = "";
-        } else {
-            destinationLocation = location;
-            destinationSuggestions.innerHTML = "";
-        }
-    } catch (error) {
-        console.error("Current location error:", error);
+    newCard.dataset.destinationIndex =
+        String(newIndex);
 
-        if (error && error.code === 1) {
-            showMessage(
-                "Unable to access your location. Please allow location permission."
-            );
-        } else {
-            showMessage(
-                "We could not identify your current location. Please try again or enter the address manually."
-            );
-        }
-    } finally {
-        button.textContent = "📍";
+    const header =
+        newCard.querySelector(
+            ".destination-card-header strong"
+        );
+
+    if (header) {
+        header.textContent =
+            `Destination ${newIndex + 1}`;
     }
+
+    const fields = [
+        [
+            ".destination-input",
+            `destination-${newIndex}`
+        ],
+        [
+            ".recipient-name",
+            `recipientName-${newIndex}`
+        ],
+        [
+            ".recipient-phone",
+            `recipientPhone-${newIndex}`
+        ],
+        [
+            ".delivery-instructions",
+            `instructions-${newIndex}`
+        ]
+    ];
+
+    fields.forEach(
+        ([selector, id]) => {
+
+            const field =
+                newCard.querySelector(
+                    selector
+                );
+
+            if (!field) {
+                return;
+            }
+
+            field.id = id;
+            field.value = "";
+
+            if (
+                field.tagName === "INPUT" &&
+                selector === ".destination-input"
+            ) {
+                field.name = id;
+            }
+
+            const label =
+                newCard.querySelector(
+                    `label[for="${field.id.replace(
+                        /\\/g,
+                        "\\\\"
+                    )}"]`
+                );
+
+            if (label) {
+                label.setAttribute(
+                    "for",
+                    id
+                );
+            }
+        }
+    );
+
+    const suggestions =
+        newCard.querySelector(
+            ".destination-suggestions"
+        );
+
+    if (suggestions) {
+        suggestions.id =
+            `destinationSuggestions-${newIndex}`;
+
+        suggestions.innerHTML = "";
+    }
+
+    const locationButton =
+        newCard.querySelector(
+            ".destination-location-btn"
+        );
+
+    if (locationButton) {
+        locationButton.textContent =
+            "📍";
+    }
+
+    destinationsContainer.appendChild(
+        newCard
+    );
+
+    destinationLocations[newIndex] =
+        null;
+
+    setupDestinationCard(
+        newCard
+    );
+
+    return newCard;
 }
 
-currentLocationBtn.addEventListener(
-    "click",
-    () => useCurrentLocation("pickup")
-);
 
+if (addDestinationBtn) {
 
-if (destinationLocationBtn) {
-
-    destinationLocationBtn.addEventListener(
+    addDestinationBtn.addEventListener(
         "click",
-        () => useCurrentLocation("destination")
+        () => {
+            addDestinationCard();
+        }
     );
 }
 
@@ -303,39 +533,105 @@ if (destinationLocationBtn) {
 */
 
 async function calculateRoute() {
+
     const method =
         document.querySelector(
             'input[name="deliveryMethod"]:checked'
         )?.value || "WALKER";
 
     if (!pickupLocation) {
+
         showMessage(
             "Please select a valid pickup location from the suggestions."
         );
+
         return null;
     }
 
-    if (!destinationLocation) {
+    const destinations =
+        destinationLocations.filter(Boolean);
+
+    if (
+        destinations.length === 0 ||
+        destinations.length !== destinationLocations.length
+    ) {
+
         showMessage(
-            "Please select a valid destination from the suggestions."
+            "Please select a valid location for every destination."
         );
+
         return null;
     }
 
     try {
-        return await window.DreypellaLocation.calculateRoute(
-            pickupLocation,
-            destinationLocation,
-            method
-        );
+
+        let currentLocation =
+            pickupLocation;
+
+        let totalDistanceKm = 0;
+        let totalDurationMinutes = 0;
+
+        const legs = [];
+
+        for (
+            let i = 0;
+            i < destinations.length;
+            i++
+        ) {
+
+            const nextLocation =
+                destinations[i];
+
+            const route =
+                await window.DreypellaLocation
+                    .calculateRoute(
+                        currentLocation,
+                        nextLocation,
+                        method
+                    );
+
+            totalDistanceKm +=
+                Number(route.distanceKm || 0);
+
+            totalDurationMinutes +=
+                Number(route.durationMinutes || 0);
+
+            legs.push({
+                from: currentLocation,
+                to: nextLocation,
+                distanceKm: route.distanceKm,
+                durationMinutes: route.durationMinutes
+            });
+
+            currentLocation =
+                nextLocation;
+        }
+
+        return {
+            distanceKm:
+                totalDistanceKm,
+
+            durationMinutes:
+                totalDurationMinutes,
+
+            legs
+        };
+
     } catch (error) {
-        console.error("Route calculation error:", error);
+
+        console.error(
+            "Route calculation error:",
+            error
+        );
+
         showMessage(
             "We could not calculate the route right now. Please try again."
         );
+
         return null;
     }
 }
+
 
 /*
     DELIVERY PRICE
@@ -350,76 +646,157 @@ async function calculateRoute() {
     Customers only see the final price.
 */
 
-const pricing = {
+let deliveryPricing = null;
 
-    baseFare: 500,
+/*
+    LOAD ADMIN DELIVERY PRICING
+*/
+async function loadDeliveryPricing() {
+    if (deliveryPricing) {
+        return deliveryPricing;
+    }
 
-    perKm: 120,
+    const snapshot = await dreypellaDB
+        .collection("settings")
+        .doc("pricing")
+        .get();
 
-    vehicleSurcharge: 300,
+    if (!snapshot.exists) {
+        throw new Error(
+            "Delivery pricing has not been configured by Admin."
+        );
+    }
 
-    riderSurcharge: 150,
+    deliveryPricing = snapshot.data();
 
-    walkerDifference: 150
-};
-
+    return deliveryPricing;
+}
 
 /*
     CALCULATE CUSTOMER PRICE
 */
-
-function calculateDeliveryPrice(
+async function calculateDeliveryPrice(
     distanceKm,
-    method
+    method,
+    size,
+    weight
 ) {
+    const pricing =
+        await loadDeliveryPricing();
+
+    const normalizedMethod =
+        String(method || "")
+            .toUpperCase();
+
+    let baseFare;
+
+    switch (normalizedMethod) {
+        case "WALKER":
+            baseFare =
+                Number(pricing.walkerBaseFare);
+            break;
+
+        case "BICYCLIST":
+            baseFare =
+                Number(pricing.bicyclistBaseFare);
+            break;
+
+        case "RIDER":
+            baseFare =
+                Number(pricing.riderBaseFare);
+            break;
+
+        case "DRIVER":
+        case "VEHICLE":
+            baseFare =
+                Number(pricing.driverBaseFare);
+            break;
+
+        default:
+            throw new Error(
+                "Invalid delivery method."
+            );
+    }
+
+    if (!Number.isFinite(baseFare)) {
+        throw new Error(
+            "Pricing for the selected delivery method is not configured."
+        );
+    }
+
+    const km =
+        Number(distanceKm);
+
+    if (!Number.isFinite(km) || km < 0) {
+        throw new Error(
+            "Invalid delivery distance."
+        );
+    }
 
     let price =
-        pricing.baseFare +
-        (distanceKm * pricing.perKm);
+        baseFare +
+        (
+            km *
+            Number(pricing.pricePerKm || 0)
+        );
 
+    const normalizedSize =
+        String(size || "")
+            .toUpperCase();
 
-    if (method === "VEHICLE") {
+    if (normalizedSize === "MEDIUM") {
+        price +=
+            Number(pricing.mediumPackageFee || 0);
+    }
+
+    if (normalizedSize === "LARGE") {
+        price +=
+            Number(pricing.largePackageFee || 0);
+    }
+
+    const weightKg =
+        Number(weight);
+
+    const extraWeightRate =
+        Number(pricing.extraWeightPerKg || 0);
+
+    if (
+        Number.isFinite(weightKg) &&
+        weightKg > 0 &&
+        extraWeightRate > 0
+    ) {
+        const extraWeight =
+            Math.max(0, weightKg - 1);
 
         price +=
-            pricing.vehicleSurcharge;
+            extraWeight *
+            extraWeightRate;
     }
 
+    const minimumFee =
+        Number(pricing.minimumDeliveryFee || 0);
 
-    if (method === "RIDER") {
+    const maximumFee =
+        Number(pricing.maximumDeliveryFee || 0);
 
-        price +=
-            pricing.riderSurcharge;
+    if (
+        Number.isFinite(minimumFee) &&
+        minimumFee > 0
+    ) {
+        price =
+            Math.max(price, minimumFee);
     }
 
-
-    if (method === "WALKER") {
-
-        price -=
-            pricing.walkerDifference;
+    if (
+        Number.isFinite(maximumFee) &&
+        maximumFee > 0
+    ) {
+        price =
+            Math.min(price, maximumFee);
     }
 
-
-    /*
-        Prevent extremely low prices.
-    */
-
-    if (price < 700) {
-
-        price = 700;
-    }
-
-
-    /*
-        Round to nearest ₦50
-    */
-
-    price =
-        Math.ceil(price / 50) * 50;
-
-
-    return price;
+    return Math.ceil(price / 50) * 50;
 }
-
 
 /*
     CALCULATE BUTTON
@@ -431,7 +808,6 @@ calculateBtn.addEventListener(
 
         clearMessage();
 
-
         if (!pickupInput.value.trim()) {
 
             showMessage(
@@ -441,16 +817,46 @@ calculateBtn.addEventListener(
             return;
         }
 
+        const destinationCards =
+            getDestinationCards();
 
-        if (!destinationInput.value.trim()) {
+        if (!destinationCards.length) {
 
             showMessage(
-                "Enter your destination."
+                "Please add at least one destination."
             );
 
             return;
         }
 
+        const missingDestination =
+            destinationCards.some(
+                card => {
+
+                    const index =
+                        getDestinationIndex(card);
+
+                    const input =
+                        card.querySelector(
+                            ".destination-input"
+                        );
+
+                    return (
+                        !input ||
+                        !input.value.trim() ||
+                        !destinationLocations[index]
+                    );
+                }
+            );
+
+        if (missingDestination) {
+
+            showMessage(
+                "Please select a valid location for every destination from the suggestions."
+            );
+
+            return;
+        }
 
         calculateBtn.disabled =
             true;
@@ -458,85 +864,104 @@ calculateBtn.addEventListener(
         calculateBtn.textContent =
             "CALCULATING...";
 
+        try {
 
-        const route =
-            await calculateRoute();
+            const route =
+                await calculateRoute();
 
+            if (!route) {
+                return;
+            }
 
-        calculateBtn.disabled =
-            false;
+            const method =
+                document.querySelector(
+                    'input[name="deliveryMethod"]:checked'
+                )?.value || "WALKER";
 
-        calculateBtn.textContent =
-            "CALCULATE DELIVERY";
+            const price =
+                await calculateDeliveryPrice(
+                    route.distanceKm,
+                    method,
+                    document.getElementById(
+                        "packageSize"
+                    ).value,
+                    document.getElementById(
+                        "packageWeight"
+                    ).value
+                );
 
+            document.getElementById(
+                "resultPickup"
+            ).textContent =
+                shortenLocation(
+                    pickupLocation.name
+                );
 
-        if (!route) {
-            return;
+            const resultDestination =
+                document.getElementById(
+                    "resultDestination"
+                );
+
+            if (resultDestination) {
+
+                resultDestination.textContent =
+                    destinationLocations
+                        .map(
+                            (location, index) =>
+                                `${index + 1}. ${shortenLocation(location.name)}`
+                        )
+                        .join(" • ");
+            }
+
+            document.getElementById(
+                "distanceDisplay"
+            ).textContent =
+                route.distanceKm.toFixed(1) +
+                " km";
+
+            document.getElementById(
+                "timeDisplay"
+            ).textContent =
+                formatTime(
+                    route.durationMinutes
+                );
+
+            document.getElementById(
+                "priceDisplay"
+            ).textContent =
+                formatCurrency(price);
+
+            deliveryResult.classList.remove(
+                "hidden"
+            );
+
+            deliveryResult.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Delivery calculation error:",
+                error
+            );
+
+            showMessage(
+                "We could not calculate the delivery price right now. Please try again."
+            );
+
+        } finally {
+
+            calculateBtn.disabled =
+                false;
+
+            calculateBtn.textContent =
+                "CALCULATE DELIVERY";
         }
-
-
-        const method =
-            document.querySelector(
-                'input[name="deliveryMethod"]:checked'
-            ).value;
-
-
-        const price =
-            calculateDeliveryPrice(
-                route.distanceKm,
-                method
-            );
-
-
-        document.getElementById(
-            "resultPickup"
-        ).textContent =
-            shortenLocation(
-                pickupLocation.name
-            );
-
-
-        document.getElementById(
-            "resultDestination"
-        ).textContent =
-            shortenLocation(
-                destinationLocation.name
-            );
-
-
-        document.getElementById(
-            "distanceDisplay"
-        ).textContent =
-            route.distanceKm.toFixed(1) +
-            " km";
-
-
-        document.getElementById(
-            "timeDisplay"
-        ).textContent =
-            formatTime(
-                route.durationMinutes
-            );
-
-
-        document.getElementById(
-            "priceDisplay"
-        ).textContent =
-            formatCurrency(price);
-
-
-        deliveryResult.classList.remove(
-            "hidden"
-        );
-
-
-        deliveryResult.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
     }
 );
+
 
 
 /*
@@ -544,30 +969,47 @@ calculateBtn.addEventListener(
 */
 function determineDeliveryType(
     pickup,
-    destination
+    destinations
 ) {
     const pickupCountry =
         String(
             pickup?.countryCode ||
             ""
-        ).toLowerCase();
+        ).trim().toLowerCase();
 
-    const destinationCountry =
-        String(
-            destination?.countryCode ||
-            ""
-        ).toLowerCase();
+    if (!pickupCountry) {
+        return null;
+    }
 
     if (
-        !pickupCountry ||
-        !destinationCountry
+        !Array.isArray(destinations) ||
+        destinations.length === 0
+    ) {
+        return null;
+    }
+
+    const destinationCountries =
+        destinations.map(
+            destination =>
+                String(
+                    destination?.countryCode ||
+                    ""
+                ).trim().toLowerCase()
+        );
+
+    if (
+        destinationCountries.some(
+            country => !country
+        )
     ) {
         return null;
     }
 
     if (
         pickupCountry !== "ng" ||
-        destinationCountry !== "ng"
+        destinationCountries.some(
+            country => country !== "ng"
+        )
     ) {
         return "INTERNATIONAL";
     }
@@ -578,22 +1020,32 @@ function determineDeliveryType(
             ""
         ).trim().toLowerCase();
 
-    const destinationState =
-        String(
-            destination?.state ||
-            ""
-        ).trim().toLowerCase();
+    if (!pickupState) {
+        return null;
+    }
+
+    const destinationStates =
+        destinations.map(
+            destination =>
+                String(
+                    destination?.state ||
+                    ""
+                ).trim().toLowerCase()
+        );
 
     if (
-        !pickupState ||
-        !destinationState
+        destinationStates.some(
+            state => !state
+        )
     ) {
         return null;
     }
 
-    return pickupState === destinationState
-        ? "LOCAL"
-        : "INTERSTATE";
+    return destinationStates.some(
+        state => state !== pickupState
+    )
+        ? "INTERSTATE"
+        : "LOCAL";
 }
 
 
@@ -607,10 +1059,7 @@ deliveryForm.addEventListener(
 
         event.preventDefault();
 
-
-        if (!pickupLocation ||
-            !destinationLocation) {
-
+        if (!pickupLocation) {
             showMessage(
                 "Please calculate your delivery route first."
             );
@@ -618,21 +1067,115 @@ deliveryForm.addEventListener(
             return;
         }
 
+        const destinationCards =
+            getDestinationCards();
 
-        const deliveryType =
-            determineDeliveryType(
-                pickupLocation,
-                destinationLocation
-            );
-
-        if (!deliveryType) {
+        if (!destinationCards.length) {
             showMessage(
-                "We could not determine the delivery type. Please select your pickup and destination again."
+                "Please add at least one destination."
             );
 
             return;
         }
 
+        const destinations = [];
+
+        for (const card of destinationCards) {
+
+            const index =
+                getDestinationIndex(card);
+
+            const destination =
+                destinationLocations[index];
+
+            const destinationInput =
+                card.querySelector(
+                    ".destination-input"
+                );
+
+            const recipientName =
+                card.querySelector(
+                    ".recipient-name"
+                );
+
+            const recipientPhone =
+                card.querySelector(
+                    ".recipient-phone"
+                );
+
+            const instructions =
+                card.querySelector(
+                    ".delivery-instructions"
+                );
+
+            if (
+                !destination ||
+                !destinationInput ||
+                !destinationInput.value.trim()
+            ) {
+                showMessage(
+                    "Please select a valid location for every destination."
+                );
+
+                return;
+            }
+
+            if (
+                !recipientName ||
+                !recipientName.value.trim()
+            ) {
+                showMessage(
+                    "Please enter the recipient name for every destination."
+                );
+
+                return;
+            }
+
+            if (
+                !recipientPhone ||
+                !recipientPhone.value.trim()
+            ) {
+                showMessage(
+                    "Please enter the recipient phone number for every destination."
+                );
+
+                return;
+            }
+
+            destinations.push({
+                destination,
+                recipientName:
+                    recipientName.value.trim(),
+                recipientPhone:
+                    recipientPhone.value.trim(),
+                instructions:
+                    instructions?.value.trim() || ""
+            });
+        }
+
+        const destinationLocationsForType =
+            destinations.map(
+                item => item.destination
+            );
+
+        const deliveryType =
+            determineDeliveryType(
+                pickupLocation,
+                destinationLocationsForType
+            );
+
+        if (!deliveryType) {
+            showMessage(
+                "We could not determine the delivery type. Please select your pickup and destination locations again."
+            );
+
+            return;
+        }
+
+        const method =
+            document.querySelector(
+                'input[name="deliveryMethod"]:checked'
+            )?.value || "WALKER";
 
         const booking = {
 
@@ -642,8 +1185,7 @@ deliveryForm.addEventListener(
             deliveryType:
                 deliveryType,
 
-            destination:
-                destinationLocation,
+            destinations,
 
             category:
                 document.getElementById(
@@ -660,30 +1202,11 @@ deliveryForm.addEventListener(
                     "packageWeight"
                 ).value,
 
-            recipientName:
-                document.getElementById(
-                    "recipientName"
-                ).value.trim(),
-
-            recipientPhone:
-                document.getElementById(
-                    "recipientPhone"
-                ).value.trim(),
-
-            instructions:
-                document.getElementById(
-                    "instructions"
-                ).value.trim(),
-
-            method:
-                document.querySelector(
-                    'input[name="deliveryMethod"]:checked'
-                ).value,
+            method,
 
             createdAt:
                 new Date().toISOString()
         };
-
 
         /*
             Save temporary booking locally.
@@ -697,7 +1220,6 @@ deliveryForm.addEventListener(
             "dreypellaDeliveryBooking",
             JSON.stringify(booking)
         );
-
 
         window.location.href =
             "delivery-confirmation.html";
@@ -817,15 +1339,232 @@ document.addEventListener(
                 "";
         }
 
+        getDestinationCards().forEach(
+            card => {
 
-        if (
-            !destinationInput.contains(event.target) &&
-            !destinationSuggestions.contains(event.target)
-        ) {
+                const input =
+                    card.querySelector(
+                        ".destination-input"
+                    );
 
-            destinationSuggestions.innerHTML =
-                "";
-        }
+                const suggestions =
+                    card.querySelector(
+                        ".destination-suggestions"
+                    );
 
+                if (
+                    input &&
+                    suggestions &&
+                    !input.contains(event.target) &&
+                    !suggestions.contains(event.target)
+                ) {
+
+                    suggestions.innerHTML =
+                        "";
+                }
+            }
+        );
     }
 );
+
+/*
+    RESTORE DELIVERY FOR EDIT MODE
+*/
+
+(function restoreDeliveryEditMode() {
+
+    const editMode =
+        localStorage.getItem(
+            "dreypellaDeliveryEditMode"
+        );
+
+    if (editMode !== "true") {
+        return;
+    }
+
+    const savedBookingRaw =
+        localStorage.getItem(
+            "dreypellaDeliveryBooking"
+        );
+
+    if (!savedBookingRaw) {
+        localStorage.removeItem(
+            "dreypellaDeliveryEditMode"
+        );
+        return;
+    }
+
+    let savedBooking;
+
+    try {
+        savedBooking =
+            JSON.parse(savedBookingRaw);
+    } catch (error) {
+        console.error(
+            "Unable to restore delivery booking:",
+            error
+        );
+
+        localStorage.removeItem(
+            "dreypellaDeliveryEditMode"
+        );
+
+        return;
+    }
+
+    pickupLocation =
+        savedBooking.pickup || null;
+
+    if (pickupLocation) {
+        pickupInput.value =
+            pickupLocation.name ||
+            pickupLocation.address?.road ||
+            pickupLocation.address ||
+            "";
+    }
+
+    const savedDestinations =
+        Array.isArray(savedBooking.destinations)
+            ? savedBooking.destinations
+            : [];
+
+    if (savedDestinations.length > 0) {
+
+        destinationLocations.length = 0;
+
+        destinationLocations[0] = null;
+
+        const existingCards =
+            getDestinationCards();
+
+        existingCards.forEach(
+            (card, index) => {
+
+                if (index > 0) {
+                    card.remove();
+                }
+            }
+        );
+
+        for (
+            let i = 1;
+            i < savedDestinations.length;
+            i++
+        ) {
+            addDestinationCard();
+        }
+
+        const destinationCards =
+            getDestinationCards();
+
+        savedDestinations.forEach(
+            (savedDestination, index) => {
+
+                const card =
+                    destinationCards[index];
+
+                if (!card) {
+                    return;
+                }
+
+                const destination =
+                    savedDestination.destination || null;
+
+                destinationLocations[index] =
+                    destination;
+
+                const destinationInput =
+                    card.querySelector(
+                        ".destination-input"
+                    );
+
+                const recipientName =
+                    card.querySelector(
+                        ".recipient-name"
+                    );
+
+                const recipientPhone =
+                    card.querySelector(
+                        ".recipient-phone"
+                    );
+
+                const instructions =
+                    card.querySelector(
+                        ".delivery-instructions"
+                    );
+
+                if (destinationInput) {
+                    destinationInput.value =
+                        destination?.name ||
+                        destination?.address?.road ||
+                        destination?.address ||
+                        "";
+                }
+
+                if (recipientName) {
+                    recipientName.value =
+                        savedDestination.recipientName ||
+                        "";
+                }
+
+                if (recipientPhone) {
+                    recipientPhone.value =
+                        savedDestination.recipientPhone ||
+                        "";
+                }
+
+                if (instructions) {
+                    instructions.value =
+                        savedDestination.instructions ||
+                        "";
+                }
+            }
+        );
+    }
+
+    const category =
+        document.getElementById(
+            "packageCategory"
+        );
+
+    if (category) {
+        category.value =
+            savedBooking.category || "";
+    }
+
+    const size =
+        document.getElementById(
+            "packageSize"
+        );
+
+    if (size) {
+        size.value =
+            savedBooking.size || "";
+    }
+
+    const weight =
+        document.getElementById(
+            "packageWeight"
+        );
+
+    if (weight) {
+        weight.value =
+            savedBooking.weight || "";
+    }
+
+    const methodRadio =
+        document.querySelector(
+            'input[name="deliveryMethod"][value="' +
+            savedBooking.method +
+            '"]'
+        );
+
+    if (methodRadio) {
+        methodRadio.checked = true;
+    }
+
+    localStorage.removeItem(
+        "dreypellaDeliveryEditMode"
+    );
+
+})();

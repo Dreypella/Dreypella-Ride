@@ -41,6 +41,10 @@ const acceptDelivery =
         "acceptDelivery"
     );
 
+const completeDeliveryFunction =
+    firebase.functions().httpsCallable(
+        "completeDelivery"
+    );
 
 const availableDeliveryList =
     document.getElementById(
@@ -469,10 +473,8 @@ function createDeliveryCard(
         "Pickup";
 
 
-    const destination =
-        delivery.destination?.address ||
-        delivery.destination?.name ||
-        "Destination";
+    const destinations =
+        getDeliveryDestinations(delivery);
 
 
     const status =
@@ -546,13 +548,21 @@ function createDeliveryCard(
                 <div>
 
                     <strong>
-                        Destination
+                        ${
+                            destinations.length > 1
+                                ? `Destinations (${destinations.length})`
+                                : "Destination"
+                        }
                     </strong>
 
                     <span>
-                        ${escapeHtml(
-                            destination
-                        )}
+                        ${
+                            destinations.map(
+                                function(item) {
+                                    return `${item.number}. ${escapeHtml(item.text)}`;
+                                }
+                            ).join("<br>")
+                        }
                     </span>
 
                 </div>
@@ -645,10 +655,8 @@ async function openAcceptModal(
             "Pickup";
 
 
-        const destination =
-            delivery.destination?.address ||
-            delivery.destination?.name ||
-            "Destination";
+        const destinations =
+            getDeliveryDestinations(delivery);
 
 
         document.getElementById(
@@ -688,13 +696,21 @@ async function openAcceptModal(
             <div class="detail-row">
 
                 <span>
-                    Destination
+                    ${
+                        destinations.length > 1
+                            ? `Destinations (${destinations.length})`
+                            : "Destination"
+                    }
                 </span>
 
                 <strong>
-                    ${escapeHtml(
-                        destination
-                    )}
+                    ${
+                        destinations.map(
+                            function(item) {
+                                return `${item.number}. ${escapeHtml(item.text)}`;
+                            }
+                        ).join("<br>")
+                    }
                 </strong>
 
             </div>
@@ -907,10 +923,8 @@ function renderActiveDelivery(
         "Pickup";
 
 
-    const destination =
-        delivery.destination?.address ||
-        delivery.destination?.name ||
-        "Destination";
+    const destinations =
+        getDeliveryDestinations(delivery);
 
 
     activeDelivery.innerHTML = `
@@ -940,13 +954,21 @@ function renderActiveDelivery(
             <div class="route-box">
 
                 <small>
-                    DESTINATION
+                    ${
+                        destinations.length > 1
+                            ? `DESTINATIONS (${destinations.length})`
+                            : "DESTINATION"
+                    }
                 </small>
 
                 <strong>
-                    ${escapeHtml(
-                        destination
-                    )}
+                    ${
+                        destinations.map(
+                            function(item) {
+                                return `${item.number}. ${escapeHtml(item.text)}`;
+                            }
+                        ).join("<br>")
+                    }
                 </strong>
 
             </div>
@@ -1196,36 +1218,23 @@ async function verifyPickup() {
 */
 
 async function verifyDelivery() {
-
     if (!activeDeliveryId) {
-
         return;
-
     }
-
 
     const input =
         document.getElementById(
             "deliveryOtp"
         );
 
+    const otp = input.value.trim();
 
-    const otp =
-        input.value.trim();
-
-
-    if (
-        otp.length !== 6
-    ) {
-
+    if (!/^\d{6}$/.test(otp)) {
         showMessage(
             "Enter the 6-digit delivery OTP."
         );
-
         return;
-
     }
-
 
     try {
 
@@ -1238,64 +1247,33 @@ async function verifyDelivery() {
                     activeDeliveryId
                 );
 
-
         const document =
             await ref.get();
-
 
         if (
             !document.exists
         ) {
-
             throw new Error(
                 "Delivery not found."
             );
-
         }
-
 
         const delivery =
             document.data();
-
 
         if (
             delivery.deliveryOtp &&
             delivery.deliveryOtp !== otp
         ) {
-
             throw new Error(
                 "Incorrect delivery OTP."
             );
-
         }
 
-
-        await ref.update({
-
-            deliveryVerified:
-                true,
-
-            deliveryVerifiedAt:
-                firebase.firestore
-                    .FieldValue
-                    .serverTimestamp(),
-
-            updatedAt:
-                firebase.firestore
-                    .FieldValue
-                    .serverTimestamp()
-
-        });
-
-
-        input.value = "";
-
-
         showMessage(
-            "Delivery OTP verified.",
+            "Delivery OTP verified. You can now complete the delivery.",
             true
         );
-
 
     } catch (error) {
 
@@ -1306,188 +1284,86 @@ async function verifyDelivery() {
         showMessage(
             error.message
         );
-
     }
-
 }
-
 
 /*
     COMPLETE DELIVERY
 */
 
 async function completeDelivery() {
-
     if (!activeDeliveryId) {
-
         return;
-
     }
 
+    const input =
+        document.getElementById(
+            "deliveryOtp"
+        );
+
+    const otp =
+        input
+            ? input.value.trim()
+            : "";
+
+    if (!/^\d{6}$/.test(otp)) {
+        showMessage(
+            "Enter the 6-digit delivery OTP."
+        );
+        return;
+    }
 
     try {
 
-        const ref =
-            db
-                .collection(
-                    "deliveries"
-                )
-                .doc(
-                    activeDeliveryId
-                );
-
-
-        const document =
-            await ref.get();
-
-
-        if (
-            !document.exists
-        ) {
-
-            throw new Error(
-                "Delivery not found."
-            );
-
-        }
-
-
-        const delivery =
-            document.data();
-
-
-        if (
-            !delivery.deliveryVerified
-        ) {
-
-            throw new Error(
-                "Verify the recipient's delivery OTP first."
-            );
-
-        }
-
-
-        /*
-            Stop GPS.
-        */
-
-        stopGPS();
-
-
-        /*
-            Complete delivery.
-        */
-
-        await ref.update({
-
-            status:
-                "DELIVERED",
-
-            "tracking.active":
-                false,
-
-            deliveredAt:
-                firebase.firestore
-                    .FieldValue
-                    .serverTimestamp(),
-
-            updatedAt:
-                firebase.firestore
-                    .FieldValue
-                    .serverTimestamp()
-
-        });
-
-
-        /*
-            Record partner earnings.
-
-            NOTE:
-            This is currently a transaction record
-            for development. The final financial
-            version should move this calculation
-            into a Firebase Cloud Function.
-        */
-
-        const customerPrice =
-            Number(
-                delivery.customerPrice
-            ) || 0;
-
-
-        const partnerEarnings =
-            customerPrice *
-            0.70;
-
-
-        await db
-            .collection(
-                "walletTransactions"
-            )
-            .add({
-
-                userId:
-                    currentUser.uid,
-
+        const result =
+            await completeDeliveryFunction({
                 deliveryId:
                     activeDeliveryId,
-
-                bookingReference:
-                    delivery.bookingReference,
-
-                type:
-                    "PARTNER_EARNINGS",
-
-                amount:
-                    partnerEarnings,
-
-                status:
-                    "PENDING",
-
-                description:
-                    "Delivery partner earnings",
-
-                createdAt:
-                    firebase.firestore
-                        .FieldValue
-                        .serverTimestamp()
-
+                deliveryOtp:
+                    otp
             });
 
+        const data =
+            result.data || {};
+
+        /*
+            Stop GPS only after the
+            server confirms completion.
+        */
+        stopGPS();
 
         showMessage(
             "Delivery completed successfully.",
             true
         );
 
-
         activeSection.style.display =
             "none";
-
 
         activeDeliveryId =
             null;
 
         updateAvailabilityUI();
-
-
         loadDeliveries();
 
+        console.log(
+            "Delivery completion result:",
+            data
+        );
 
     } catch (error) {
 
         console.error(
+            "Delivery completion error:",
             error
         );
 
         showMessage(
-            error.message
+            error.message ||
+            "Unable to complete delivery."
         );
-
     }
-
 }
-
 
 /*
     PARTNER AVAILABILITY
@@ -2011,6 +1887,33 @@ function showMessage(
 /*
     BASIC HTML ESCAPING
 */
+
+function getDeliveryDestinations(delivery) {
+    if (Array.isArray(delivery?.destinations) &&
+        delivery.destinations.length) {
+        return delivery.destinations.map((item, index) => {
+            const destination =
+                item?.destination || item || {};
+
+            return {
+                number: index + 1,
+                text:
+                    destination.address ||
+                    destination.name ||
+                    "Destination"
+            };
+        });
+    }
+
+    return [{
+        number: 1,
+        text:
+            delivery?.destination?.address ||
+            delivery?.destination?.name ||
+            "Destination"
+    }];
+}
+
 
 function escapeHtml(
     value

@@ -21,10 +21,10 @@
 
 <header class="delivery-header">
 
-    <a href="index.html" class="logo">
+    <div class="logo">
         <strong>DREYPELLA</strong>
         <span>RIDE</span>
-    </a>
+    </div>
 
     <a href="customer-dashboard.html" class="dashboard-link">
         Dashboard
@@ -97,49 +97,7 @@
             </div>
 
 
-            <!-- DESTINATION -->
-
-            <div class="location-section">
-
-                <label for="destination">
-                    Destination
-                </label>
-
-                <div class="location-input">
-
-                    <input
-                        type="text"
-                        id="destination"
-                        placeholder="Street, landmark, hostel or business"
-                        autocomplete="off"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        id="destinationLocationBtn"
-                        title="Use my current location"
-                        aria-label="Use my current location for destination"
-                    >
-                        📍
-                    </button>
-
-                </div>
-
-                <div
-                    id="destinationSuggestions"
-                    class="suggestions"
-                ></div>
-
-                <small class="location-help">
-                    You can enter an address or recognizable place, or use
-                    your current location to help identify the destination.
-                </small>
-
-            </div>
-
-
-            <!-- PACKAGE -->
+            <!-- DESTINATIONS --><div class="section-title">Destinations</div><div id="destinationsContainer"><div class="destination-card" data-destination-index="0"><div class="destination-card-header"><strong>Destination 1</strong></div><div class="location-section"><label for="destination-0">Destination</label><div class="location-input"><input type="text" id="destination-0" class="destination-input" placeholder="Street, landmark, hostel or business" autocomplete="off" required><button type="button" class="destination-location-btn" title="Use my current location" aria-label="Use my current location for destination">📍</button></div><div id="destinationSuggestions-0" class="suggestions destination-suggestions"></div><small class="location-help">You can enter an address or recognizable place, or use your current location to help identify the destination.</small></div><div class="section-title">Recipient</div><div class="form-group"><label for="recipientName-0">Recipient Name</label><input type="text" id="recipientName-0" class="recipient-name" placeholder="Full name" required></div><div class="form-group"><label for="recipientPhone-0">Recipient Phone</label><input type="tel" id="recipientPhone-0" class="recipient-phone" placeholder="08012345678" required></div><div class="form-group"><label for="instructions-0">Delivery Instructions</label><textarea id="instructions-0" class="delivery-instructions" placeholder="Add landmark or special instructions" rows="3"></textarea></div></div></div><button type="button" id="addDestinationBtn" class="add-destination-btn">+ ADD ANOTHER DESTINATION</button><!-- PACKAGE -->
 
             <div class="section-title">
                 Package Details
@@ -345,30 +303,42 @@
 
 
                 <label class="method-card">
+    <input
+        type="radio"
+        name="deliveryMethod"
+        value="BICYCLIST"
+    >
+    <div class="method-content">
+        <span class="method-icon">
+            🚲
+        </span>
+        <strong>
+            Bicyclist
+        </strong>
+        <small>
+            Bicycle delivery
+        </small>
+    </div>
+</label>
 
-                    <input
-                        type="radio"
-                        name="deliveryMethod"
-                        value="RIDER"
-                    >
-
-                    <div class="method-content">
-
-                        <span class="method-icon">
-                            🏍️
-                        </span>
-
-                        <strong>
-                            Rider
-                        </strong>
-
-                        <small>
-                            Motorcycle delivery
-                        </small>
-
-                    </div>
-
-                </label>
+<label class="method-card">
+    <input
+        type="radio"
+        name="deliveryMethod"
+        value="RIDER"
+    >
+    <div class="method-content">
+        <span class="method-icon">
+            🏍️
+        </span>
+        <strong>
+            Rider
+        </strong>
+        <small>
+            Motorcycle delivery
+        </small>
+    </div>
+</label>
 
 
                 <label class="method-card">
@@ -501,13 +471,20 @@
     </section>
 
 </main>
-
-
-<script src="location-service.js"></script><script src="delivery.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="auth-guard.js"></script>
+<script src="location-service.js"></script>
+<script src="delivery.js"></script>
+
+
+
+
+
+
+
+
+
 </body>
 </html>

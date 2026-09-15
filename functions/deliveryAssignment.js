@@ -447,6 +447,12 @@ async function getAvailableDeliveries(data, context) {
                 delivery.bookingReference || null,
             pickup: delivery.pickup || null,
             destination: delivery.destination || null,
+            destinations: Array.isArray(delivery.destinations)
+                ? delivery.destinations
+                : [],
+            routeLegs: Array.isArray(delivery.routeLegs)
+                ? delivery.routeLegs
+                : [],
             method: delivery.method || null,
             packageType: delivery.packageType || null,
             packageSize: delivery.packageSize || null,

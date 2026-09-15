@@ -175,20 +175,87 @@ async function createReceiverPaymentRequest(
     }
 
 
-    const amount =
-        money(
-            delivery.customerPrice || 0
-        );
+    const rawDestinationIndex =
+        data.destinationIndex;
 
+    const destinationIndex =
+        rawDestinationIndex === undefined ||
+        rawDestinationIndex === null ||
+        rawDestinationIndex === ""
+            ? 0
+            : Number(rawDestinationIndex);
 
-    if (amount <= 0) {
-
+    if (
+        !Number.isInteger(destinationIndex) ||
+        destinationIndex < 0
+    ) {
         throw new Error(
-            "The delivery payment amount is invalid."
+            "A valid destination index is required."
         );
-
     }
 
+    const destinations =
+        Array.isArray(delivery.destinations)
+            ? delivery.destinations
+            : [];
+
+    if (
+        !destinations.length ||
+        destinationIndex >= destinations.length
+    ) {
+        throw new Error(
+            "The selected delivery destination does not exist."
+        );
+    }
+
+    const allocations =
+        Array.isArray(
+            delivery.recipientPaymentAllocations
+        )
+            ? delivery.recipientPaymentAllocations
+            : [];
+
+    const allocation =
+        allocations.find(
+            item =>
+                Number(item.destinationIndex) ===
+                destinationIndex
+        );
+
+    const amount =
+        money(
+            allocation?.amount ??
+            (
+                destinations.length === 1 &&
+                destinationIndex === 0
+                    ? delivery.customerPrice
+                    : 0
+            )
+        );
+
+    if (amount <= 0) {
+        throw new Error(
+            "The recipient payment amount is invalid."
+        );
+    }
+
+    const destination =
+        destinations[destinationIndex] || {};
+
+    const recipientName =
+        String(
+            destination.recipientName || ""
+        ).trim();
+
+    const recipientPhone =
+        String(
+            destination.recipientPhone || ""
+        ).trim();
+
+    const recipientEmail =
+        String(
+            destination.recipientEmail || ""
+        ).trim();
 
     const token =
         generateSecureToken();
@@ -234,6 +301,12 @@ async function createReceiverPaymentRequest(
             delivery.bookingReference ||
             null,
 
+        destinationIndex,
+
+        recipientName,
+        recipientPhone,
+        recipientEmail,
+
         amount,
 
         currency:
@@ -254,6 +327,38 @@ async function createReceiverPaymentRequest(
 
     });
 
+    if (
+        Array.isArray(
+            delivery.recipientPaymentAllocations
+        )
+    ) {
+        const updatedAllocations =
+            delivery.recipientPaymentAllocations.map(
+                item => {
+                    if (
+                        Number(item.destinationIndex) ===
+                        destinationIndex
+                    ) {
+                        return {
+                            ...item,
+                            paymentRequestId:
+                                requestId
+                        };
+                    }
+
+                    return item;
+                }
+            );
+
+        await deliveryRef.update({
+            recipientPaymentAllocations:
+                updatedAllocations,
+            updatedAt:
+                admin.firestore
+                    .FieldValue
+                    .serverTimestamp()
+        });
+    }
 
     const paymentUrl =
         "receiver-payment.html" +
@@ -521,24 +626,62 @@ async function getReceiverPaymentRequest(
     }
 
 
-    const currentAmount =
-        money(
-            delivery.customerPrice || 0
+    const destinationIndex =
+        Number(request.destinationIndex);
+
+    const destinations =
+        Array.isArray(delivery.destinations)
+            ? delivery.destinations
+            : [];
+
+    if (
+        !Number.isInteger(destinationIndex) ||
+        destinationIndex < 0 ||
+        destinationIndex >= destinations.length
+    ) {
+        throw new Error(
+            "The payment destination is no longer valid."
+        );
+    }
+
+    const allocations =
+        Array.isArray(
+            delivery.recipientPaymentAllocations
+        )
+            ? delivery.recipientPaymentAllocations
+            : [];
+
+    const allocation =
+        allocations.find(
+            item =>
+                Number(item.destinationIndex) ===
+                destinationIndex
         );
 
+    const currentAmount =
+        money(
+            allocation?.amount ??
+            (
+                destinations.length === 1 &&
+                destinationIndex === 0
+                    ? delivery.customerPrice
+                    : 0
+            )
+        );
 
     if (
         currentAmount <= 0 ||
         currentAmount !==
         money(request.amount)
     ) {
-
         throw new Error(
             "The payment amount is no longer valid."
         );
-
     }
 
+
+    const selectedDestination =
+        destinations[destinationIndex] || {};
 
     return {
 
@@ -557,11 +700,21 @@ async function getReceiverPaymentRequest(
         bookingReference:
             request.bookingReference,
 
+        destinationIndex,
+
         pickup:
             delivery.pickup || null,
 
         destination:
-            delivery.destination || null,
+            selectedDestination.destination ||
+            selectedDestination,
+
+        destinations,
+
+        routeLegs:
+            Array.isArray(delivery.routeLegs)
+                ? delivery.routeLegs
+                : [],
 
         method:
             delivery.method || null,
@@ -570,14 +723,25 @@ async function getReceiverPaymentRequest(
             delivery.distanceKm || null,
 
         recipientName:
-            delivery.recipientName || null,
+            request.recipientName ||
+            selectedDestination.recipientName ||
+            null,
+
+        recipientPhone:
+            request.recipientPhone ||
+            selectedDestination.recipientPhone ||
+            null,
+
+        recipientEmail:
+            request.recipientEmail ||
+            selectedDestination.recipientEmail ||
+            null,
 
         amount:
             currentAmount,
 
         currency:
-            "NGN"
-
+            request.currency || "NGN"
     };
 
 }
@@ -732,9 +896,47 @@ async function initializeReceiverPayment(
         );
     }
 
+    const destinationIndex =
+        Number(request.destinationIndex);
+
+    const destinations =
+        Array.isArray(delivery.destinations)
+            ? delivery.destinations
+            : [];
+
+    if (
+        !Number.isInteger(destinationIndex) ||
+        destinationIndex < 0 ||
+        destinationIndex >= destinations.length
+    ) {
+        throw new Error(
+            "The payment destination is no longer valid."
+        );
+    }
+
+    const allocations =
+        Array.isArray(
+            delivery.recipientPaymentAllocations
+        )
+            ? delivery.recipientPaymentAllocations
+            : [];
+
+    const allocation =
+        allocations.find(
+            item =>
+                Number(item.destinationIndex) ===
+                destinationIndex
+        );
+
     const currentAmount =
         money(
-            delivery.customerPrice || 0
+            allocation?.amount ??
+            (
+                destinations.length === 1 &&
+                destinationIndex === 0
+                    ? delivery.customerPrice
+                    : 0
+            )
         );
 
     const requestAmount =
@@ -754,11 +956,11 @@ async function initializeReceiverPayment(
 
     const receiverEmail =
         String(
+            request.recipientEmail ||
             delivery.recipientEmail ||
             delivery.customerEmail ||
             ""
         ).trim();
-
     if (!receiverEmail) {
         throw new Error(
             "A valid email address is required to process this payment."
@@ -1225,189 +1427,361 @@ async function verifyReceiverPayment(
                     );
                 }
 
-                const paymentStatus =
-                    String(
-                        delivery.paymentStatus ||
-                        ""
-                    ).toUpperCase();
+                  const destinations =
+                      Array.isArray(
+                          delivery.destinations
+                      )
+                          ? delivery.destinations
+                          : [];
 
-                if (
-                    paymentStatus ===
-                        "PAID" ||
-                    paymentStatus ===
-                        "SUCCESS"
-                ) {
+                  const allocations =
+                      Array.isArray(
+                          delivery.recipientPaymentAllocations
+                      )
+                          ? delivery.recipientPaymentAllocations
+                          : [];
 
-                    transactionRunner.update(
-                        requestDoc.ref,
-                        {
+                  const destinationIndex =
+                      Number(
+                          currentRequest.destinationIndex
+                      );
 
-                            status:
-                                "COMPLETED",
+                  if (
+                      !Number.isInteger(
+                          destinationIndex
+                      ) ||
+                      destinationIndex < 0 ||
+                      destinationIndex >=
+                          destinations.length
+                  ) {
+                      throw new Error(
+                          "The payment destination is invalid."
+                      );
+                  }
 
-                            paystackReference:
-                                reference,
+                  const allocationIndex =
+                      allocations.findIndex(
+                          item =>
+                              Number(
+                                  item.destinationIndex
+                              ) ===
+                              destinationIndex
+                      );
 
-                            paystackStatus:
-                                transaction.data
-                                    .status,
+                  const hasAllocations =
+                      allocations.length > 0;
 
-                            paystackTransactionId:
-                                transaction.data
-                                    .id ||
-                                null,
+                  const allocation =
+                      allocationIndex >= 0
+                          ? allocations[
+                              allocationIndex
+                          ]
+                          : null;
 
-                            paymentChannel:
-                                transaction.data
-                                    .channel ||
-                                null,
+                  const authoritativeAmount =
+                      money(
+                          allocation?.amount ??
+                          (
+                              destinations.length === 1 &&
+                              destinationIndex === 0
+                                  ? delivery.customerPrice
+                                  : 0
+                          )
+                      );
 
-                            paidAt:
-                                admin.firestore
-                                    .FieldValue
-                                    .serverTimestamp(),
+                  const requestAmount =
+                      money(
+                          currentRequest.amount ||
+                          0
+                      );
 
-                            updatedAt:
-                                admin.firestore
-                                    .FieldValue
-                                    .serverTimestamp()
+                  if (
+                      allocation?.paymentStatus ===
+                      "PAID"
+                  ) {
+                      if (
+                          allocation.paymentReference ===
+                          reference
+                      ) {
+                          transactionRunner.update(
+                              requestDoc.ref,
+                              {
+                                  status:
+                                      "COMPLETED",
+                                  paystackReference:
+                                      reference,
+                                  paystackStatus:
+                                      transaction.data
+                                          .status,
+                                  paystackTransactionId:
+                                      transaction.data
+                                          .id ||
+                                      null,
+                                  paymentChannel:
+                                      transaction.data
+                                          .channel ||
+                                      null,
+                                  paidAt:
+                                      admin.firestore
+                                          .FieldValue
+                                          .serverTimestamp(),
+                                  updatedAt:
+                                      admin.firestore
+                                          .FieldValue
+                                          .serverTimestamp()
+                              }
+                          );
 
-                        }
-                    );
+                          return {
+                              alreadyProcessed:
+                                  true
+                          };
+                      }
 
-                    return {
-                        alreadyProcessed:
-                            true
-                    };
-                }
+                      throw new Error(
+                          "This recipient payment has already been completed."
+                      );
+                  }
 
-                const authoritativeAmount =
-                    money(
-                        delivery.customerPrice ||
-                        0
-                    );
+                  const deliveryPaymentStatus =
+                      String(
+                          delivery.paymentStatus ||
+                          ""
+                      ).toUpperCase();
 
-                const requestAmount =
-                    money(
-                        currentRequest.amount ||
-                        0
-                    );
+                  if (
+                      deliveryPaymentStatus ===
+                          "PAID" ||
+                      deliveryPaymentStatus ===
+                          "SUCCESS"
+                  ) {
+                      throw new Error(
+                          "The delivery payment state is inconsistent with this recipient payment."
+                      );
+                  }
 
-                if (
-                    authoritativeAmount <=
-                    0
-                ) {
-                    throw new Error(
-                        "The delivery payment amount is invalid."
-                    );
-                }
+                  if (
+                      authoritativeAmount <=
+                      0
+                  ) {
+                      throw new Error(
+                          "The recipient payment amount is invalid."
+                      );
+                  }
 
-                if (
-                    authoritativeAmount !==
-                    requestAmount
-                ) {
-                    throw new Error(
-                        "The payment amount no longer matches the delivery price."
-                    );
-                }
+                  if (
+                      authoritativeAmount !==
+                      requestAmount
+                  ) {
+                      throw new Error(
+                          "The payment amount no longer matches the recipient allocation."
+                      );
+                  }
 
-                const paystackAmount =
-                    Number(
-                        transaction.data.amount
-                    );
+                  const paystackAmount =
+                      Number(
+                          transaction.data.amount
+                      );
 
-                const expectedAmountKobo =
-                    Math.round(
-                        authoritativeAmount *
-                        100
-                    );
+                  const expectedAmountKobo =
+                      Math.round(
+                          authoritativeAmount *
+                          100
+                      );
 
-                if (
-                    !Number.isFinite(
-                        paystackAmount
-                    ) ||
-                    paystackAmount !==
-                    expectedAmountKobo
-                ) {
-                    throw new Error(
-                        "Paystack payment amount does not match the delivery price."
-                    );
-                }
+                  if (
+                      !Number.isFinite(
+                          paystackAmount
+                      ) ||
+                      paystackAmount !==
+                      expectedAmountKobo
+                  ) {
+                      throw new Error(
+                          "Paystack payment amount does not match the recipient allocation."
+                      );
+                  }
 
-                transactionRunner.update(
-                    deliveryRef,
-                    {
+                  let updatedAllocations =
+                      allocations;
 
-                        paymentStatus:
-                            "PAID",
+                  if (hasAllocations) {
+                      updatedAllocations =
+                          allocations.map(
+                              (item, index) => {
+                                  if (
+                                      index ===
+                                      allocationIndex
+                                  ) {
+                                      return {
+                                          ...item,
+                                          paymentStatus:
+                                              "PAID",
+                                          paymentRequestId:
+                                              currentRequest.requestId ||
+                                              requestDoc.id,
+                                          paymentReference:
+                                              reference,
+                                          paystackTransactionId:
+                                              transaction.data.id ||
+                                              null,
+                                          paidAt:
+                                              admin.firestore
+                                                  .Timestamp
+                                                  .now()
+                                      };
+                                  }
 
-                        status:
-                            "PAYMENT_CONFIRMED",
+                                  return item;
+                              }
+                          );
+                  }
 
-                        paymentMethod:
-                            "PAYSTACK",
+                  const allRecipientsPaid =
+                      hasAllocations &&
+                      updatedAllocations.length ===
+                          destinations.length &&
+                      updatedAllocations.every(
+                          item =>
+                              Number(
+                                  item.destinationIndex
+                              ) >= 0 &&
+                              item.paymentStatus ===
+                                  "PAID" &&
+                              item.paymentRequestId
+                      );
 
-                        paidAmount:
-                            authoritativeAmount,
+                  const paidAmount =
+                      updatedAllocations.reduce(
+                          (total, item) =>
+                              total +
+                              (
+                                  item.paymentStatus ===
+                                  "PAID"
+                                      ? money(
+                                          item.amount
+                                      )
+                                      : 0
+                              ),
+                          0
+                      );
 
-                        paymentReference:
-                            reference,
+                  const paymentReferences =
+                      updatedAllocations
+                          .filter(
+                              item =>
+                                  item.paymentStatus ===
+                                  "PAID" &&
+                                  item.paymentReference
+                          )
+                          .map(
+                              item =>
+                                  item.paymentReference
+                          );
 
-                        paystackTransactionId:
-                            transaction.data
-                                .id ||
-                            null,
+                  const deliveryUpdate = {
+                      recipientPaymentAllocations:
+                          updatedAllocations,
 
-                        paidAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp(),
+                      paidAmount,
 
-                        updatedAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp()
+                      updatedAt:
+                          admin.firestore
+                              .FieldValue
+                              .serverTimestamp()
+                  };
 
-                    }
-                );
+                  if (
+                      allRecipientsPaid
+                  ) {
+                      deliveryUpdate.paymentStatus =
+                          "PAID";
 
-                transactionRunner.update(
-                    requestDoc.ref,
-                    {
+                      deliveryUpdate.status =
+                          "PAYMENT_CONFIRMED";
 
-                        status:
-                            "COMPLETED",
+                      deliveryUpdate.paymentMethod =
+                          "PAYSTACK";
 
-                        paystackReference:
-                            reference,
+                      deliveryUpdate.paymentReference =
+                          updatedAllocations.length === 1
+                              ? reference
+                              : "MULTI:" +
+                                request.deliveryId;
 
-                        paystackStatus:
-                            transaction.data
-                                .status,
+                      deliveryUpdate.paymentReferences =
+                          paymentReferences;
 
-                        paystackTransactionId:
-                            transaction.data
-                                .id ||
-                            null,
+                      deliveryUpdate.paystackTransactionId =
+                          updatedAllocations.length === 1
+                              ? (
+                                  transaction.data.id ||
+                                  null
+                              )
+                              : null;
 
-                        paymentChannel:
-                            transaction.data
-                                .channel ||
-                            null,
+                      deliveryUpdate.paidAmount =
+                          money(
+                              delivery.customerPrice ||
+                              0
+                          );
 
-                        paidAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp(),
+                      deliveryUpdate.paidAt =
+                          admin.firestore
+                              .FieldValue
+                              .serverTimestamp();
+                  } else {
+                      deliveryUpdate.paymentStatus =
+                          "PAYMENT_PENDING";
 
-                        updatedAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp()
+                      deliveryUpdate.status =
+                          "PAYMENT_PENDING";
 
-                    }
-                );
+                      deliveryUpdate.paymentMethod =
+                          "PAYSTACK";
 
+                      deliveryUpdate.paymentReferences =
+                          paymentReferences;
+                  }
+
+                  transactionRunner.update(
+                      deliveryRef,
+                      deliveryUpdate
+                  );
+
+                  transactionRunner.update(
+                      requestDoc.ref,
+                      {
+                          status:
+                              "COMPLETED",
+
+                          paystackReference:
+                              reference,
+
+                          paystackStatus:
+                              transaction.data
+                                  .status,
+
+                          paystackTransactionId:
+                              transaction.data
+                                  .id ||
+                              null,
+
+                          paymentChannel:
+                              transaction.data
+                                  .channel ||
+                              null,
+
+                          paidAt:
+                              admin.firestore
+                                  .FieldValue
+                                  .serverTimestamp(),
+
+                          updatedAt:
+                              admin.firestore
+                                  .FieldValue
+                                  .serverTimestamp()
+                      }
+                  );
                 return {
                     alreadyProcessed:
                         false

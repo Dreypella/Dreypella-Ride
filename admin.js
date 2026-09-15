@@ -622,8 +622,23 @@ async function loadPricing() {
 
 
         setInput(
-            "baseFare",
-            pricing.baseFare
+            "walkerBaseFare",
+            pricing.walkerBaseFare
+        );
+
+        setInput(
+            "bicyclistBaseFare",
+            pricing.bicyclistBaseFare
+        );
+
+        setInput(
+            "riderBaseFare",
+            pricing.riderBaseFare
+        );
+
+        setInput(
+            "driverBaseFare",
+            pricing.driverBaseFare
         );
 
 
@@ -645,10 +660,7 @@ async function loadPricing() {
         );
 
 
-        setInput(
-            "walkerDifference",
-            pricing.walkerDifference
-        );
+
 
 
         setInput(
@@ -711,8 +723,17 @@ async function savePricing() {
 
     const pricing = {
 
-        baseFare:
-            numberInput("baseFare"),
+        walkerBaseFare:
+            numberInput("walkerBaseFare"),
+
+        bicyclistBaseFare:
+            numberInput("bicyclistBaseFare"),
+
+        riderBaseFare:
+            numberInput("riderBaseFare"),
+
+        driverBaseFare:
+            numberInput("driverBaseFare"),
 
         pricePerKm:
             numberInput("pricePerKm"),
@@ -723,8 +744,7 @@ async function savePricing() {
         maximumDeliveryFee:
             numberInput("maximumDeliveryFee"),
 
-        walkerDifference:
-            numberInput("walkerDifference"),
+
 
         mediumPackageFee:
             numberInput("mediumPackageFee"),

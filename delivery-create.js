@@ -72,6 +72,9 @@ async function createDelivery(
 
                 deliveryData.payer ||
                 "SENDER",
+            paymentMethod:
+                deliveryData.paymentMethod || null,
+
 
 
             pickup: {

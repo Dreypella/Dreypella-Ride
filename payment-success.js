@@ -54,8 +54,21 @@ if (booking) {
 
 
     destination.textContent =
-        booking.destination?.name ||
-        "Destination";
+        Array.isArray(booking.destinations) &&
+        booking.destinations.length
+            ? booking.destinations.map((item, index) => {
+                const destination =
+                    item?.destination || item || {};
+                return `${index + 1}. ${
+                    destination.name ||
+                    destination.address ||
+                    "Destination"
+                }`;
+            }).join(" | ")
+            : (
+                booking.destination?.name ||
+                "Destination"
+            );
 
 
     amount.textContent =

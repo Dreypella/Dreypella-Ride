@@ -45,14 +45,9 @@ const categoryText =
         "categoryText"
     );
 
-const recipientName =
+const recipientsContainer =
     document.getElementById(
-        "recipientName"
-    );
-
-const recipientPhone =
-    document.getElementById(
-        "recipientPhone"
+        "recipientsContainer"
     );
 
 const instructionsText =
@@ -88,6 +83,11 @@ const insurance =
 const insuranceInfo =
     document.getElementById(
         "insuranceInfo"
+    );
+
+const receiverPaymentLinks =
+    document.getElementById(
+        "receiverPaymentLinks"
     );
 
 
@@ -126,19 +126,9 @@ function loadBooking() {
         "Destination";
 
 
-    recipientName.textContent =
-        bookingData.recipientName ||
-        "—";
+renderRecipients();
 
-
-    recipientPhone.textContent =
-        bookingData.recipientPhone ||
-        "—";
-
-
-    instructionsText.textContent =
-        bookingData.instructions ||
-        "No special instructions";
+    renderInstructions();
 
 
     categoryText.textContent =
@@ -166,141 +156,368 @@ function loadBooking() {
         into Firebase Cloud Functions.
     */
 
-    calculateConfirmationRoute();
+    loadConfirmationDetails();
+    renderPostCheckoutPaymentState();
 
 }
 
 
 /*
-    CALCULATE ROUTE AGAIN
+    DISPLAY ALL RECIPIENTS
 */
 
-async function calculateConfirmationRoute() {
-    if (!bookingData.pickup || !bookingData.destination) {
+function renderRecipients() {
+
+    if (!recipientsContainer) {
         return;
     }
 
-    const pickup = bookingData.pickup;
-    const destination = bookingData.destination;
+    const destinations =
+        Array.isArray(bookingData.destinations) &&
+        bookingData.destinations.length
+            ? bookingData.destinations
+            : [{
+                destination:
+                    bookingData.destination || {},
+                recipientName:
+                    bookingData.recipientName || "",
+                recipientPhone:
+                    bookingData.recipientPhone || ""
+            }];
 
-    try {
-        const route =
-            await window.DreypellaLocation.calculateRoute(
-                pickup,
-                destination,
-                bookingData.method
-            );
+    recipientsContainer.innerHTML = "";
 
-        const distanceKm = route.distanceKm;
-        const durationMinutes = route.durationMinutes;
+    destinations.forEach(
+        (item, index) => {
 
-        distanceText.textContent =
-            distanceKm.toFixed(1) + " km";
+            const destination =
+                item?.destination ||
+                item ||
+                {};
 
-        timeText.textContent =
-            formatTime(durationMinutes);
+            const card =
+                document.createElement("div");
 
-        const price = calculatePrice(
-            distanceKm,
-            bookingData.method
-        );
+            card.className =
+                "recipient-box";
 
-        bookingData.distanceKm =
-            Number(distanceKm.toFixed(2));
+            card.innerHTML = `
+                <div>
+                    <span>
+                        Destination ${index + 1}
+                    </span>
+                    <strong>
+                        ${escapeHtml(
+                            destination.name ||
+                            destination.address ||
+                            "—"
+                        )}
+                    </strong>
+                </div>
 
-        bookingData.durationMinutes =
-            Math.round(durationMinutes);
+                <div>
+                    <span>
+                        Recipient
+                    </span>
+                    <strong>
+                        ${escapeHtml(
+                            item?.recipientName ||
+                            "—"
+                        )}
+                    </strong>
+                </div>
 
-        bookingData.customerPrice = price;
+                <div>
+                    <span>
+                        Phone
+                    </span>
+                    <strong>
+                        ${escapeHtml(
+                            item?.recipientPhone ||
+                            "—"
+                        )}
+                    </strong>
+                </div>
+            `;
 
-        priceText.textContent =
-            formatCurrency(price);
-
-        localStorage.setItem(
-            "dreypellaDeliveryBooking",
-            JSON.stringify(bookingData)
-        );
-    } catch (error) {
-        console.error(
-            "Confirmation route error:",
-            error
-        );
-
-        confirmationMessage.textContent =
-            "Unable to calculate the route. Please go back and try again.";
-
-        confirmButton.disabled = true;
-    }
+            recipientsContainer.appendChild(card);
+        }
+    );
 }
 
 /*
-function calculatePrice(
-    distanceKm,
-    method
-) {
+    DISPLAY DELIVERY INSTRUCTIONS
+*/
 
-    const baseFare =
-        500;
-
-
-    const pricePerKm =
-        120;
-
-
-    const vehicleSurcharge =
-        300;
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 
-    const riderSurcharge =
-        150;
+function renderInstructions() {
 
+    if (!instructionsText) {
+        return;
+    }
 
-    const walkerDifference =
-        150;
+    const destinations =
+        Array.isArray(bookingData.destinations) &&
+        bookingData.destinations.length
+            ? bookingData.destinations
+            : [{
+                instructions:
+                    bookingData.instructions || ""
+            }];
 
+    const instructions = destinations
+        .map((item, index) => {
+            const text =
+                item?.instructions ||
+                "No special instructions";
 
-    let price =
-        baseFare +
-        (
-            distanceKm *
-            pricePerKm
+            return `Destination ${index + 1}: ${escapeHtml(text)}`;
+        });
+
+    instructionsText.innerHTML =
+        instructions.join("<br><br>");
+}
+
+/*
+    DISPLAY BOOKING DETAILS
+*/
+
+function loadConfirmationDetails() {
+
+    const destinations =
+        Array.isArray(bookingData.destinations) &&
+        bookingData.destinations.length
+            ? bookingData.destinations
+            : [{
+                destination:
+                    bookingData.destination || {}
+            }];
+
+    const destinationNames =
+        destinations.map(
+            (item, index) => {
+
+                const destination =
+                    item?.destination ||
+                    item ||
+                    {};
+
+                return (
+                    destination.name ||
+                    destination.address ||
+                    `Destination ${index + 1}`
+                );
+
+            }
         );
 
+    destinationText.textContent =
+        destinationNames.join(" | ");
 
-    if (method === "VEHICLE") {
+    distanceText.textContent =
+        bookingData.distanceKm
+            ? Number(
+                bookingData.distanceKm
+              ).toFixed(1) + " km"
+            : "—";
 
-        price +=
-            vehicleSurcharge;
+    timeText.textContent =
+        bookingData.durationMinutes
+            ? formatTime(
+                bookingData.durationMinutes
+              )
+            : "—";
+
+    priceText.textContent =
+        bookingData.customerPrice
+            ? formatCurrency(
+                bookingData.customerPrice
+              )
+            : "—";
+}
+
+
+/*
+    POST-CHECKOUT PAYMENT STATE
+*/
+
+function renderPostCheckoutPaymentState() {
+
+    if (!bookingData) {
+        return;
     }
 
+    const receiverRequests =
+        Array.isArray(
+            bookingData.receiverPaymentRequests
+        )
+            ? bookingData.receiverPaymentRequests
+            : [];
 
-    if (method === "RIDER") {
+    const walletPaymentCompleted =
+        bookingData.paymentStatus === "PAID" &&
+        bookingData.status === "PAYMENT_CONFIRMED";
 
-        price +=
-            riderSurcharge;
+    if (
+        !receiverRequests.length &&
+        !walletPaymentCompleted
+    ) {
+        return;
     }
 
+    confirmButton.disabled = true;
+    backButton.style.display = "none";
 
-    if (method === "WALKER") {
+    if (walletPaymentCompleted) {
 
-        price -=
-            walkerDifference;
+        confirmButton.textContent =
+            "PAYMENT CONFIRMED";
+
+        confirmationMessage.textContent =
+            "Payment successful. Your delivery has been confirmed.";
+
+        return;
     }
 
+    receiverPaymentLinks.style.display =
+        "block";
 
-    if (price < 700) {
+    receiverPaymentLinks.textContent = "";
 
-        price = 700;
-    }
+    const heading =
+        document.createElement("h2");
 
+    heading.textContent =
+        "Receiver Payment Links";
 
-    price =
-        Math.ceil(
-            price / 50
-        ) * 50;
+    receiverPaymentLinks.appendChild(
+        heading
+    );
 
+    const message =
+        document.createElement("p");
 
-    return price;
+    message.textContent =
+        "Send each recipient their secure payment link. All required receiver payments must be completed before the delivery can be fully confirmed.";
+
+    receiverPaymentLinks.appendChild(
+        message
+    );
+
+    receiverRequests.forEach(
+        (request, index) => {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "recipient-box";
+
+            const recipient =
+                document.createElement("strong");
+
+            recipient.textContent =
+                request.recipientName ||
+                `Recipient ${index + 1}`;
+
+            card.appendChild(recipient);
+
+            const destination =
+                Array.isArray(
+                    bookingData.destinations
+                )
+                    ? bookingData.destinations[
+                        Number(
+                            request.destinationIndex
+                        )
+                    ]
+                    : null;
+
+            const destinationText =
+                document.createElement("p");
+
+            destinationText.textContent =
+                destination?.destination?.address ||
+                destination?.destination?.name ||
+                "Destination";
+
+            card.appendChild(
+                destinationText
+            );
+
+            const amount =
+                document.createElement("p");
+
+            amount.textContent =
+                `Amount: ₦${Number(
+                    request.amount || 0
+                ).toLocaleString()}`;
+
+            card.appendChild(amount);
+
+            if (request.paymentUrl) {
+
+                const link =
+                    document.createElement("a");
+
+                link.href =
+                    request.paymentUrl;
+
+                link.target =
+                    "_blank";
+
+                link.rel =
+                    "noopener noreferrer";
+
+                link.className =
+                    "confirm-button";
+
+                link.textContent =
+                    "OPEN PAYMENT LINK";
+
+                card.appendChild(link);
+
+            } else {
+
+                const unavailable =
+                    document.createElement("p");
+
+                unavailable.textContent =
+                    "Payment link unavailable.";
+
+                card.appendChild(
+                    unavailable
+                );
+            }
+
+            receiverPaymentLinks.appendChild(
+                card
+            );
+        }
+    );
+
+    confirmationMessage.textContent =
+        "Delivery created. Send each secure payment link to the corresponding recipient.";
+
+    confirmButton.textContent =
+        "PAYMENT LINKS CREATED";
+}
+
+/*
+    INITIAL CONFIRMATION DISPLAY
+*/
+
+if (bookingData) {
+    loadConfirmationDetails();
 }
 
 
@@ -333,284 +550,54 @@ insurance.addEventListener(
 
 confirmButton.addEventListener(
     "click",
-    async () => {
-
+    () => {
         if (!bookingData) {
-
             return;
         }
 
+        if (
+            Array.isArray(
+                bookingData.receiverPaymentRequests
+            ) &&
+            bookingData.receiverPaymentRequests.length
+        ) {
+            return;
+        }
+
+        if (
+            bookingData.paymentStatus === "PAID" &&
+            bookingData.status === "PAYMENT_CONFIRMED"
+        ) {
+            return;
+        }
 
         if (!bookingData.customerPrice) {
-
             confirmationMessage.textContent =
                 "Please wait for the delivery price to load.";
-
             return;
         }
-
 
         bookingData.insurance =
             insurance.checked;
 
-
-        bookingData.status =
-            "AWAITING_PAYMENT";
-
-
-        confirmButton.disabled =
-            true;
-
-
-        confirmationMessage.textContent =
-            "Creating your delivery booking...";
-
-
-        try {
-
-            const deliveryResult =
-                await createDelivery({
-
-                    ...bookingData,
-
-                    packageCategory:
-                        bookingData.category,
-
-                    packageDescription:
-                        bookingData.packageDescription ||
-                        "",
-
-                    packageSize:
-                        bookingData.size,
-
-                    packageWeight:
-                        bookingData.weight,
-
-                    deliveryInstructions:
-                        bookingData.instructions,
-
-                    estimatedTime:
-                        bookingData.durationMinutes,
-
-                    pickup: {
-
-                        ...bookingData.pickup,
-
-                        latitude:
-                            bookingData.pickup?.latitude ??
-                            bookingData.pickup?.lat ??
-                            null,
-
-                        longitude:
-                            bookingData.pickup?.longitude ??
-                            bookingData.pickup?.lon ??
-                            null
-
-                    },
-
-                    destination: {
-
-                        ...bookingData.destination,
-
-                        latitude:
-                            bookingData.destination?.latitude ??
-                            bookingData.destination?.lat ??
-                            null,
-
-                        longitude:
-                            bookingData.destination?.longitude ??
-                            bookingData.destination?.lon ??
-                            null
-
-                    }
-
-                });
-
-
-            if (!deliveryResult.success) {
-
-                throw new Error(
-                    deliveryResult.message ||
-                    "Unable to create delivery booking."
-                );
-
-            }
-
-
-            bookingData.deliveryId =
-                deliveryResult.deliveryId;
-
-
-            bookingData.bookingReference =
-                deliveryResult.bookingReference;
-
-
-            localStorage.setItem(
-                "dreypellaDeliveryBooking",
-                JSON.stringify(
-                    bookingData
-                )
-            );
-
-
-            /*
-                PAYMENT ROUTING
-
-                Sender:
-                WALLET   -> wallet-payment.html
-                PAYSTACK -> Paystack checkout
-
-                Receiver payment will be connected
-                through the secure payment-request
-                backend flow separately.
-            */
-
-            if (
-                bookingData.payer ===
-                "SENDER" &&
-                bookingData.paymentMethod ===
-                "WALLET"
-            ) {
-
-                const paymentUrl =
-                    "wallet-payment.html" +
-                    "?type=DELIVERY" +
-                    "&amount=" +
-                    encodeURIComponent(
-                        bookingData.customerPrice
-                    ) +
-                    "&reference=" +
-                    encodeURIComponent(
-                        bookingData.bookingReference
-                    ) +
-                    "&orderId=" +
-                    encodeURIComponent(
-                        bookingData.deliveryId
-                    ) +
-                    "&item=Delivery" +
-                    "&returnUrl=" +
-                    encodeURIComponent(
-                        "customer-dashboard.html"
-                    );
-
-                window.location.href =
-                    paymentUrl;
-
-                return;
-            }
-
-
-            if (
-                bookingData.payer ===
-                "SENDER" &&
-                bookingData.paymentMethod ===
-                "PAYSTACK"
-            ) {
-
-                confirmationMessage.textContent =
-                    "Preparing secure online payment...";
-
-                const initializePayment =
-                    functions.httpsCallable(
-                        "initializeDeliveryPayment"
-                    );
-
-                const paymentResult =
-                    await initializePayment({
-                        deliveryId:
-                            bookingData.deliveryId
-                    });
-
-                const paymentData =
-                    paymentResult.data;
-
-                if (
-                    !paymentData ||
-                    !paymentData.authorizationUrl
-                ) {
-                    throw new Error(
-                        "Unable to initialize online payment."
-                    );
-                }
-
-                window.location.href =
-                    paymentData.authorizationUrl;
-
-                return;
-            }
-
-
-              if (
-                  bookingData.payer ===
-                  "RECEIVER"
-              ) {
-
-                  if (
-                      bookingData.deliveryType !==
-                      "LOCAL"
-                  ) {
-                      throw new Error(
-                          "Pay on Delivery is only available for eligible local deliveries. Interstate and international deliveries must be paid upfront."
-                      );
-                  }
-
-                  confirmationMessage.textContent =
-                      "Delivery created. Receiver will pay on delivery.";
-
-                  bookingData.paymentMethod =
-                      "POD";
-
-                  bookingData.paymentStatus =
-                      "PENDING";
-
-                  bookingData.status =
-                      "PAYMENT_PENDING";
-
-                  localStorage.setItem(
-                      "dreypellaDeliveryBooking",
-                      JSON.stringify(
-                          bookingData
-                      )
-                  );
-
-                  return;
-              }
-
-
-            throw new Error(
-                "Please select a valid payment option."
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Delivery creation error:",
-                error
-            );
-
-
-            confirmationMessage.textContent =
-                error.message ||
-                "Unable to create the delivery booking. Please try again.";
-
-
-            confirmButton.disabled =
-                false;
-
-        }
-
+        localStorage.setItem(
+            "dreypellaDeliveryBooking",
+            JSON.stringify(bookingData)
+        );
+
+        window.location.href =
+            "delivery-checkout.html";
     }
 );
-
-
-/*
-    BACK
-*/
 
 backButton.addEventListener(
     "click",
     () => {
+
+        localStorage.setItem(
+            "dreypellaDeliveryEditMode",
+            "true"
+        );
 
         window.location.href =
             "delivery.html";

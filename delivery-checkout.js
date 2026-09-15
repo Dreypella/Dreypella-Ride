@@ -49,19 +49,9 @@ const packageText =
         "packageText"
     );
 
-const receiverName =
+const recipientsContainer =
     document.getElementById(
-        "receiverName"
-    );
-
-const receiverPhone =
-    document.getElementById(
-        "receiverPhone"
-    );
-
-const receiverEmail =
-    document.getElementById(
-        "receiverEmail"
+        "recipientsContainer"
     );
 
 const senderChoice =
@@ -162,19 +152,7 @@ function loadBooking() {
         );
 
 
-    receiverName.value =
-        bookingData.recipientName ||
-        "";
-
-
-    receiverPhone.value =
-        bookingData.recipientPhone ||
-        "";
-
-
-    receiverEmail.value =
-        bookingData.recipientEmail ||
-        "";
+    renderRecipients();
 
 
     if (bookingData.customerPrice) {
@@ -297,56 +275,197 @@ function updatePayerUI() {
 
 function validateReceiver() {
 
-    const name =
-        receiverName.value.trim();
+    const destinations =
+        Array.isArray(bookingData.destinations)
+            ? bookingData.destinations
+            : [];
 
-
-    const phone =
-        receiverPhone.value.trim();
-
-
-    if (!name) {
-
+    if (!destinations.length) {
         showMessage(
-            "Enter the receiver's name."
+            "No delivery recipients were found."
         );
-
-        receiverName.focus();
-
         return false;
     }
 
-
-    if (!phone) {
-
-        showMessage(
-            "Enter the receiver's phone number."
+    const names =
+        recipientsContainer.querySelectorAll(
+            ".checkout-recipient-name"
         );
 
-        receiverPhone.focus();
+    const phones =
+        recipientsContainer.querySelectorAll(
+            ".checkout-recipient-phone"
+        );
 
-        return false;
-    }
+    const emails =
+        recipientsContainer.querySelectorAll(
+            ".checkout-recipient-email"
+        );
 
-
-    if (
-        phone.replace(
-            /\D/g,
-            ""
-        ).length < 10
+    for (
+        let index = 0;
+        index < destinations.length;
+        index++
     ) {
 
-        showMessage(
-            "Enter a valid receiver phone number."
-        );
+        const name =
+            names[index]?.value.trim() || "";
 
-        receiverPhone.focus();
+        const phone =
+            phones[index]?.value.trim() || "";
 
-        return false;
+        const email =
+            emails[index]?.value.trim() || "";
+
+        if (!name) {
+            showMessage(
+                `Enter the receiver's name for Destination ${index + 1}.`
+            );
+            names[index]?.focus();
+            return false;
+        }
+
+        if (!phone) {
+            showMessage(
+                `Enter the receiver's phone number for Destination ${index + 1}.`
+            );
+            phones[index]?.focus();
+            return false;
+        }
+
+        if (
+            phone.replace(/\D/g, "").length < 10
+        ) {
+            showMessage(
+                `Enter a valid receiver phone number for Destination ${index + 1}.`
+            );
+            phones[index]?.focus();
+            return false;
+        }
+
+        if (email) {
+            const emailPattern =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailPattern.test(email)) {
+                showMessage(
+                    `Enter a valid receiver email for Destination ${index + 1}, or leave it blank.`
+                );
+                emails[index]?.focus();
+                return false;
+            }
+        }
+
+        destinations[index].recipientName = name;
+        destinations[index].recipientPhone = phone;
+        destinations[index].recipientEmail = email;
     }
 
-
     return true;
+}
+
+
+function escapeHtml(value) {
+
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/*
+    RENDER ALL RECIPIENTS
+*/
+
+function renderRecipients() {
+
+    recipientsContainer.innerHTML = "";
+
+    const destinations =
+        Array.isArray(bookingData.destinations)
+            ? bookingData.destinations
+            : [];
+
+    if (!destinations.length) {
+        recipientsContainer.textContent =
+            "No recipients were found.";
+        return;
+    }
+
+    destinations.forEach(
+        (item, index) => {
+
+            const destination =
+                item.destination || {};
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "recipient-checkout-card";
+
+            card.innerHTML = `
+                <h3>Destination ${index + 1}</h3>
+
+                <p class="recipient-destination">
+                    ${escapeHtml(
+                        destination.name ||
+                        destination.address ||
+                        "Destination"
+                    )}
+                </p>
+
+                <div class="input-group">
+                    <label>Receiver Name</label>
+                    <input
+                        type="text"
+                        class="checkout-recipient-name"
+                        data-index="${index}"
+                        value="${escapeHtml(
+                            item.recipientName || ""
+                        )}"
+                        placeholder="Receiver's full name"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label>Receiver Phone</label>
+                    <input
+                        type="tel"
+                        class="checkout-recipient-phone"
+                        data-index="${index}"
+                        value="${escapeHtml(
+                            item.recipientPhone || ""
+                        )}"
+                        placeholder="08012345678"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        Receiver Email
+                        <span>Optional</span>
+                    </label>
+                    <input
+                        type="email"
+                        class="checkout-recipient-email"
+                        data-index="${index}"
+                        value="${escapeHtml(
+                            item.recipientEmail || ""
+                        )}"
+                        placeholder="receiver@email.com"
+                    >
+                </div>
+            `;
+
+            recipientsContainer.appendChild(card);
+        }
+    );
 }
 
 
@@ -358,138 +477,279 @@ checkoutButton.addEventListener(
     "click",
     async () => {
 
-        checkoutMessage.textContent =
-            "";
-
-
         if (!bookingData) {
-
-            showMessage(
-                "Delivery information is missing."
-            );
-
             return;
         }
 
-
-        if (
-            !bookingData.customerPrice
-        ) {
-
-            showMessage(
-                "Delivery price is not available yet."
-            );
-
+        if (!validateReceiver()) {
             return;
         }
-
-
-        if (
-            !validateReceiver()
-        ) {
-
-            return;
-        }
-
 
         const selectedPayer =
             document.querySelector(
                 'input[name="payer"]:checked'
             );
 
-
         if (!selectedPayer) {
-
             showMessage(
                 "Please select who will pay."
             );
-
             return;
         }
 
+        const originalText =
+            checkoutButton.textContent;
 
-        /*
-            Save receiver information.
-        */
+        checkoutButton.disabled = true;
+        checkoutButton.textContent =
+            "PROCESSING...";
 
-        bookingData.recipientName =
-            receiverName.value.trim();
+        try {
 
-
-        bookingData.recipientPhone =
-            receiverPhone.value.trim();
-
-
-        bookingData.recipientEmail =
-            receiverEmail.value.trim();
-
-
-        bookingData.payer =
-            selectedPayer.value;
-
-        if (
-            selectedPayer.value ===
-            "SENDER"
-        ) {
-
-            const selectedPaymentMethod =
-                document.querySelector(
-                    'input[name="senderPaymentMethod"]:checked'
-                );
-
-            if (!selectedPaymentMethod) {
-                showMessage(
-                    "Please select how the sender will pay."
-                );
-                return;
-            }
-
-            bookingData.paymentMethod =
-                selectedPaymentMethod.value;
-
-        } else {
-
-            delete bookingData.paymentMethod;
-
-        }
-
-
-        /*
-            Generate a booking reference.
-        */
-
-        bookingData.bookingReference =
-            generateBookingReference();
-
-
-        /*
-            Receiver pays
-        */
-
-        if (
-            selectedPayer.value ===
-            "RECEIVER"
-        ) {
+            bookingData.payer =
+                selectedPayer.value;
 
             if (
-                bookingData.deliveryType !==
-                "LOCAL"
+                selectedPayer.value ===
+                "SENDER"
             ) {
-                showMessage(
-                    "Pay on Delivery is only available for eligible local deliveries. Interstate and international deliveries must be paid upfront."
+
+                const selectedPaymentMethod =
+                    document.querySelector(
+                        'input[name="senderPaymentMethod"]:checked'
+                    );
+
+                if (!selectedPaymentMethod) {
+                    showMessage(
+                        "Please select how the sender will pay."
+                    );
+
+                    checkoutButton.disabled =
+                        false;
+
+                    checkoutButton.textContent =
+                        originalText;
+
+                    return;
+                }
+
+                bookingData.paymentMethod =
+                    selectedPaymentMethod.value;
+
+            } else {
+
+                if (
+                    bookingData.deliveryType !==
+                    "LOCAL"
+                ) {
+                    showMessage(
+                        "Pay on Delivery is only available for eligible local deliveries. Interstate and international deliveries must be paid upfront."
+                    );
+
+                    checkoutButton.disabled =
+                        false;
+
+                    checkoutButton.textContent =
+                        originalText;
+
+                    return;
+                }
+
+                bookingData.paymentMethod =
+                    "POD";
+            }
+
+            const functions =
+                firebase.functions();
+
+            const createDelivery =
+                functions.httpsCallable(
+                    "createDelivery"
                 );
+
+            showMessage(
+                "Creating your delivery..."
+            );
+
+            const createResult =
+                await createDelivery(
+                    bookingData
+                );
+
+            const created =
+                createResult.data || {};
+
+            if (
+                created.success !==
+                true ||
+                !created.deliveryId
+            ) {
+                throw new Error(
+                    created.message ||
+                    "The delivery could not be created."
+                );
+            }
+
+            bookingData.deliveryId =
+                created.deliveryId;
+
+            bookingData.bookingReference =
+                created.bookingReference ||
+                "";
+
+            bookingData.customerPrice =
+                Number(
+                    created.customerPrice
+                );
+
+            bookingData.distanceKm =
+                created.distanceKm;
+
+            bookingData.durationMinutes =
+                created.durationMinutes;
+
+            bookingData.deliveryType =
+                created.deliveryType ||
+                bookingData.deliveryType;
+
+            if (
+                selectedPayer.value ===
+                "RECEIVER"
+            ) {
+
+                bookingData.paymentStatus =
+                    "PENDING";
+
+                bookingData.status =
+                    "PAYMENT_PENDING";
+
+                showMessage(
+                    "Creating secure receiver payment link..."
+                );
+
+                const createReceiverPaymentRequest =
+                    functions.httpsCallable(
+                        "createReceiverPaymentRequest"
+                    );
+
+                const destinations =
+                    Array.isArray(
+                        bookingData.destinations
+                    )
+                        ? bookingData.destinations
+                        : [];
+
+                if (!destinations.length) {
+                    throw new Error(
+                        "No delivery destinations were found."
+                    );
+                }
+
+                const receiverPaymentRequests = [];
+
+                for (
+                    let destinationIndex = 0;
+                    destinationIndex < destinations.length;
+                    destinationIndex++
+                ) {
+                    const receiverPaymentResult =
+                        await createReceiverPaymentRequest({
+                            deliveryId:
+                                bookingData.deliveryId,
+                            destinationIndex
+                        });
+
+                    const receiverPayment =
+                        receiverPaymentResult.data ||
+                        {};
+
+                    if (
+                        receiverPayment.success !==
+                            true ||
+                        !receiverPayment.paymentUrl
+                    ) {
+                        throw new Error(
+                            receiverPayment.message ||
+                            "A receiver payment link could not be created."
+                        );
+                    }
+
+                    receiverPaymentRequests.push({
+                        requestId:
+                            receiverPayment.requestId,
+                        destinationIndex,
+                        amount:
+                            Number(
+                                receiverPayment.amount || 0
+                            ),
+                        paymentUrl:
+                            receiverPayment.paymentUrl,
+                        expiresAt:
+                            receiverPayment.expiresAt ||
+                            null,
+                        recipientName:
+                            receiverPayment.recipientName ||
+                            destinations[destinationIndex]
+                                .recipientName ||
+                            null,
+                        recipientPhone:
+                            receiverPayment.recipientPhone ||
+                            destinations[destinationIndex]
+                                .recipientPhone ||
+                            null,
+                        recipientEmail:
+                            receiverPayment.recipientEmail ||
+                            destinations[destinationIndex]
+                                .recipientEmail ||
+                            null
+                    });
+                }
+
+                bookingData.receiverPaymentRequests =
+                    receiverPaymentRequests;
+
+                /*
+                    Keep the first request in the legacy
+                    singular fields for compatibility with
+                    existing confirmation/payment code.
+                */
+                const firstReceiverPayment =
+                    receiverPaymentRequests[0];
+
+                bookingData.receiverPaymentRequestId =
+                    firstReceiverPayment.requestId;
+
+                bookingData.receiverPaymentUrl =
+                    firstReceiverPayment.paymentUrl;
+
+                bookingData.receiverPaymentExpiresAt =
+                    firstReceiverPayment.expiresAt;
+
+                localStorage.setItem(
+                    "dreypellaDeliveryBooking",
+                    JSON.stringify(
+                        bookingData
+                    )
+                );
+
+                window.location.href =
+                    "delivery-confirmation.html";
 
                 return;
             }
 
-            bookingData.paymentMethod =
-                "POD";
+            /*
+                SENDER PAYS
+            */
+
+            bookingData.status =
+                "AWAITING_PAYMENT";
 
             bookingData.paymentStatus =
                 "PENDING";
 
-            bookingData.status =
-                "PAYMENT_PENDING";
+            bookingData.paymentRequestedAt =
+                new Date().toISOString();
 
             localStorage.setItem(
                 "dreypellaDeliveryBooking",
@@ -498,148 +758,146 @@ checkoutButton.addEventListener(
                 )
             );
 
-            window.location.href =
-                "delivery-confirmation.html";
+            showMessage(
+                "Preparing secure payment..."
+            );
 
-            return;
+            if (
+                bookingData.paymentMethod ===
+                "WALLET"
+            ) {
+                const paymentReference =
+                    "DR-WALLET-" +
+                    bookingData.deliveryId +
+                    "-" +
+                    Date.now();
+
+                const payWithWallet =
+                    functions.httpsCallable(
+                        "payWithWallet"
+                    );
+
+                const walletResult =
+                    await payWithWallet({
+                        paymentType:
+                            "DELIVERY",
+                        amount:
+                            bookingData.customerPrice,
+                        reference:
+                            paymentReference,
+                        orderId:
+                            bookingData.deliveryId,
+                        item:
+                            bookingData.bookingReference ||
+                            "Dreypella delivery"
+                    });
+
+                const walletPayment =
+                    walletResult.data || {};
+
+                if (
+                    walletPayment.success !==
+                    true ||
+                    walletPayment.status !==
+                    "SUCCESS"
+                ) {
+                    throw new Error(
+                        walletPayment.message ||
+                        "Wallet payment could not be completed."
+                    );
+                }
+
+                bookingData.paymentStatus =
+                    "PAID";
+
+                bookingData.status =
+                    "PAYMENT_CONFIRMED";
+
+                bookingData.paymentReference =
+                    paymentReference;
+
+                bookingData.walletTransactionId =
+                    walletPayment.transactionId || "";
+
+                localStorage.setItem(
+                    "dreypellaDeliveryBooking",
+                    JSON.stringify(
+                        bookingData
+                    )
+                );
+
+                window.location.href =
+                    "delivery-confirmation.html";
+
+            } else if (
+                bookingData.paymentMethod ===
+                "PAYSTACK"
+            ) {
+                const initializeDeliveryPayment =
+                    functions.httpsCallable(
+                        "initializeDeliveryPayment"
+                    );
+
+                const paymentResult =
+                    await initializeDeliveryPayment({
+                        deliveryId:
+                            bookingData.deliveryId
+                    });
+
+                const payment =
+                    paymentResult.data || {};
+
+                if (
+                    payment.success !==
+                    true ||
+                    !payment.authorizationUrl
+                ) {
+                    throw new Error(
+                        payment.message ||
+                        "Secure payment could not be initialized."
+                    );
+                }
+
+                bookingData.paymentReference =
+                    payment.reference || "";
+
+                bookingData.paymentAuthorizationUrl =
+                    payment.authorizationUrl;
+
+                localStorage.setItem(
+                    "dreypellaDeliveryBooking",
+                    JSON.stringify(
+                        bookingData
+                    )
+                );
+
+                window.location.href =
+                    payment.authorizationUrl;
+            }
+
         }
 
+        catch(error) {
 
-        /*
-            Sender pays
-        */
+            console.error(
+                "Secure delivery checkout error:",
+                error
+            );
 
-        startSenderPayment();
+            showMessage(
+                error.message ||
+                "We could not process your delivery. Please try again."
+            );
+
+            checkoutButton.disabled =
+                false;
+
+            checkoutButton.textContent =
+                originalText;
+        }
 
     }
 );
-
-
-/*
-    RECEIVER PAYMENT REQUEST
-*/
-
-function createReceiverPaymentRequest() {
-
-    bookingData.status =
-        "AWAITING_RECEIVER_PAYMENT";
-
-
-    bookingData.paymentStatus =
-        "PENDING";
-
-
-    bookingData.paymentRequestedAt =
-        new Date().toISOString();
-
-
-    /*
-        Save booking locally.
-
-        Later this same object will be
-        written to Firestore by a
-        secure backend function.
-    */
-
-    localStorage.setItem(
-        "dreypellaDeliveryBooking",
-        JSON.stringify(
-            bookingData
-        )
-    );
-
-
-    /*
-        In the production version:
-
-        Firebase Cloud Function creates
-        a secure payment request and sends:
-
-        SMS
-        Email
-        WhatsApp
-
-        to the receiver.
-
-        The receiver then gets a link such as:
-
-        /receiver-payment.html?booking=XXXX
-    */
-
-
-    const receiverPaymentLink =
-        "receiver-payment.html?booking=" +
-        encodeURIComponent(
-            bookingData.bookingReference
-        );
-
-
-    /*
-        Save the link for the
-        next stage of development.
-    */
-
-    bookingData.receiverPaymentLink =
-        receiverPaymentLink;
-
-
-    localStorage.setItem(
-        "dreypellaDeliveryBooking",
-        JSON.stringify(
-            bookingData
-        )
-    );
-
-
-    /*
-        Go to payment-request page.
-    */
-
-    window.location.href =
-        receiverPaymentLink;
-
-}
-
-
-/*
-    SENDER PAYMENT
-*/
-
-function startSenderPayment() {
-
-    bookingData.status =
-        "AWAITING_PAYMENT";
-
-
-    bookingData.paymentStatus =
-        "PENDING";
-
-
-    bookingData.paymentRequestedAt =
-        new Date().toISOString();
-
-
-    localStorage.setItem(
-        "dreypellaDeliveryBooking",
-        JSON.stringify(
-            bookingData
-        )
-    );
-
-
-    /*
-        For now we send the sender
-        to the sender payment page.
-
-        Connect Paystack/payment provider
-        there later.
-    */
-
-    window.location.href =
-        "delivery-confirmation.html";
-
-}
-
 
 /*
     BACK
