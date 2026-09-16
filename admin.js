@@ -622,25 +622,30 @@ async function loadPricing() {
 
 
         setInput(
-            "walkerBaseFare",
-            pricing.walkerBaseFare
+            "walkerDifferencePercentage",
+            pricing.walkerDifferencePercentage
         );
 
         setInput(
-            "bicyclistBaseFare",
-            pricing.bicyclistBaseFare
+            "bicyclistDifferencePercentage",
+            pricing.bicyclistDifferencePercentage
         );
 
         setInput(
-            "riderBaseFare",
-            pricing.riderBaseFare
+            "riderDifferencePercentage",
+            pricing.riderDifferencePercentage
         );
 
         setInput(
-            "driverBaseFare",
-            pricing.driverBaseFare
+            "vehicleDifferencePercentage",
+            pricing.vehicleDifferencePercentage
         );
 
+
+        setInput(
+            "baseDeliveryFare",
+            pricing.baseDeliveryFare
+        );
 
         setInput(
             "pricePerKm",
@@ -723,17 +728,20 @@ async function savePricing() {
 
     const pricing = {
 
-        walkerBaseFare:
-            numberInput("walkerBaseFare"),
+        walkerDifferencePercentage:
+            numberInput("walkerDifferencePercentage"),
 
-        bicyclistBaseFare:
-            numberInput("bicyclistBaseFare"),
+        bicyclistDifferencePercentage:
+            numberInput("bicyclistDifferencePercentage"),
 
-        riderBaseFare:
-            numberInput("riderBaseFare"),
+        riderDifferencePercentage:
+            numberInput("riderDifferencePercentage"),
 
-        driverBaseFare:
-            numberInput("driverBaseFare"),
+        vehicleDifferencePercentage:
+            numberInput("vehicleDifferencePercentage"),
+
+        baseDeliveryFare:
+            numberInput("baseDeliveryFare"),
 
         pricePerKm:
             numberInput("pricePerKm"),
@@ -796,13 +804,24 @@ async function savePricing() {
     }
 
 
+    const methodPercentages = [
+        pricing.walkerDifferencePercentage,
+        pricing.bicyclistDifferencePercentage,
+        pricing.riderDifferencePercentage,
+        pricing.vehicleDifferencePercentage
+    ];
+
     if (
-        pricing.walkerDifference < 100 ||
-        pricing.walkerDifference > 200
+        methodPercentages.some(
+            percentage =>
+                !Number.isFinite(percentage) ||
+                percentage < 0 ||
+                percentage > 100
+        )
     ) {
 
         message.textContent =
-            "Walker difference should normally be between ₦100 and ₦200.";
+            "Each delivery method difference must be between 0% and 100%.";
 
         message.style.color =
             "#E31B23";
@@ -814,18 +833,61 @@ async function savePricing() {
 
     try {
 
-        await dreypellaDB
+        const deliveryPricing = {
+            walkerDifferencePercentage:
+                pricing.walkerDifferencePercentage,
+            bicyclistDifferencePercentage:
+                pricing.bicyclistDifferencePercentage,
+            riderDifferencePercentage:
+                pricing.riderDifferencePercentage,
+            vehicleDifferencePercentage:
+                pricing.vehicleDifferencePercentage,
+            baseDeliveryFare:
+                pricing.baseDeliveryFare,
+            pricePerKm:
+                pricing.pricePerKm,
+            minimumDeliveryFee:
+                pricing.minimumDeliveryFee,
+            maximumDeliveryFee:
+                pricing.maximumDeliveryFee,
+            mediumPackageFee:
+                pricing.mediumPackageFee,
+            largePackageFee:
+                pricing.largePackageFee,
+            extraWeightPerKg:
+                pricing.extraWeightPerKg,
+            updatedAt:
+                pricing.updatedAt,
+            updatedBy:
+                pricing.updatedBy
+        };
 
-            .collection("settings")
-            .doc("pricing")
+        const batch =
+            dreypellaDB.batch();
 
-            .set(
-                pricing,
-                {
-                    merge:
-                        true
-                }
-            );
+        batch.set(
+            dreypellaDB
+                .collection("settings")
+                .doc("pricing"),
+            pricing,
+            {
+                merge:
+                    true
+            }
+        );
+
+        batch.set(
+            dreypellaDB
+                .collection("settings")
+                .doc("deliveryPricing"),
+            deliveryPricing,
+            {
+                merge:
+                    true
+            }
+        );
+
+        await batch.commit();
 
 
         await createAuditLog(

@@ -103,6 +103,24 @@ service cloud.firestore {
     //
 
 
+        // =====================================================
+        // CUSTOMER DELIVERY PRICING
+        // =====================================================
+
+        match /settings/pricing {
+          // Private Admin/platform pricing configuration.
+          allow read, write: if isAdmin();
+        }
+
+        match /settings/deliveryPricing {
+          // Customers need only the rates required to calculate
+          // their delivery quote.
+          allow read: if request.auth != null;
+
+          // Only Admins and Super Admins may change these rates.
+          allow write: if isAdmin();
+        }
+
       // =====================================================
       // DELIVERIES
       // =====================================================

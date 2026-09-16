@@ -258,35 +258,36 @@ function calculateCustomerPrice(
         String(method || "")
             .toUpperCase();
 
-    let baseFare;
+    let differencePercentage;
 
     switch (normalizedMethod) {
+
         case "WALKER":
-            baseFare =
+            differencePercentage =
                 Number(
-                    pricing.walkerBaseFare
+                    pricing.walkerDifferencePercentage
                 );
             break;
 
         case "BICYCLIST":
-            baseFare =
+            differencePercentage =
                 Number(
-                    pricing.bicyclistBaseFare
+                    pricing.bicyclistDifferencePercentage
                 );
             break;
 
         case "RIDER":
-            baseFare =
+            differencePercentage =
                 Number(
-                    pricing.riderBaseFare
+                    pricing.riderDifferencePercentage
                 );
             break;
 
         case "DRIVER":
         case "VEHICLE":
-            baseFare =
+            differencePercentage =
                 Number(
-                    pricing.driverBaseFare
+                    pricing.vehicleDifferencePercentage
                 );
             break;
 
@@ -296,7 +297,18 @@ function calculateCustomerPrice(
             );
     }
 
-    if (!Number.isFinite(baseFare)) {
+    const baseDeliveryFare =
+        Number(
+            pricing.baseDeliveryFare
+        );
+
+    if (
+        !Number.isFinite(baseDeliveryFare) ||
+        baseDeliveryFare < 0 ||
+        !Number.isFinite(differencePercentage) ||
+        differencePercentage < 0 ||
+        differencePercentage > 100
+    ) {
         throw new Error(
             "Pricing for the selected delivery method is not configured."
         );
@@ -314,8 +326,8 @@ function calculateCustomerPrice(
         );
     }
 
-    let price =
-        baseFare +
+    let total =
+        baseDeliveryFare +
         (
             km *
             Number(
@@ -330,7 +342,7 @@ function calculateCustomerPrice(
     if (
         normalizedSize === "MEDIUM"
     ) {
-        price +=
+        total +=
             Number(
                 pricing.mediumPackageFee || 0
             );
@@ -339,7 +351,7 @@ function calculateCustomerPrice(
     if (
         normalizedSize === "LARGE"
     ) {
-        price +=
+        total +=
             Number(
                 pricing.largePackageFee || 0
             );
@@ -355,19 +367,23 @@ function calculateCustomerPrice(
 
     if (
         Number.isFinite(weightKg) &&
-        weightKg > 0 &&
+        weightKg > 1 &&
         extraWeightRate > 0
     ) {
-        const extraWeight =
-            Math.max(
-                0,
+        total +=
+            (
                 weightKg - 1
-            );
-
-        price +=
-            extraWeight *
+            ) *
             extraWeightRate;
     }
+
+    let price =
+        total -
+        (
+            total *
+            differencePercentage /
+            100
+        );
 
     const minimumFee =
         Number(
@@ -401,9 +417,21 @@ function calculateCustomerPrice(
             );
     }
 
-    return Math.ceil(
-        price / 50
-    ) * 50;
+    const customerPrice =
+        Math.ceil(
+            price / 50
+        ) * 50;
+
+    if (
+        !Number.isFinite(customerPrice) ||
+        customerPrice <= 0
+    ) {
+        throw new Error(
+            "Invalid delivery price."
+        );
+    }
+
+    return customerPrice;
 }
 
 

@@ -696,9 +696,8 @@ async function calculateRoute() {
 /*
     DELIVERY PRICE
 
-    Pricing is calculated by the Firebase backend.
-    The customer never reads the Admin pricing document
-    directly from Firestore.
+    Customer quote rates are stored separately from
+    private Admin/platform pricing.
 */
 
 async function calculateDeliveryPrice(
@@ -708,57 +707,185 @@ async function calculateDeliveryPrice(
     weight
 ) {
     if (
-        typeof firebase === "undefined" ||
-        typeof firebase.functions !== "function"
+        typeof dreypellaDB === "undefined"
     ) {
         throw new Error(
             "Delivery pricing service is unavailable."
         );
     }
 
-    const functions =
-        firebase.functions();
+    const snapshot =
+        await dreypellaDB
+            .collection("settings")
+            .doc("deliveryPricing")
+            .get();
 
-    const calculateDeliveryQuote =
-        functions.httpsCallable(
-            "calculateDeliveryQuote"
-        );
-
-    const response =
-        await calculateDeliveryQuote({
-            distanceKm,
-            method,
-            size,
-            weight
-        });
-
-    if (
-        !response ||
-        !response.data ||
-        response.data.success !== true
-    ) {
+    if (!snapshot.exists) {
         throw new Error(
-            "Unable to calculate delivery price."
+            "Delivery pricing has not been configured by Admin."
         );
     }
 
-    const customerPrice =
-        Number(
-            response.data.customerPrice
+    const pricing =
+        snapshot.data();
+
+    const normalizedMethod =
+        String(method || "").toUpperCase();
+
+    let differencePercentage;
+
+    if (
+        normalizedMethod === "WALKER"
+    ) {
+        differencePercentage =
+            pricing.walkerDifferencePercentage;
+    }
+    else if (
+        normalizedMethod === "BICYCLIST"
+    ) {
+        differencePercentage =
+            pricing.bicyclistDifferencePercentage;
+    }
+    else if (
+        normalizedMethod === "RIDER"
+    ) {
+        differencePercentage =
+            pricing.riderDifferencePercentage;
+    }
+    else if (
+        normalizedMethod === "DRIVER" ||
+        normalizedMethod === "VEHICLE"
+    ) {
+        differencePercentage =
+            pricing.vehicleDifferencePercentage;
+    }
+    else {
+        throw new Error(
+            "Invalid delivery method."
         );
+    }
+
+    const baseDeliveryFare =
+        Number(
+            pricing.baseDeliveryFare
+        );
+
+    const percentage =
+        Number(
+            differencePercentage
+        );
+
+    const km =
+        Number(distanceKm);
+
+    if (
+        !Number.isFinite(baseDeliveryFare) ||
+        baseDeliveryFare < 0 ||
+        !Number.isFinite(percentage) ||
+        percentage < 0 ||
+        percentage > 100 ||
+        !Number.isFinite(km) ||
+        km < 0
+    ) {
+        throw new Error(
+            "Invalid delivery pricing data."
+        );
+    }
+
+    let total =
+        baseDeliveryFare +
+        (
+            km *
+            Number(
+                pricing.pricePerKm || 0
+            )
+        );
+
+    const packageSize =
+        String(size || "").toUpperCase();
+
+    if (
+        packageSize === "MEDIUM"
+    ) {
+        total +=
+            Number(
+                pricing.mediumPackageFee || 0
+            );
+    }
+
+    if (
+        packageSize === "LARGE"
+    ) {
+        total +=
+            Number(
+                pricing.largePackageFee || 0
+            );
+    }
+
+    const packageWeight =
+        Number(weight || 0);
+
+    if (
+        Number.isFinite(packageWeight) &&
+        packageWeight > 1
+    ) {
+        total +=
+            (
+                packageWeight - 1
+            ) *
+            Number(
+                pricing.extraWeightPerKg || 0
+            );
+    }
+
+    let price =
+        total -
+        (
+            total *
+            percentage /
+            100
+        );
+
+    const minimum =
+        Number(
+            pricing.minimumDeliveryFee || 0
+        );
+
+    const maximum =
+        Number(
+            pricing.maximumDeliveryFee || 0
+        );
+
+    if (
+        minimum > 0 &&
+        price < minimum
+    ) {
+        price = minimum;
+    }
+
+    if (
+        maximum > 0 &&
+        price > maximum
+    ) {
+        price = maximum;
+    }
+
+    const customerPrice =
+        Math.ceil(
+            price / 50
+        ) * 50;
 
     if (
         !Number.isFinite(customerPrice) ||
         customerPrice <= 0
     ) {
         throw new Error(
-            "Invalid delivery price returned by the server."
+            "Invalid delivery price."
         );
     }
 
     return customerPrice;
 }
-
 
 /*
     CALCULATE BUTTON
