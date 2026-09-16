@@ -407,6 +407,81 @@ function calculateCustomerPrice(
 }
 
 
+async function calculateDeliveryQuote(
+    data,
+    context
+) {
+    if (!context || !context.auth) {
+        throw new Error(
+            "Authentication is required."
+        );
+    }
+
+    const booking =
+        data || {};
+
+    const distanceKm =
+        Number(booking.distanceKm);
+
+    if (
+        !Number.isFinite(distanceKm) ||
+        distanceKm < 0
+    ) {
+        throw new Error(
+            "Invalid delivery distance."
+        );
+    }
+
+    const method =
+        String(
+            booking.method || ""
+        ).toUpperCase();
+
+    const allowedMethods = [
+        "WALKER",
+        "BICYCLIST",
+        "RIDER",
+        "DRIVER",
+        "VEHICLE"
+    ];
+
+    if (!allowedMethods.includes(method)) {
+        throw new Error(
+            "Invalid delivery method."
+        );
+    }
+
+    const snapshot =
+        await db
+            .collection("settings")
+            .doc("pricing")
+            .get();
+
+    if (!snapshot.exists) {
+        throw new Error(
+            "Delivery pricing has not been configured by Admin."
+        );
+    }
+
+    const pricing =
+        snapshot.data();
+
+    const customerPrice =
+        calculateCustomerPrice(
+            distanceKm,
+            method,
+            booking.size,
+            booking.weight,
+            pricing
+        );
+
+    return {
+        success: true,
+        customerPrice
+    };
+}
+
+
 async function calculateRecipientPaymentAllocations(
     pickup,
     destinations,
@@ -1134,5 +1209,6 @@ module.exports = {
     determineDeliveryType,
     calculateDrivingRoute,
     calculateCustomerPrice,
+    calculateDeliveryQuote,
     createDelivery
 };

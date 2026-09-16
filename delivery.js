@@ -180,6 +180,66 @@ pickupInput.addEventListener(
 
 
 /*
+    PICKUP CURRENT LOCATION
+*/
+
+if (currentLocationBtn) {
+
+    currentLocationBtn.addEventListener(
+        "click",
+        async () => {
+
+            currentLocationBtn.textContent = "⌛";
+
+            try {
+
+                const location =
+                    await window.DreypellaLocation
+                        .getCurrentLocation();
+
+                pickupLocation = location;
+
+                pickupInput.value =
+                    location.name ||
+                    location.address?.road ||
+                    location.address?.city ||
+                    "";
+
+                pickupSuggestions.innerHTML = "";
+
+            } catch (error) {
+
+                console.error(
+                    "Pickup current location error:",
+                    error
+                );
+
+                if (
+                    error &&
+                    error.code === 1
+                ) {
+
+                    showMessage(
+                        "Unable to access your location. Please allow location permission."
+                    );
+
+                } else {
+
+                    showMessage(
+                        "We could not identify your current location. Please try again or enter the address manually."
+                    );
+                }
+
+            } finally {
+
+                currentLocationBtn.textContent = "📍";
+            }
+        }
+    );
+}
+
+
+/*
     DESTINATION SEARCH
 */
 
@@ -636,167 +696,69 @@ async function calculateRoute() {
 /*
     DELIVERY PRICE
 
-    IMPORTANT:
-
-    These are temporary frontend defaults.
-
-    Later, these values should come from
-    your Firebase Admin pricing settings.
-
-    Customers only see the final price.
+    Pricing is calculated by the Firebase backend.
+    The customer never reads the Admin pricing document
+    directly from Firestore.
 */
 
-let deliveryPricing = null;
-
-/*
-    LOAD ADMIN DELIVERY PRICING
-*/
-async function loadDeliveryPricing() {
-    if (deliveryPricing) {
-        return deliveryPricing;
-    }
-
-    const snapshot = await dreypellaDB
-        .collection("settings")
-        .doc("pricing")
-        .get();
-
-    if (!snapshot.exists) {
-        throw new Error(
-            "Delivery pricing has not been configured by Admin."
-        );
-    }
-
-    deliveryPricing = snapshot.data();
-
-    return deliveryPricing;
-}
-
-/*
-    CALCULATE CUSTOMER PRICE
-*/
 async function calculateDeliveryPrice(
     distanceKm,
     method,
     size,
     weight
 ) {
-    const pricing =
-        await loadDeliveryPricing();
-
-    const normalizedMethod =
-        String(method || "")
-            .toUpperCase();
-
-    let baseFare;
-
-    switch (normalizedMethod) {
-        case "WALKER":
-            baseFare =
-                Number(pricing.walkerBaseFare);
-            break;
-
-        case "BICYCLIST":
-            baseFare =
-                Number(pricing.bicyclistBaseFare);
-            break;
-
-        case "RIDER":
-            baseFare =
-                Number(pricing.riderBaseFare);
-            break;
-
-        case "DRIVER":
-        case "VEHICLE":
-            baseFare =
-                Number(pricing.driverBaseFare);
-            break;
-
-        default:
-            throw new Error(
-                "Invalid delivery method."
-            );
-    }
-
-    if (!Number.isFinite(baseFare)) {
+    if (
+        typeof firebase === "undefined" ||
+        typeof firebase.functions !== "function"
+    ) {
         throw new Error(
-            "Pricing for the selected delivery method is not configured."
+            "Delivery pricing service is unavailable."
         );
     }
 
-    const km =
-        Number(distanceKm);
+    const functions =
+        firebase.functions();
 
-    if (!Number.isFinite(km) || km < 0) {
+    const calculateDeliveryQuote =
+        functions.httpsCallable(
+            "calculateDeliveryQuote"
+        );
+
+    const response =
+        await calculateDeliveryQuote({
+            distanceKm,
+            method,
+            size,
+            weight
+        });
+
+    if (
+        !response ||
+        !response.data ||
+        response.data.success !== true
+    ) {
         throw new Error(
-            "Invalid delivery distance."
+            "Unable to calculate delivery price."
         );
     }
 
-    let price =
-        baseFare +
-        (
-            km *
-            Number(pricing.pricePerKm || 0)
+    const customerPrice =
+        Number(
+            response.data.customerPrice
         );
 
-    const normalizedSize =
-        String(size || "")
-            .toUpperCase();
-
-    if (normalizedSize === "MEDIUM") {
-        price +=
-            Number(pricing.mediumPackageFee || 0);
-    }
-
-    if (normalizedSize === "LARGE") {
-        price +=
-            Number(pricing.largePackageFee || 0);
-    }
-
-    const weightKg =
-        Number(weight);
-
-    const extraWeightRate =
-        Number(pricing.extraWeightPerKg || 0);
-
     if (
-        Number.isFinite(weightKg) &&
-        weightKg > 0 &&
-        extraWeightRate > 0
+        !Number.isFinite(customerPrice) ||
+        customerPrice <= 0
     ) {
-        const extraWeight =
-            Math.max(0, weightKg - 1);
-
-        price +=
-            extraWeight *
-            extraWeightRate;
+        throw new Error(
+            "Invalid delivery price returned by the server."
+        );
     }
 
-    const minimumFee =
-        Number(pricing.minimumDeliveryFee || 0);
-
-    const maximumFee =
-        Number(pricing.maximumDeliveryFee || 0);
-
-    if (
-        Number.isFinite(minimumFee) &&
-        minimumFee > 0
-    ) {
-        price =
-            Math.max(price, minimumFee);
-    }
-
-    if (
-        Number.isFinite(maximumFee) &&
-        maximumFee > 0
-    ) {
-        price =
-            Math.min(price, maximumFee);
-    }
-
-    return Math.ceil(price / 50) * 50;
+    return customerPrice;
 }
+
 
 /*
     CALCULATE BUTTON

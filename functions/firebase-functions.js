@@ -685,13 +685,40 @@ exports.verifyReceiverPayment =
 */
 
 const {
-    createDelivery
+    createDelivery,
+    calculateDeliveryQuote
 } = require("./deliveryCreation");
 
 const {
     acceptDelivery
 } = require("./deliveryAssignment");
 
+
+exports.calculateDeliveryQuote =
+    onCall(
+        async request => {
+            try {
+                return await calculateDeliveryQuote(
+                    request.data || {},
+                    {
+                        auth: request.auth
+                    }
+                );
+            }
+            catch(error) {
+                console.error(
+                    "Delivery quote error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to calculate delivery quote."
+                );
+            }
+        }
+    );
 
 exports.createDelivery =
     onCall(
