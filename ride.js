@@ -66,6 +66,13 @@ const bookingMessage =
     document.getElementById("bookingMessage");
 
 
+const tripGroupSection =
+    document.getElementById("tripGroupSection");
+
+const tripGroup =
+    document.getElementById("tripGroup");
+
+
 let availableTrips = [];
 
 let selectedTripData = null;
@@ -667,6 +674,11 @@ function selectTrip(trip) {
         trip;
 
 
+    displayTripGroups(
+        trip
+    );
+
+
     const fare =
         Number(
             trip.fare || 0
@@ -772,6 +784,178 @@ function selectTrip(trip) {
 
 
 /* =========================================
+   TRIP GROUP SELECTION
+   ========================================= */
+
+function buildGroupLabel(group) {
+
+    const gatheringPoint =
+        group.gatheringPoint ||
+        "Gathering point to be confirmed";
+
+    const vehicle =
+        group.vehicle ||
+        "Vehicle to be confirmed";
+
+    const availableSeats =
+        Number(
+            group.availableSeats ??
+            group.capacity ??
+            0
+        );
+
+    return (
+        gatheringPoint +
+        " • " +
+        vehicle +
+        " • " +
+        availableSeats +
+        " seats available"
+    );
+
+}
+
+
+function displayTripGroups(trip) {
+
+    if (
+        !tripGroupSection ||
+        !tripGroup
+    ) {
+
+        return;
+
+    }
+
+
+    tripGroup.innerHTML = "";
+
+
+    const groups =
+        Array.isArray(trip.groups)
+            ? trip.groups
+            : [];
+
+
+    /*
+     * Legacy trip without groups.
+     * Cloud Function handles this as DEFAULT.
+     */
+
+    if (
+        groups.length === 0
+    ) {
+
+        tripGroupSection.classList.add(
+            "hidden"
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * One group:
+     * automatically select it.
+     */
+
+    if (
+        groups.length === 1
+    ) {
+
+        const group =
+            groups[0];
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            String(
+                group.groupId || ""
+            );
+
+        option.textContent =
+            buildGroupLabel(
+                group
+            );
+
+        tripGroup.appendChild(
+            option
+        );
+
+        tripGroup.value =
+            option.value;
+
+        tripGroupSection.classList.add(
+            "hidden"
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Multiple groups:
+     * customer must choose.
+     */
+
+    const placeholder =
+        document.createElement(
+            "option"
+        );
+
+    placeholder.value =
+        "";
+
+    placeholder.textContent =
+        "Select gathering point and vehicle";
+
+    placeholder.selected =
+        true;
+
+    tripGroup.appendChild(
+        placeholder
+    );
+
+
+    groups.forEach(
+        function(group) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                String(
+                    group.groupId || ""
+                );
+
+            option.textContent =
+                buildGroupLabel(
+                    group
+                );
+
+            tripGroup.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    tripGroupSection.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================================
    REQUEST JOURNEY WITHOUT TRIP
    ========================================= */
 
@@ -781,6 +965,26 @@ requestRideButton.addEventListener(
 
         selectedTripData =
             null;
+
+
+        if (tripGroupSection) {
+
+            tripGroupSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        if (tripGroup) {
+
+            tripGroup.innerHTML = `
+                <option value="">
+                    Select gathering point and vehicle
+                </option>
+            `;
+
+        }
 
 
         selectedTrip.innerHTML = `
@@ -877,6 +1081,26 @@ function showRequestForm() {
 
     selectedTripData =
         null;
+
+
+    if (tripGroupSection) {
+
+        tripGroupSection.classList.add(
+            "hidden"
+        );
+
+    }
+
+
+    if (tripGroup) {
+
+        tripGroup.innerHTML = `
+            <option value="">
+                Select gathering point and vehicle
+            </option>
+        `;
+
+    }
 
 
     selectedTrip.innerHTML = `
@@ -1018,15 +1242,12 @@ async function submitBooking(event) {
 
     event.preventDefault();
 
-
     clearMessage(
         bookingMessage
     );
 
-
     const user =
         auth.currentUser;
-
 
     if (!user) {
 
@@ -1035,7 +1256,6 @@ async function submitBooking(event) {
             "Please login before booking a ride.",
             "error"
         );
-
 
         setTimeout(
             function() {
@@ -1047,41 +1267,32 @@ async function submitBooking(event) {
             1200
         );
 
-
         return;
 
     }
 
-
     const name =
         passengerName.value.trim();
 
-
     const phone =
         passengerPhone.value.trim();
-
 
     const seats =
         Number(
             seatCount.value
         );
 
-
     const from =
         fromLocation.value;
-
 
     const to =
         toLocation.value;
 
-
     const date =
         travelDate.value;
 
-
     const time =
         preferredTime.value;
-
 
     if (
         !name ||
@@ -1097,7 +1308,6 @@ async function submitBooking(event) {
         return;
 
     }
-
 
     if (
         !from ||
@@ -1116,7 +1326,6 @@ async function submitBooking(event) {
 
     }
 
-
     if (
         from === to
     ) {
@@ -1131,12 +1340,21 @@ async function submitBooking(event) {
 
     }
 
+    if (
+        !Number.isInteger(seats) ||
+        seats < 1 ||
+        seats > 4
+    ) {
 
-    /*
-     * If an admin trip was selected,
-     * check available seats.
-     */
+        showMessage(
+            bookingMessage,
+            "Seat count must be between 1 and 4.",
+            "error"
+        );
 
+        return;
+
+    }
 
     if (
         selectedTripData
@@ -1147,7 +1365,6 @@ async function submitBooking(event) {
                 selectedTripData.availableSeats ||
                 0
             );
-
 
         if (
             seats > availableSeats
@@ -1165,212 +1382,74 @@ async function submitBooking(event) {
 
     }
 
-
     const submitButton =
         bookingForm.querySelector(
             "button[type='submit']"
         );
 
-
     submitButton.disabled =
         true;
-
 
     submitButton.textContent =
         "SUBMITTING...";
 
-
     try {
 
-        const bookingReference =
-            generateBookingReference();
-
-
-        let totalFare =
-            null;
-
-
-        let bookingStatus =
-            "REQUESTED";
-
-
-        let tripId =
-            null;
-
-
-        let gatheringPoint =
-            "";
-
-
-        let finalDestination =
-            "";
-
-
-        let confirmedDeparture =
-            null;
-
-
         /*
-         * ADMIN TRIP EXISTS
+         * SCHEDULED TRIP
+         *
+         * The Cloud Function is the
+         * authoritative booking flow.
+         *
+         * It validates the trip, checks
+         * availability, assigns seats,
+         * reduces available seats and
+         * creates the booking atomically.
          */
-
 
         if (
             selectedTripData
         ) {
 
-            const fare =
-                Number(
-                    selectedTripData.fare ||
-                    0
+            const functions =
+                firebase.functions();
+
+            const createRideBooking =
+                functions.httpsCallable(
+                    "createRideBooking"
                 );
 
+            const result =
+                await createRideBooking({
 
-            totalFare =
-                fare * seats;
+                    tripId:
+                        selectedTripData.id,
 
+                    passengerName:
+                        name,
 
-            bookingStatus =
-                "PENDING_PAYMENT";
+                    passengerPhone:
+                        phone,
 
+                    seats:
+                        seats
 
-            tripId =
-                selectedTripData.id;
+                });
 
+            const response =
+                result.data ||
+                {};
 
-            gatheringPoint =
-                selectedTripData.gatheringPoint ||
-                "";
+            if (
+                response.success !== true
+            ) {
 
+                throw new Error(
+                    response.message ||
+                    "Unable to create ride booking."
+                );
 
-            finalDestination =
-                selectedTripData.finalDestination ||
-                to;
-
-
-            confirmedDeparture =
-                selectedTripData.departureTime ||
-                null;
-
-        }
-
-
-        /*
-         * CREATE BOOKING
-         */
-
-
-        const bookingDoc =
-            await db
-                .collection("rideBookings")
-                .add({
-
-                bookingReference:
-
-                    bookingReference,
-
-
-                userId:
-
-                    user.uid,
-
-
-                passengerName:
-
-                    name,
-
-
-                passengerPhone:
-
-                    phone,
-
-
-                fromCity:
-
-                    from,
-
-
-                toCity:
-
-                    to,
-
-
-                travelDate:
-
-                    date,
-
-
-                preferredTime:
-
-                    time,
-
-
-                tripId:
-
-                    tripId,
-
-
-                gatheringPoint:
-
-                    gatheringPoint,
-
-
-                finalDestination:
-
-                    finalDestination,
-
-
-                confirmedDeparture:
-
-                    confirmedDeparture,
-
-
-                seats:
-
-                    seats,
-
-
-                totalFare:
-
-                    totalFare,
-
-
-                status:
-
-                    bookingStatus,
-
-
-                paymentStatus:
-
-                    totalFare !== null
-                        ? "UNPAID"
-                        : "WAITING_CONFIRMATION",
-
-
-                requestType:
-
-                    selectedTripData
-                        ? "SCHEDULED_TRIP"
-                        : "CUSTOM_REQUEST",
-
-
-                createdAt:
-
-                    firebase.firestore
-                        .FieldValue
-                        .serverTimestamp()
-
-            });
-
-
-        /*
-         * SUCCESS MESSAGE
-         */
-
-
-        if (
-            selectedTripData
-        ) {
+            }
 
             showMessage(
                 bookingMessage,
@@ -1378,48 +1457,131 @@ async function submitBooking(event) {
                 "success"
             );
 
-        }
-        else {
+            setTimeout(
+                function() {
 
-            showMessage(
-                bookingMessage,
-                "Ride request sent. Dreypella Ride will confirm the trip details.",
-                "success"
+                    window.location.href =
+                        "checkout.html?bookingId=" +
+                        encodeURIComponent(
+                            response.bookingId
+                        );
+
+                },
+                1200
             );
+
+            return;
 
         }
 
 
         /*
-         * Redirect later to booking page.
+         * CUSTOM JOURNEY REQUEST
          *
-         * For now we send the customer
-         * to their dashboard.
+         * No scheduled trip exists,
+         * so keep the existing request
+         * flow for customer requests.
          */
 
+        const bookingReference =
+            generateBookingReference();
+
+        const bookingDoc =
+            await db
+                .collection("rideBookings")
+                .add({
+
+                    bookingReference:
+
+                        bookingReference,
+
+                    userId:
+
+                        user.uid,
+
+                    passengerName:
+
+                        name,
+
+                    passengerPhone:
+
+                        phone,
+
+                    fromCity:
+
+                        from,
+
+                    toCity:
+
+                        to,
+
+                    travelDate:
+
+                        date,
+
+                    preferredTime:
+
+                        time,
+
+                    tripId:
+
+                        null,
+
+                    gatheringPoint:
+
+                        "",
+
+                    finalDestination:
+
+                        "",
+
+                    confirmedDeparture:
+
+                        null,
+
+                    seats:
+
+                        seats,
+
+                    totalFare:
+
+                        null,
+
+                    status:
+
+                        "REQUESTED",
+
+                    paymentStatus:
+
+                        "WAITING_CONFIRMATION",
+
+                    requestType:
+
+                        "CUSTOM_REQUEST",
+
+                    createdAt:
+
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
+
+                });
+
+        showMessage(
+            bookingMessage,
+            "Ride request sent. Dreypella Ride will confirm the trip details.",
+            "success"
+        );
 
         setTimeout(
             function() {
 
-                if (selectedTripData) {
-
-                    window.location.href =
-                        "checkout.html?bookingId=" +
-                        encodeURIComponent(
-                            bookingDoc.id
-                        );
-
-                } else {
-
-                    window.location.href =
-                        "customer-dashboard.html";
-
-                }
+                window.location.href =
+                    "customer-dashboard.html";
 
             },
-            1800
+            1200
         );
-
 
     }
     catch(error) {
@@ -1429,9 +1591,9 @@ async function submitBooking(event) {
             error
         );
 
-
         showMessage(
             bookingMessage,
+            error.message ||
             "Unable to submit your request. Please try again.",
             "error"
         );
@@ -1441,7 +1603,6 @@ async function submitBooking(event) {
 
         submitButton.disabled =
             false;
-
 
         submitButton.textContent =
             "SUBMIT RIDE REQUEST";

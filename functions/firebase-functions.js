@@ -685,6 +685,10 @@ exports.verifyReceiverPayment =
 */
 
 const {
+    createRideBooking
+} = require("./rideBooking");
+
+const {
     createDelivery,
     calculateDeliveryQuote
 } = require("./deliveryCreation");
@@ -692,6 +696,33 @@ const {
 const {
     acceptDelivery
 } = require("./deliveryAssignment");
+
+
+exports.createRideBooking =
+    onCall(
+        async request => {
+            try {
+                return await createRideBooking(
+                    request.data || {},
+                    {
+                        auth: request.auth
+                    }
+                );
+            }
+            catch(error) {
+                console.error(
+                    "Ride booking error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to create ride booking."
+                );
+            }
+        }
+    );
 
 
 exports.calculateDeliveryQuote =

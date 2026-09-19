@@ -418,120 +418,74 @@
 
 
 
-                <!-- MEETING POINT -->
+                  <!-- TRIP GROUPS -->
 
-                <div class="form-group full">
+                  <div class="form-group full">
 
-                    <label>
-                        Meeting / Gathering Point
-                    </label>
+                      <div class="trip-groups-header">
 
-                    <input
-                        type="text"
-                        id="meetingPoint"
-                        placeholder="e.g. LAUTECH Main Gate"
-                        required
-                    >
+                          <div>
+                              <label>
+                                  Trip Groups / Gathering Points
+                              </label>
 
-                </div>
+                              <small>
+                                  Add each bus or vehicle group separately.
+                                  Seat numbers belong to the group, not the gathering point.
+                              </small>
+                          </div>
 
+                          <button
+                              type="button"
+                              id="addTripGroupButton"
+                              class="action-button approve"
+                          >
+                              + ADD GROUP
+                          </button>
 
+                      </div>
 
-                <!-- FINAL DESTINATION -->
+                      <div
+                          id="tripGroupsContainer"
+                          class="trip-groups-container"
+                      ></div>
 
-                <div class="form-group full">
+                  </div>
 
-                    <label>
-                        Final Destination Point
-                    </label>
+                  <!-- FINAL DESTINATION -->
 
-                    <input
-                        type="text"
-                        id="finalDestination"
-                        placeholder="Where the bus will finally stop"
-                        required
-                    >
+                  <div class="form-group full">
 
-                </div>
+                      <label>
+                          Final Destination Point
+                      </label>
 
+                      <input
+                          type="text"
+                          id="finalDestination"
+                          placeholder="Where the bus will finally stop"
+                          required
+                      >
 
+                  </div>
 
-                <!-- PRICE -->
+                  <!-- PRICE -->
 
-                <div class="form-group">
+                  <div class="form-group">
 
-                    <label>
-                        Customer Fare (₦)
-                    </label>
+                      <label>
+                          Customer Fare (₦)
+                      </label>
 
-                    <input
-                        type="number"
-                        id="tripPrice"
-                        min="0"
-                        placeholder="8000"
-                        required
-                    >
+                      <input
+                          type="number"
+                          id="tripPrice"
+                          min="0"
+                          placeholder="8000"
+                          required
+                      >
 
-                </div>
-
-
-
-                <!-- VEHICLE -->
-
-                <div class="form-group">
-
-                    <label>
-                        Vehicle
-                    </label>
-
-                    <input
-                        type="text"
-                        id="vehicle"
-                        placeholder="Bus / Vehicle details"
-                    >
-
-                </div>
-
-
-
-                <!-- DRIVER -->
-
-                <div class="form-group">
-
-                    <label>
-                        Driver Name
-                    </label>
-
-                    <input
-                        type="text"
-                        id="driverName"
-                        placeholder="Driver name"
-                    >
-
-                </div>
-
-
-
-                <!-- CAPACITY -->
-
-                <div class="form-group">
-
-                    <label>
-                        Passenger Capacity
-                    </label>
-
-                    <input
-                        type="number"
-                        id="capacity"
-                        min="1"
-                        value="14"
-                        required
-                    >
-
-                </div>
-
-
-
+                  </div>
                 <!-- STATUS -->
 
                 <div class="form-group">

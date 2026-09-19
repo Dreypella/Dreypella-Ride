@@ -49,6 +49,12 @@ const tripFormMessage =
 const saveTripButton =
     document.getElementById("saveTripButton");
 
+const addTripGroupButton =
+    document.getElementById("addTripGroupButton");
+
+const tripGroupsContainer =
+    document.getElementById("tripGroupsContainer");
+
 const logoutButton =
     document.getElementById("logoutButton");
 
@@ -170,6 +176,8 @@ newTripButton.addEventListener(
 
         tripForm.reset();
 
+        resetTripGroups();
+
         saveTripButton.textContent =
             "CREATE TRIP";
 
@@ -221,6 +229,388 @@ tripModal.addEventListener(
 
 
 /* =====================================================
+   TRIP GROUP MANAGEMENT
+   ===================================================== */
+
+let tripGroupSequence = 0;
+
+function createTripGroupId() {
+
+    tripGroupSequence += 1;
+
+    return (
+        "GROUP-" +
+        Date.now() +
+        "-" +
+        tripGroupSequence
+    );
+}
+
+
+function getTripGroupElements() {
+
+    if (!tripGroupsContainer) {
+        return [];
+    }
+
+    return Array.from(
+        tripGroupsContainer.querySelectorAll(
+            ".trip-group-card"
+        )
+    );
+}
+
+
+function renderTripGroups(groups) {
+
+    tripGroupsContainer.innerHTML = "";
+
+    if (!Array.isArray(groups) || groups.length === 0) {
+
+        tripGroupsContainer.innerHTML = `
+            <div class="trip-group-empty">
+                No trip groups added yet. Click
+                <strong>+ ADD GROUP</strong>
+                to add a bus or vehicle group.
+            </div>
+        `;
+
+        return;
+    }
+
+    groups.forEach(function(group, index) {
+
+        addTripGroup(group, index + 1);
+
+    });
+
+}
+
+
+function addTripGroup(
+    group = {},
+    displayNumber = null
+) {
+
+    const existingBookedSeats =
+        Array.isArray(group.bookedSeatNumbers)
+            ? group.bookedSeatNumbers
+                .map(number => Number(number))
+                .filter(
+                    number =>
+                        Number.isInteger(number) &&
+                        number > 0
+                )
+            : [];
+
+    const groupId =
+        String(
+            group.groupId ||
+            createTripGroupId()
+        );
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "trip-group-card";
+
+    card.dataset.groupId =
+        groupId;
+
+    card.dataset.bookedSeatNumbers =
+        JSON.stringify(
+            existingBookedSeats
+        );
+
+    card.dataset.existingAvailableSeats =
+        String(
+            Number(
+                group.availableSeats ??
+                group.capacity ??
+                0
+            )
+        );
+
+    card.innerHTML = `
+
+        <div class="trip-group-card-header">
+
+            <strong>
+                Trip Group ${
+                    displayNumber ||
+                    getTripGroupElements().length + 1
+                }
+            </strong>
+
+            <button
+                type="button"
+                class="trip-group-remove"
+            >
+                REMOVE
+            </button>
+
+        </div>
+
+        <div class="trip-group-fields">
+
+            <div class="form-group full">
+
+                <label>
+                    Gathering / Pickup Point
+                </label>
+
+                <input
+                    type="text"
+                    class="trip-group-gathering-point"
+                    placeholder="e.g. Under G"
+                    value="${escapeHTML(
+                        group.gatheringPoint ||
+                        group.meetingPoint ||
+                        ""
+                    )}"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Bus / Vehicle Details
+                </label>
+
+                <input
+                    type="text"
+                    class="trip-group-vehicle"
+                    placeholder="e.g. Toyota Hiace - ABC 123"
+                    value="${escapeHTML(
+                        group.vehicle ||
+                        ""
+                    )}"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Driver Name
+                </label>
+
+                <input
+                    type="text"
+                    class="trip-group-driver"
+                    placeholder="Driver name"
+                    value="${escapeHTML(
+                        group.driverName ||
+                        ""
+                    )}"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Passenger Capacity
+                </label>
+
+                <input
+                    type="number"
+                    class="trip-group-capacity"
+                    min="1"
+                    value="${
+                        Number(
+                            group.capacity ||
+                            14
+                        )
+                    }"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Group ID
+                </label>
+
+                <input
+                    type="text"
+                    value="${escapeHTML(groupId)}"
+                    readonly
+                >
+
+            </div>
+
+        </div>
+    `;
+
+    card
+        .querySelector(
+            ".trip-group-remove"
+        )
+        .addEventListener(
+            "click",
+            function() {
+
+                card.remove();
+
+                refreshTripGroupNumbers();
+
+            }
+        );
+
+    tripGroupsContainer.appendChild(
+        card
+    );
+
+}
+
+
+function refreshTripGroupNumbers() {
+
+    getTripGroupElements()
+        .forEach(
+            function(card, index) {
+
+                const title =
+                    card.querySelector(
+                        ".trip-group-card-header strong"
+                    );
+
+                if (title) {
+
+                    title.textContent =
+                        "Trip Group " +
+                        (index + 1);
+
+                }
+
+            }
+        );
+
+    if (
+        getTripGroupElements().length === 0
+    ) {
+
+        tripGroupsContainer.innerHTML = `
+            <div class="trip-group-empty">
+                No trip groups added yet. Click
+                <strong>+ ADD GROUP</strong>
+                to add a bus or vehicle group.
+            </div>
+        `;
+
+    }
+
+}
+
+
+function collectTripGroups() {
+
+    const cards =
+        getTripGroupElements();
+
+    return cards.map(function(card) {
+
+        const bookedSeatNumbers =
+            JSON.parse(
+                card.dataset.bookedSeatNumbers ||
+                "[]"
+            );
+
+        const capacity =
+            Number(
+                card.querySelector(
+                    ".trip-group-capacity"
+                ).value
+            );
+
+        const bookedCount =
+            bookedSeatNumbers.length;
+
+        return {
+
+            groupId:
+                card.dataset.groupId ||
+                createTripGroupId(),
+
+            gatheringPoint:
+                card.querySelector(
+                    ".trip-group-gathering-point"
+                ).value.trim(),
+
+            vehicle:
+                card.querySelector(
+                    ".trip-group-vehicle"
+                ).value.trim(),
+
+            driverName:
+                card.querySelector(
+                    ".trip-group-driver"
+                ).value.trim(),
+
+            capacity,
+
+            availableSeats:
+                capacity - bookedCount,
+
+            bookedSeatNumbers
+
+        };
+
+    });
+
+}
+
+
+if (addTripGroupButton) {
+
+    addTripGroupButton.addEventListener(
+        "click",
+        function() {
+
+            const existingCards =
+                getTripGroupElements();
+
+            if (
+                existingCards.length === 0
+            ) {
+
+                tripGroupsContainer.innerHTML =
+                    "";
+
+            }
+
+            addTripGroup();
+
+            refreshTripGroupNumbers();
+
+        }
+    );
+
+}
+
+
+function resetTripGroups() {
+
+    tripGroupsContainer.innerHTML = `
+        <div class="trip-group-empty">
+            No trip groups added yet. Click
+            <strong>+ ADD GROUP</strong>
+            to add a bus or vehicle group.
+        </div>
+    `;
+
+}
+
+
+/* =====================================================
    CREATE / UPDATE TRIP
    ===================================================== */
 
@@ -229,7 +619,6 @@ tripForm.addEventListener(
     async function(event) {
 
         event.preventDefault();
-
 
         const from =
             document.getElementById(
@@ -251,11 +640,6 @@ tripForm.addEventListener(
                 "tripTime"
             ).value;
 
-        const meetingPoint =
-            document.getElementById(
-                "meetingPoint"
-            ).value.trim();
-
         const finalDestination =
             document.getElementById(
                 "finalDestination"
@@ -268,29 +652,13 @@ tripForm.addEventListener(
                 ).value
             );
 
-        const vehicle =
-            document.getElementById(
-                "vehicle"
-            ).value.trim();
-
-        const driverName =
-            document.getElementById(
-                "driverName"
-            ).value.trim();
-
-        const capacity =
-            Number(
-                document.getElementById(
-                    "capacity"
-                ).value
-            );
-
         const status =
             document.getElementById(
                 "tripStatus"
             ).value;
 
-
+        const groups =
+            collectTripGroups();
 
         /* VALIDATION */
 
@@ -302,11 +670,12 @@ tripForm.addEventListener(
             );
 
             return;
-
         }
 
-
-        if (price < 0) {
+        if (
+            !Number.isFinite(price) ||
+            price < 0
+        ) {
 
             showFormMessage(
                 "Price cannot be negative.",
@@ -314,40 +683,188 @@ tripForm.addEventListener(
             );
 
             return;
+        }
+
+        if (
+            !Array.isArray(groups) ||
+            groups.length === 0
+        ) {
+
+            showFormMessage(
+                "Add at least one trip group.",
+                true
+            );
+
+            return;
+        }
+
+        for (
+            let index = 0;
+            index < groups.length;
+            index++
+        ) {
+
+            const group =
+                groups[index];
+
+            const bookedSeatNumbers =
+                Array.isArray(
+                    group.bookedSeatNumbers
+                )
+                    ? group.bookedSeatNumbers
+                    : [];
+
+            const bookedCount =
+                bookedSeatNumbers.length;
+
+            if (
+                !group.gatheringPoint ||
+                !group.vehicle ||
+                !group.driverName
+            ) {
+
+                showFormMessage(
+                    "Complete all required details for Trip Group " +
+                    (index + 1) +
+                    ".",
+                    true
+                );
+
+                return;
+            }
+
+            if (
+                !Number.isInteger(
+                    group.capacity
+                ) ||
+                group.capacity < 1
+            ) {
+
+                showFormMessage(
+                    "Passenger capacity for Trip Group " +
+                    (index + 1) +
+                    " must be at least 1.",
+                    true
+                );
+
+                return;
+            }
+
+            if (
+                group.capacity <
+                bookedCount
+            ) {
+
+                showFormMessage(
+                    "Trip Group " +
+                    (index + 1) +
+                    " capacity cannot be lower than its existing booked seats.",
+                    true
+                );
+
+                return;
+            }
+
+            if (
+                bookedSeatNumbers.some(
+                    seatNumber =>
+                        seatNumber >
+                        group.capacity
+                )
+            ) {
+
+                showFormMessage(
+                    "Trip Group " +
+                    (index + 1) +
+                    " capacity cannot be lower than an existing assigned seat number.",
+                    true
+                );
+
+                return;
+            }
 
         }
 
+        const totalCapacity =
+            groups.reduce(
+                function(total, group) {
+                    return total +
+                        Number(
+                            group.capacity
+                        );
+                },
+                0
+            );
 
-        saveTripButton.disabled = true;
+        const totalAvailableSeats =
+            groups.reduce(
+                function(total, group) {
+                    return total +
+                        Number(
+                            group.availableSeats
+                        );
+                },
+                0
+            );
+
+        const firstGroup =
+            groups[0];
+
+        saveTripButton.disabled =
+            true;
 
         saveTripButton.textContent =
             "SAVING...";
-
-
 
         try {
 
             const tripData = {
 
                 from,
+                fromCity: from,
 
                 to,
+                toCity: to,
 
                 date,
+                travelDate: date,
 
                 departureTime,
-
-                meetingPoint,
 
                 finalDestination,
 
                 price,
+                fare: price,
 
-                vehicle,
+                /* NEW GROUP STRUCTURE */
 
-                driverName,
+                groups,
 
-                capacity,
+                /*
+                    LEGACY COMPATIBILITY FIELDS
+
+                    These mirror the first group so
+                    older parts of the application
+                    can continue reading the trip.
+                */
+
+                meetingPoint:
+                    firstGroup.gatheringPoint,
+
+                gatheringPoint:
+                    firstGroup.gatheringPoint,
+
+                vehicle:
+                    firstGroup.vehicle,
+
+                driverName:
+                    firstGroup.driverName,
+
+                capacity:
+                    totalCapacity,
+
+                availableSeats:
+                    totalAvailableSeats,
 
                 status,
 
@@ -356,8 +873,6 @@ tripForm.addEventListener(
                     .serverTimestamp()
 
             };
-
-
 
             if (editingTripId) {
 
@@ -375,25 +890,21 @@ tripForm.addEventListener(
                     firebase.firestore.FieldValue
                     .serverTimestamp();
 
-
                 await db
                     .collection("trips")
                     .add(tripData);
 
             }
 
-
-
             tripModal.classList.add(
                 "hidden"
             );
 
-
             tripForm.reset();
 
+            resetTripGroups();
 
             loadTrips();
-
 
         } catch (error) {
 
@@ -402,14 +913,12 @@ tripForm.addEventListener(
                 error
             );
 
-
             showFormMessage(
                 "Unable to save trip.",
                 true
             );
 
         }
-
 
         saveTripButton.disabled =
             false;
@@ -421,7 +930,6 @@ tripForm.addEventListener(
 
     }
 );
-
 
 
 /* =====================================================
@@ -707,6 +1215,8 @@ async function prepareTripFromRequest(
         editingTripId = null;
 
         tripForm.reset();
+
+        resetTripGroups();
 
 
         document.getElementById(
@@ -1017,18 +1527,135 @@ function renderTrip(
 
         <div class="trip-details">
 
-            <div class="detail">
+            <div class="detail trip-groups-detail">
 
                 <small>
-                    MEETING POINT
+                    TRIP GROUPS / GATHERING POINTS
                 </small>
 
-                <strong>
-                    ${escapeHTML(
-                        trip.meetingPoint ||
-                        "-"
-                    )}
-                </strong>
+                <div class="admin-trip-groups">
+
+                    ${
+                        Array.isArray(trip.groups) &&
+                        trip.groups.length > 0
+                            ?
+                            trip.groups.map(
+                                function(group, index) {
+
+                                    const capacity =
+                                        Number(
+                                            group.capacity || 0
+                                        );
+
+                                    const availableSeats =
+                                        Number(
+                                            group.availableSeats ??
+                                            capacity
+                                        );
+
+                                    return `
+                                        <div class="admin-trip-group">
+
+                                            <strong>
+                                                Trip Group ${index + 1}
+                                            </strong>
+
+                                            <span>
+                                                Gathering:
+                                                ${escapeHTML(
+                                                    group.gatheringPoint ||
+                                                    group.meetingPoint ||
+                                                    "-"
+                                                )}
+                                            </span>
+
+                                            <span>
+                                                Vehicle:
+                                                ${escapeHTML(
+                                                    group.vehicle ||
+                                                    "-"
+                                                )}
+                                            </span>
+
+                                            <span>
+                                                Driver:
+                                                ${escapeHTML(
+                                                    group.driverName ||
+                                                    "-"
+                                                )}
+                                            </span>
+
+                                            <span>
+                                                Seats:
+                                                ${availableSeats}
+                                                available /
+                                                ${capacity}
+                                                total
+                                            </span>
+
+                                            <span>
+                                                Group ID:
+                                                ${escapeHTML(
+                                                    String(
+                                                        group.groupId ||
+                                                        "-"
+                                                    )
+                                                )}
+                                            </span>
+
+                                        </div>
+                                    `;
+                                }
+                            ).join("")
+                            :
+                            `
+                                <div class="admin-trip-group">
+
+                                    <span>
+                                        Gathering:
+                                        ${escapeHTML(
+                                            trip.meetingPoint ||
+                                            trip.gatheringPoint ||
+                                            "-"
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        Vehicle:
+                                        ${escapeHTML(
+                                            trip.vehicle ||
+                                            "-"
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        Driver:
+                                        ${escapeHTML(
+                                            trip.driverName ||
+                                            "-"
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        Seats:
+                                        ${Number(
+                                            trip.availableSeats ??
+                                            trip.capacity ??
+                                            0
+                                        )}
+                                        available /
+                                        ${Number(
+                                            trip.capacity ||
+                                            0
+                                        )}
+                                        total
+                                    </span>
+
+                                </div>
+                            `
+                    }
+
+                </div>
 
             </div>
 
@@ -1174,7 +1801,6 @@ async function editTrip(
             .doc(tripId)
             .get();
 
-
         if (!snapshot.exists) {
 
             alert(
@@ -1182,92 +1808,149 @@ async function editTrip(
             );
 
             return;
-
         }
-
 
         const trip =
             snapshot.data();
 
-
         editingTripId =
             tripId;
-
 
         document.getElementById(
             "tripFrom"
         ).value =
-            trip.from || "";
-
+            trip.from ||
+            trip.fromCity ||
+            "";
 
         document.getElementById(
             "tripTo"
         ).value =
-            trip.to || "";
-
+            trip.to ||
+            trip.toCity ||
+            "";
 
         document.getElementById(
             "tripDate"
         ).value =
-            trip.date || "";
-
+            trip.date ||
+            trip.travelDate ||
+            "";
 
         document.getElementById(
             "tripTime"
         ).value =
-            trip.departureTime || "";
-
-
-        document.getElementById(
-            "meetingPoint"
-        ).value =
-            trip.meetingPoint || "";
-
+            trip.departureTime ||
+            "";
 
         document.getElementById(
             "finalDestination"
         ).value =
-            trip.finalDestination || "";
-
+            trip.finalDestination ||
+            "";
 
         document.getElementById(
             "tripPrice"
         ).value =
-            trip.price || "";
-
-
-        document.getElementById(
-            "vehicle"
-        ).value =
-            trip.vehicle || "";
-
-
-        document.getElementById(
-            "driverName"
-        ).value =
-            trip.driverName || "";
-
-
-        document.getElementById(
-            "capacity"
-        ).value =
-            trip.capacity || 14;
-
+            trip.price ??
+            trip.fare ??
+            "";
 
         document.getElementById(
             "tripStatus"
         ).value =
-            trip.status || "AVAILABLE";
+            trip.status ||
+            "AVAILABLE";
 
+        let groups =
+            Array.isArray(trip.groups)
+                ? trip.groups
+                : [];
+
+        /*
+            LEGACY TRIP COMPATIBILITY
+
+            Older trips may not have a groups
+            array. Convert their existing single
+            vehicle details into one group so the
+            Admin can edit them using the new
+            structure.
+        */
+
+        if (groups.length === 0) {
+
+            const capacity =
+                Number(
+                    trip.capacity ||
+                    trip.availableSeats ||
+                    14
+                );
+
+            const availableSeats =
+                Number(
+                    trip.availableSeats ??
+                    capacity
+                );
+
+            const bookedCount =
+                Math.max(
+                    0,
+                    capacity -
+                    availableSeats
+                );
+
+            const bookedSeatNumbers = [];
+
+            for (
+                let seat = 1;
+                seat <= bookedCount;
+                seat++
+            ) {
+
+                bookedSeatNumbers.push(
+                    seat
+                );
+            }
+
+            groups = [
+                {
+                    groupId:
+                        trip.groupId ||
+                        createTripGroupId(),
+
+                    gatheringPoint:
+                        trip.gatheringPoint ||
+                        trip.meetingPoint ||
+                        "",
+
+                    vehicle:
+                        trip.vehicle ||
+                        "",
+
+                    driverName:
+                        trip.driverName ||
+                        "",
+
+                    capacity,
+
+                    availableSeats,
+
+                    bookedSeatNumbers
+                }
+            ];
+
+        }
+
+        renderTripGroups(
+            groups
+        );
 
         saveTripButton.textContent =
             "UPDATE TRIP";
 
-
         tripModal.classList.remove(
             "hidden"
         );
-
 
     } catch (error) {
 
@@ -1282,7 +1965,6 @@ async function editTrip(
     }
 
 }
-
 
 
 /* =====================================================

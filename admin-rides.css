@@ -262,6 +262,41 @@ body {
 }
 
 
+/* ADMIN TRIP GROUP DISPLAY */
+
+.trip-groups-detail {
+    grid-column: 1 / -1;
+}
+
+.admin-trip-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.admin-trip-group {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1.5fr 1fr 1.3fr;
+    gap: 8px;
+    align-items: center;
+    padding: 9px;
+    background: #ffffff;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+.admin-trip-group strong {
+    font-size: 11px;
+}
+
+.admin-trip-group span {
+    color: #555;
+    line-height: 1.4;
+}
+
+
 .status {
     display: inline-block;
     padding: 6px 9px;
@@ -441,6 +476,81 @@ body {
 }
 
 
+/* TRIP GROUPS */
+
+.trip-groups-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.trip-groups-header small {
+    display: block;
+    margin-top: 5px;
+    color: #777;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.trip-groups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.trip-group-card {
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #F5F7FA;
+}
+
+.trip-group-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.trip-group-card-header strong {
+    font-size: 14px;
+}
+
+.trip-group-remove {
+    border: none;
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: #E31B23;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.trip-group-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.trip-group-fields .form-group.full {
+    grid-column: 1 / -1;
+}
+
+.trip-group-empty {
+    padding: 18px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    text-align: center;
+    color: #777;
+    font-size: 13px;
+    background: white;
+}
+
+
 .loading,
 .empty {
     text-align: center;
@@ -453,6 +563,10 @@ body {
 /* MOBILE */
 
 @media (max-width: 900px) {
+
+    .admin-trip-group {
+        grid-template-columns: 1fr 1fr;
+    }
 
     .sidebar {
         width: 70px;
@@ -514,6 +628,10 @@ body {
 
 
 @media (max-width: 600px) {
+
+    .admin-trip-group {
+        grid-template-columns: 1fr;
+    }
 
     .topbar {
         align-items: flex-start;
