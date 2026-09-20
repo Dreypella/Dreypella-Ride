@@ -18,5 +18,21 @@
   ],
   "firestore": {
     "rules": "firestore.rules"
+  },
+  "hosting": {
+    "site": "dreypella-ride-4",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/functions/**",
+      "**/*.bak",
+      "**/*.backup",
+      "**/*.before-*",
+      "**/*.work",
+      "**/firebase-debug.log",
+      "**/firestore-debug.log"
+    ]
   }
 }
