@@ -153,7 +153,7 @@ setMinimumDate();
 
 findTripsButton.addEventListener(
     "click",
-    findTrips
+    function () { console.log("DREYPELLA CHECK AVAILABILITY CLICKED"); findTrips(); }
 );
 
 
