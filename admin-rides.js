@@ -68,6 +68,9 @@ let currentAdmin = null;
 
 let editingTripId = null;
 
+/* Custom customer request currently being assigned */
+let assigningRequestId = null;
+
 
 
 /* =====================================================
@@ -173,6 +176,7 @@ newTripButton.addEventListener(
     function() {
 
         editingTripId = null;
+        assigningRequestId = null;
 
         tripForm.reset();
 
@@ -890,9 +894,45 @@ tripForm.addEventListener(
                     firebase.firestore.FieldValue
                     .serverTimestamp();
 
-                await db
-                    .collection("trips")
-                    .add(tripData);
+                const createdTrip =
+                    await db
+                        .collection("trips")
+                        .add(tripData);
+
+                /*
+                 * If this trip was created from a
+                 * customer's custom request, link
+                 * that booking to the new trip.
+                 */
+                if (assigningRequestId) {
+
+                    await db
+                        .collection("rideBookings")
+                        .doc(assigningRequestId)
+                        .update({
+
+                            tripId:
+                                createdTrip.id,
+
+                            status:
+                                "PENDING_PAYMENT",
+
+                            requestType:
+                                "SCHEDULED_TRIP",
+
+                            assignedAt:
+                                firebase.firestore
+                                .FieldValue
+                                .serverTimestamp(),
+
+                            assignedBy:
+                                currentAdmin.uid
+
+                        });
+
+                    assigningRequestId = null;
+
+                }
 
             }
 
@@ -914,7 +954,7 @@ tripForm.addEventListener(
             );
 
             showFormMessage(
-                "Unable to save trip.",
+                error.message || "Unable to save trip.",
                 true
             );
 
@@ -948,20 +988,30 @@ async function loadRequests() {
 
         const snapshot =
             await db
-            .collection("rideRequests")
+            .collection("rideBookings")
             .orderBy(
                 "createdAt",
                 "desc"
             )
-            .limit(50)
+            .limit(100)
             .get();
+
+        const requestDocs =
+            snapshot.docs.filter(function(doc) {
+                const data = doc.data();
+
+                return (
+                    data.requestType === "CUSTOM_REQUEST" &&
+                    data.status === "REQUESTED"
+                );
+            }).slice(0, 50);
 
 
         pendingCount.textContent =
-            snapshot.size;
+            requestDocs.length;
 
 
-        if (snapshot.empty) {
+        if (requestDocs.length === 0) {
 
             requestsContainer.innerHTML =
                 `<div class="empty">
@@ -977,7 +1027,7 @@ async function loadRequests() {
             "";
 
 
-        snapshot.forEach(function(doc) {
+        requestDocs.forEach(function(doc) {
 
             renderRequest(
                 doc.id,
@@ -1043,15 +1093,16 @@ function renderRequest(
 
                 <div class="route">
 
-                    ${escapeHTML(request.from)}
+                    ${escapeHTML(request.fromCity || request.from || "" )}
                     →
-                    ${escapeHTML(request.to)}
+                    ${escapeHTML(request.toCity || request.to || "" )}
 
                 </div>
 
                 <div class="reference">
 
                     ${escapeHTML(
+                        request.bookingReference ||
                         request.requestReference ||
                         requestId
                     )}
@@ -1075,13 +1126,29 @@ function renderRequest(
             <div class="detail">
 
                 <small>
-                    TRAVEL DATE
+                    SUGGESTED TRAVEL DATE
                 </small>
 
                 <strong>
                     ${escapeHTML(
                         request.travelDate ||
-                        "-"
+                        "Not specified"
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="detail">
+
+                <small>
+                    SUGGESTED TIME
+                </small>
+
+                <strong>
+                    ${escapeHTML(
+                        request.preferredTime ||
+                        "Not specified"
                     )}
                 </strong>
 
@@ -1095,7 +1162,7 @@ function renderRequest(
                 </small>
 
                 <strong>
-                    ${request.passengers || 1}
+                    ${request.seats || request.passengers || 1}
                 </strong>
 
             </div>
@@ -1110,6 +1177,7 @@ function renderRequest(
                 <strong>
                     ${escapeHTML(
                         request.customerEmail ||
+                        request.passengerName ||
                         "-"
                     )}
                 </strong>
@@ -1192,7 +1260,7 @@ async function prepareTripFromRequest(
 
         const snapshot =
             await db
-            .collection("rideRequests")
+            .collection("rideBookings")
             .doc(requestId)
             .get();
 
@@ -1214,6 +1282,9 @@ async function prepareTripFromRequest(
 
         editingTripId = null;
 
+        assigningRequestId =
+            requestId;
+
         tripForm.reset();
 
         resetTripGroups();
@@ -1222,19 +1293,36 @@ async function prepareTripFromRequest(
         document.getElementById(
             "tripFrom"
         ).value =
-            request.from || "";
+            request.fromCity ||
+            request.from ||
+            "";
 
 
         document.getElementById(
             "tripTo"
         ).value =
-            request.to || "";
+            request.toCity ||
+            request.to ||
+            "";
 
+
+        /*
+         * Customer date/time are suggestions only.
+         * The admin decides the actual trip schedule.
+         *
+         * Pre-fill the suggested date when available,
+         * but the admin can change or replace it.
+         */
 
         document.getElementById(
             "tripDate"
         ).value =
             request.travelDate || "";
+
+        document.getElementById(
+            "tripTime"
+        ).value =
+            request.preferredTime || "";
 
 
         saveTripButton.textContent =
@@ -1296,7 +1384,7 @@ async function rejectRequest(
     try {
 
         await db
-            .collection("rideRequests")
+            .collection("rideBookings")
             .doc(requestId)
             .update({
 

@@ -153,6 +153,22 @@ service cloud.firestore {
 
 
       // =====================================================
+      // LEGACY RIDES
+      // =====================================================
+
+      match /rides/{rideId} {
+
+        allow read: if request.auth != null;
+
+        allow create: if request.auth != null
+          && request.resource.data.createdBy == request.auth.uid;
+
+        allow update, delete: if request.auth != null
+          && isAdmin();
+      }
+
+
+      // =====================================================
       // RIDE BOOKINGS
       // =====================================================
 
@@ -175,12 +191,124 @@ service cloud.firestore {
       }
 
 
+      // =====================================================
+      // RIDE TRIPS
+      // =====================================================
+
+      match /trips/{tripId} {
+
+        // Signed-in customers and admins can view trips.
+        allow read: if request.auth != null;
+
+        // Only Admins and Super Admins may create trips.
+        allow create: if request.auth != null
+          && isAdmin()
+          && request.resource.data.createdBy == request.auth.uid;
+
+        // Only Admins and Super Admins may update trips.
+        allow update: if request.auth != null
+          && isAdmin();
+
+        // Only Admins and Super Admins may delete trips.
+        allow delete: if request.auth != null
+          && isAdmin();
+      }
+
+
+      // =====================================================
+      // ADMIN VENDORS
+      // =====================================================
+
+      match /vendors/{vendorId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+
+
+      // =====================================================
+      // ADMIN WITHDRAWALS
+      // =====================================================
+
+      match /withdrawals/{withdrawalId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+
+
+      // =====================================================
+      // ADMIN AUDIT LOGS
+      // =====================================================
+
+      match /auditLogs/{auditLogId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+
+
+      // =====================================================
+      // ADMIN WALLET TRANSACTIONS
+      // =====================================================
+
+      match /walletTransactions/{transactionId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+
+
+      // =====================================================
+      // ADMIN EXPENSES
+      // =====================================================
+
+      match /expenses/{expenseId} {
+        allow read, create, update, delete: if isAdmin();
+      }
+
+
       // USER PROFILES
       match /users/{userId} {
+        // Users can read only their own profile.
+        allow read: if request.auth != null
+          && (
+            request.auth.uid == userId
+            || isAdmin()
+          );
+
+        // A newly authenticated user may create only their own profile.
+        // Existing profiles cannot be overwritten from the client.
+        allow create: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.uid == request.auth.uid;
+
+        allow update: if request.auth != null
+          && request.auth.uid == userId;
+
+        allow delete: if false;
+      }
+
+      // USER WALLETS
+      match /wallets/{userId} {
+        // Users may read only their own wallet.
         allow read: if request.auth != null
           && request.auth.uid == userId;
 
-        allow write: if false;
+        // Registration may create the user's initial wallet.
+        allow create: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.userId == request.auth.uid;
+
+        // Wallet balances must not be changed directly by clients.
+        allow update, delete: if false;
+      }
+
+      // REFERRALS
+      match /referrals/{referralId} {
+        // A signed-in user may create a referral record for themselves.
+        allow create: if request.auth != null
+          && request.resource.data.referredUserId == request.auth.uid;
+
+        allow read: if request.auth != null
+          && (
+            resource.data.referredUserId == request.auth.uid
+            || isAdmin()
+          );
+
+        allow update, delete: if isAdmin();
       }
 
   }

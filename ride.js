@@ -180,22 +180,6 @@ async function findTrips() {
         preferredTime.value;
 
 
-    /* VALIDATE LOCATION */
-
-    if (
-        !supportedLocations.includes(from) ||
-        !supportedLocations.includes(to)
-    ) {
-
-        showMessage(
-            journeyMessage,
-            "Please select a valid location.",
-            "error"
-        );
-
-        return;
-
-    }
 
 
     /* SAME LOCATION */
@@ -213,67 +197,43 @@ async function findTrips() {
     }
 
 
-    /* DATE */
+    /* TIME IS OPTIONAL */
 
-    if (!date) {
+    const suggestedTime =
+        time || "";
 
-        showMessage(
-            journeyMessage,
-            "Please select your travel date.",
-            "error"
+
+
+    /* PREVENT PAST DATE WHEN A DATE IS SUGGESTED */
+
+    if (date) {
+
+        const selectedDate =
+            new Date(
+                date + "T00:00:00"
+            );
+
+        const today =
+            new Date();
+
+        today.setHours(
+            0,
+            0,
+            0,
+            0
         );
 
-        return;
+        if (selectedDate < today) {
 
-    }
+            showMessage(
+                journeyMessage,
+                "Please select today or a future date.",
+                "error"
+            );
 
+            return;
 
-    /* TIME */
-
-    if (!time) {
-
-        showMessage(
-            journeyMessage,
-            "Please select your preferred departure time.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    /* PREVENT PAST DATE */
-
-    const selectedDate =
-        new Date(
-            date + "T00:00:00"
-        );
-
-
-    const today =
-        new Date();
-
-
-    today.setHours(
-        0,
-        0,
-        0,
-        0
-    );
-
-
-    if (
-        selectedDate < today
-    ) {
-
-        showMessage(
-            journeyMessage,
-            "Please select today or a future date.",
-            "error"
-        );
-
-        return;
+        }
 
     }
 
@@ -334,49 +294,21 @@ async function findTrips() {
 
 
                 /*
-                 * Only display trips
-                 * matching customer's date.
+                 * Customer date/time are only suggestions.
+                 * Admin decides the actual trip schedule.
+                 *
+                 * Therefore an AVAILABLE trip matching
+                 * the typed route is shown regardless of
+                 * the customer's suggested date/time.
                  */
 
+                availableTrips.push({
 
-                let tripDate = "";
+                    id: doc.id,
 
+                    ...trip
 
-                if (
-                    trip.departureTime &&
-                    trip.departureTime.toDate
-                ) {
-
-                    tripDate =
-                        formatDateForInput(
-                            trip.departureTime.toDate()
-                        );
-
-                }
-                else if (
-                    trip.travelDate
-                ) {
-
-                    tripDate =
-                        trip.travelDate;
-
-                }
-
-
-                if (
-                    !tripDate ||
-                    tripDate === date
-                ) {
-
-                    availableTrips.push({
-
-                        id: doc.id,
-
-                        ...trip
-
-                    });
-
-                }
+                });
 
             }
         );

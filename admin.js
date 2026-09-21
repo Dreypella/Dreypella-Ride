@@ -80,13 +80,15 @@ dreypellaAuth.onAuthStateChanged(
 
             };
 
+            console.log("ADMIN PROFILE:", user.uid, profile);
+
 
             initializeAdmin();
 
 
         } catch (error) {
 
-            console.error(error);
+            console.error("RIDE CREATE ERROR:", error.code, error.message, error);
 
             alert(
                 "Unable to verify administrator account."
@@ -118,7 +120,6 @@ async function initializeAdmin() {
 
     setupSupportModal();
 
-    setupRideModal();
 
     setupPricing();
 
@@ -126,7 +127,6 @@ async function initializeAdmin() {
 
     await loadPricing();
 
-    await loadRides();
 
     await loadDeliveries();
 
@@ -153,7 +153,7 @@ function setupNavigation() {
 
     const buttons =
         document.querySelectorAll(
-            ".nav-item"
+            ".nav-item[data-section]"
         );
 
 
@@ -915,353 +915,6 @@ async function savePricing() {
 
         message.style.color =
             "#E31B23";
-
-    }
-
-}
-
-
-// =====================================================
-// RIDE MANAGEMENT
-// =====================================================
-
-function setupRideModal() {
-
-    const modal =
-        document.getElementById(
-            "rideModal"
-        );
-
-
-    document
-        .getElementById(
-            "addRideButton"
-        )
-        .addEventListener(
-
-            "click",
-
-            function () {
-
-                modal.classList.add(
-                    "show"
-                );
-
-            }
-
-        );
-
-
-    document
-        .getElementById(
-            "closeRideModal"
-        )
-        .addEventListener(
-
-            "click",
-
-            function () {
-
-                modal.classList.remove(
-                    "show"
-                );
-
-            }
-
-        );
-
-
-    document
-        .getElementById(
-            "rideForm"
-        )
-        .addEventListener(
-
-            "submit",
-
-            createRide
-
-        );
-
-}
-
-
-async function createRide(
-    event
-) {
-
-    event.preventDefault();
-
-
-    const ride = {
-
-        origin:
-            getValue("rideOrigin"),
-
-        destination:
-            getValue("rideDestination"),
-
-        meetingPoint:
-            getValue("meetingPoint"),
-
-        finalDestination:
-            getValue("finalDestination"),
-
-        departureDate:
-            getValue("rideDate"),
-
-        departureTime:
-            getValue("rideTime"),
-
-        price:
-            numberInput("ridePrice"),
-
-        availableSeats:
-            numberInput("rideSeats"),
-
-        bookedSeats:
-            0,
-
-        vehicleInfo:
-            getValue("vehicleInfo"),
-
-        status:
-            "AVAILABLE",
-
-        createdBy:
-            currentAdmin.uid,
-
-        createdAt:
-            firebase.firestore
-                .FieldValue
-                .serverTimestamp()
-
-    };
-
-
-    const message =
-        document.getElementById(
-            "rideMessage"
-        );
-
-
-    try {
-
-
-        await dreypellaDB
-
-            .collection("rides")
-
-            .add(ride);
-
-
-        await createAuditLog(
-
-            "RIDE_CREATED",
-
-            `Ride created: ${ride.origin} to ${ride.destination}`
-
-        );
-
-
-        message.textContent =
-            "Ride created successfully.";
-
-        message.style.color =
-            "#16803C";
-
-
-        document
-            .getElementById(
-                "rideForm"
-            )
-            .reset();
-
-
-        await loadRides();
-
-
-        setTimeout(
-
-            function () {
-
-                document
-                    .getElementById(
-                        "rideModal"
-                    )
-                    .classList.remove(
-                        "show"
-                    );
-
-            },
-
-            1000
-
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        message.textContent =
-            "Unable to create ride.";
-
-        message.style.color =
-            "#E31B23";
-
-    }
-
-}
-
-
-// =====================================================
-// LOAD RIDES
-// =====================================================
-
-async function loadRides() {
-
-    const container =
-        document.getElementById(
-            "ridesTable"
-        );
-
-
-    try {
-
-        const snapshot =
-
-            await dreypellaDB
-
-                .collection("rides")
-                .get();
-
-
-        if (snapshot.empty) {
-
-            container.innerHTML =
-                "<p>No rides available.</p>";
-
-            return;
-
-        }
-
-
-        const rows =
-            snapshot.docs.map(
-
-                doc => {
-
-                    const ride =
-                        doc.data();
-
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${escapeHTML(doc.id)}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.origin || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.destination || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.meetingPoint || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.departureDate || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.departureTime || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ₦${formatMoney(
-                                    ride.price || 0
-                                )}
-                            </td>
-
-                            <td>
-                                ${ride.bookedSeats || 0}
-                                /
-                                ${ride.availableSeats || 0}
-                            </td>
-
-                            <td>
-                                <span class="status active">
-                                    ${escapeHTML(
-                                        ride.status || ""
-                                    )}
-                                </span>
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-
-            ).join("");
-
-
-        container.innerHTML = `
-
-            <table class="data-table">
-
-                <thead>
-
-                    <tr>
-
-                        <th>ID</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Gathering Point</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Price</th>
-                        <th>Seats</th>
-                        <th>Status</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    ${rows}
-
-                </tbody>
-
-            </table>
-
-        `;
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        container.innerHTML =
-            "Unable to load rides.";
 
     }
 

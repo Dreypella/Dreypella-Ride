@@ -79,37 +79,13 @@
                     ●
                 </span>
 
-                <select id="fromLocation">
-
-                    <option value="">
-                        Select departure city
-                    </option>
-
-                    <option value="Ogbomosho">
-                        Ogbomosho
-                    </option>
-
-                    <option value="Iseyin">
-                        Iseyin
-                    </option>
-
-                    <option value="Oyo">
-                        Oyo
-                    </option>
-
-                    <option value="Ibadan">
-                        Ibadan
-                    </option>
-
-                    <option value="Lagos">
-                        Lagos
-                    </option>
-
-                    <option value="Ilorin">
-                        Ilorin
-                    </option>
-
-                </select>
+                <input
+                    type="text"
+                    id="fromLocation"
+                    placeholder="Enter departure location"
+                    autocomplete="off"
+                    required
+                >
 
             </div>
 
@@ -133,37 +109,13 @@
                     ●
                 </span>
 
-                <select id="toLocation">
-
-                    <option value="">
-                        Select destination city
-                    </option>
-
-                    <option value="Ogbomosho">
-                        Ogbomosho
-                    </option>
-
-                    <option value="Iseyin">
-                        Iseyin
-                    </option>
-
-                    <option value="Oyo">
-                        Oyo
-                    </option>
-
-                    <option value="Ibadan">
-                        Ibadan
-                    </option>
-
-                    <option value="Lagos">
-                        Lagos
-                    </option>
-
-                    <option value="Ilorin">
-                        Ilorin
-                    </option>
-
-                </select>
+                <input
+                    type="text"
+                    id="toLocation"
+                    placeholder="Enter destination"
+                    autocomplete="off"
+                    required
+                >
 
             </div>
 
@@ -178,13 +130,12 @@
             <div>
 
                 <label>
-                    Travel Date
+                    Preferred Travel Date (Optional suggestion)
                 </label>
 
                 <input
                     type="date"
                     id="travelDate"
-                    required
                 >
 
             </div>
@@ -193,13 +144,12 @@
             <div>
 
                 <label>
-                    Preferred Time
+                    Preferred Time <small>(Optional)</small>
                 </label>
 
                 <input
                     type="time"
                     id="preferredTime"
-                    required
                 >
 
             </div>

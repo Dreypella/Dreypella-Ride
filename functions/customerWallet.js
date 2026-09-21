@@ -26,6 +26,7 @@ async function getCustomerTransactions(data, context) {
             id: doc.id,
             transactionId: transaction.transactionId || doc.id,
             type: transaction.type || null,
+            paymentType: transaction.paymentType || null,
             direction: transaction.direction || null,
             amount: Number(transaction.amount || 0),
             status: transaction.status || null,

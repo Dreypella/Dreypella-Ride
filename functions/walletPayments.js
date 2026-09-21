@@ -188,7 +188,9 @@ async function payWithWallet(data, context) {
             status: "SUCCESS",
             reference,
             orderId,
+            bookingId: paymentType === "RIDE" ? orderId : null,
             item,
+            description: `${priceLabel} - ${orderId}`,
             balanceBefore: balance,
             balanceAfter: newBalance,
             createdAt: admin.firestore.FieldValue.serverTimestamp()

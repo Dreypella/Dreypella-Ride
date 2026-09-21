@@ -305,9 +305,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const snapshot = await db
-                .collection("rides")
-                .where("customerId", "==", user.uid)
+                .collection("rideBookings")
+                .where("userId", "==", user.uid)
                 .where("status", "==", "COMPLETED")
+                .where("paymentStatus", "==", "PAID")
                 .get();
 
 
@@ -338,16 +339,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const snapshot = await db
-                .collection("rides")
-                .where("customerId", "==", user.uid)
-                .where("status", "in", [
-                    "REQUESTED",
-                    "CONFIRMED",
-                    "ASSIGNED",
-                    "DRIVER_ARRIVING",
-                    "STARTED",
-                    "IN_PROGRESS"
-                ])
+                .collection("rideBookings")
+                .where("userId", "==", user.uid)
+                .where("status", "==", "CONFIRMED")
+                .where("paymentStatus", "==", "PAID")
                 .limit(1)
                 .get();
 
@@ -362,7 +357,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const doc = snapshot.docs[0];
-
             const data = doc.data();
 
 
@@ -371,18 +365,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             activeTripStatus.textContent =
-                formatStatus(data.status);
+                "Confirmed";
 
 
             activePickup.textContent =
-                data.pickupLocation ||
-                data.pickupAddress ||
+                data.gatheringPoint ||
                 "Pickup location";
 
 
             activeDestination.textContent =
-                data.destination ||
-                data.destinationAddress ||
+                data.finalDestination ||
+                data.toCity ||
                 "Destination";
 
 
@@ -399,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
     }
-
 
     /* =========================================
        RECENT ACTIVITY
@@ -445,7 +437,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 item.innerHTML = `
 
                     <div class="activity-icon">
-                        ${getTransactionIcon(data.type)}
+                        ${getTransactionIcon(data.paymentType || data.type)}
                     </div>
 
                     <div class="activity-info">

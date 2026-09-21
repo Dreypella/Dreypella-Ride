@@ -83,12 +83,20 @@ async function completeDelivery(data, context) {
             deliverySnapshot,
             partnerSnapshot,
             walletSnapshot,
-            earningsSnapshot
+            earningsSnapshot,
+            bookingSnapshot
         ] = await Promise.all([
             transaction.get(deliveryRef),
             transaction.get(partnerRef),
             transaction.get(walletRef),
-            transaction.get(earningsTransactionRef)
+            transaction.get(earningsTransactionRef),
+            delivery.bookingReference
+                ? transaction.get(
+                    db.collection("rideBookings")
+                        .where("bookingReference", "==", delivery.bookingReference)
+                        .limit(1)
+                  )
+                : Promise.resolve({ empty: true, docs: [] })
         ]);
 
         if (!deliverySnapshot.exists) {
@@ -221,7 +229,15 @@ async function completeDelivery(data, context) {
         const now =
             admin.firestore.FieldValue.serverTimestamp();
 
-        transaction.update(deliveryRef, {
+        if (bookingSnapshot && !bookingSnapshot.empty) {
+        transaction.update(bookingSnapshot.docs[0].ref, {
+            status: "COMPLETED",
+            completedAt: now,
+            updatedAt: now
+        });
+    }
+
+    transaction.update(deliveryRef, {
             status: "DELIVERED",
             deliveryVerified: true,
             deliveryVerifiedAt: now,
