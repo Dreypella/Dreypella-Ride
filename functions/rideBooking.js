@@ -24,10 +24,10 @@ const {
     Validate group
         ↓
     Firestore transaction
-        ├── verify availability
-        ├── assign seats
-        ├── reduce available seats
-        └── create ride booking
+        ├── verify permanent availability
+        ├── assign temporary seats
+        ├── create seat holds
+        └── create pending ride booking
 
     Seat numbers belong to the selected
     group/bus, never to the gathering point.
@@ -367,71 +367,140 @@ async function createRideBooking(
                 const assignedSeats =
                     [];
 
+                  /*
+                      Temporary seat holds use one
+                      deterministic document per
+                      trip/group/seat so concurrent
+                      bookings cannot claim the same
+                      temporarily held seat.
+                  */
+                  const seatHoldRefs = [];
 
-                for (
-                    let seatNumber = 1;
-                    seatNumber <= capacity;
-                    seatNumber++
-                ) {
+                  const holdCollection =
+                      db.collection("rideSeatHolds");
 
-                    if (
-                        !bookedSet.has(
-                            seatNumber
-                        )
-                    ) {
+                  const holdKeyPrefix =
+                      encodeURIComponent(tripId) +
+                      "__" +
+                      encodeURIComponent(
+                          String(
+                              selectedGroup.groupId ||
+                              "DEFAULT"
+                          )
+                      );
 
-                        assignedSeats.push(
-                            seatNumber
-                        );
+                  for (
+                      let seatNumber = 1;
+                      seatNumber <= capacity;
+                      seatNumber++
+                  ) {
 
-                        bookedSet.add(
-                            seatNumber
-                        );
-
-                    }
-
-
-                    if (
-                        assignedSeats.length ===
-                        requestedSeats
-                    ) {
-
-                        break;
-
-                    }
-
-                }
-
-
-                if (
-                    assignedSeats.length !==
-                    requestedSeats
-                ) {
-
-                    throw new Error(
-                        "The requested number of seats is no longer available."
-                    );
-
-                }
+                      if (!bookedSet.has(seatNumber)) {
+                          seatHoldRefs.push({
+                              seatNumber,
+                              ref:
+                                  holdCollection.doc(
+                                      holdKeyPrefix +
+                                      "__" +
+                                      seatNumber
+                                  )
+                          });
+                      }
 
 
-                const updatedGroup = {
-                    ...selectedGroup,
-                    groupId:
-                        selectedGroup.groupId ||
-                        "DEFAULT",
-                    capacity,
-                    availableSeats:
-                        availableSeats -
-                        requestedSeats,
-                    bookedSeatNumbers:
-                        Array.from(
-                            bookedSet
-                        ).sort(
-                            (a, b) =>
-                                a - b
-                        )
-                };
+                  }
+
+                  const seatHoldSnapshots = [];
+
+                  for (
+                      const hold of seatHoldRefs
+                  ) {
+                      seatHoldSnapshots.push({
+                          ...hold,
+                          snapshot:
+                              await transaction.get(
+                                  hold.ref
+                              )
+                      });
+                  }
+
+
+                  for (
+                      const hold of seatHoldSnapshots
+                  ) {
+
+                      if (
+                          assignedSeats.length >=
+                          requestedSeats
+                      ) {
+                          break;
+                      }
+
+                      const holdData =
+                          hold.snapshot.exists
+                              ? hold.snapshot.data()
+                              : null;
+
+                      const expiresAt =
+                          holdData &&
+                          holdData.expiresAt
+                              ? holdData.expiresAt.toDate
+                                  ? holdData.expiresAt.toDate()
+                                  : new Date(
+                                      holdData.expiresAt
+                                  )
+                              : null;
+
+                      const isActiveStatus =
+                          holdData &&
+                          (
+                              holdData.status === "HELD" ||
+                              holdData.status === "RESERVED"
+                          );
+
+                      const hasValidExpiry =
+                          expiresAt &&
+                          Number.isFinite(
+                              expiresAt.getTime()
+                          );
+
+                      const isActiveHold =
+                          isActiveStatus &&
+                          hasValidExpiry &&
+                          expiresAt.getTime() >
+                              Date.now();
+
+                      const isInvalidHoldRecord =
+                          isActiveStatus &&
+                          !hasValidExpiry;
+
+                      if (
+                          isActiveHold ||
+                          isInvalidHoldRecord
+                      ) {
+                          continue;
+                      }
+
+                      assignedSeats.push(
+                          hold.seatNumber
+                      );
+                  }
+
+                  if (
+                      assignedSeats.length !==
+                      requestedSeats
+                  ) {
+                      throw new Error(
+                          "The requested number of seats is no longer available."
+                      );
+                  }
+
+                  const updatedGroup = {
+                      ...selectedGroup,
+                      groupId:
+                          selectedGroup.groupId ||
+                          "DEFAULT"
+                  };
 
 
                 groups[
@@ -497,6 +566,11 @@ async function createRideBooking(
                     "";
 
 
+                  const seatHoldExpiresAt =
+                      new Date(
+                          Date.now() + 10 * 60 * 1000
+                      );
+
                 const bookingData = {
 
                     bookingReference,
@@ -547,6 +621,11 @@ async function createRideBooking(
                     assignedSeatNumbers:
                         assignedSeats,
 
+                  seatHoldExpiresAt:
+                      admin.firestore.Timestamp.fromDate(
+                          seatHoldExpiresAt
+                      ),
+
                     farePerSeat:
                         fare,
 
@@ -577,37 +656,47 @@ async function createRideBooking(
                 };
 
 
-                transaction.update(
-                    tripRef,
-                    {
-                        groups,
 
-                        /*
-                            Keep legacy aggregate
-                            availability compatible.
-                        */
 
-                        availableSeats:
-                            groups.reduce(
-                                (
-                                    total,
-                                    group
-                                ) =>
-                                    total +
-                                    Number(
-                                        group.availableSeats ||
-                                        0
-                                    ),
-                                0
-                            ),
+                  for (
+                      const seatNumber of assignedSeats
+                  ) {
 
-                        updatedAt:
-                            admin.firestore
-                                .FieldValue
-                                .serverTimestamp()
-                    }
-                );
+                      const hold =
+                          seatHoldSnapshots.find(
+                              item =>
+                                  item.seatNumber ===
+                                  seatNumber
+                          );
 
+                      if (!hold) {
+                          throw new Error(
+                              "Unable to create the seat hold."
+                          );
+                      }
+
+                      transaction.set(
+                          hold.ref,
+                          {
+                              bookingId:
+                                  bookingRef.id,
+                              tripId,
+                              groupId:
+                                  updatedGroup.groupId,
+                              seatNumber,
+                              userId: uid,
+                              status: "HELD",
+                              expiresAt:
+                                  admin.firestore.Timestamp.fromDate(
+                                      seatHoldExpiresAt
+                                  ),
+                              createdAt:
+                                  admin.firestore.FieldValue.serverTimestamp(),
+                              updatedAt:
+                                  admin.firestore.FieldValue.serverTimestamp()
+                          }
+                      );
+                  }
 
                 transaction.set(
                     bookingRef,

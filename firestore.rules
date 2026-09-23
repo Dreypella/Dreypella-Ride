@@ -174,20 +174,27 @@ service cloud.firestore {
 
       match /rideBookings/{bookingId} {
 
-        allow create: if request.auth != null
-          && request.resource.data.userId == request.auth.uid;
-
+        // Customers may only read their own ride bookings.
         allow read: if request.auth != null
           && (
             resource.data.userId == request.auth.uid
             || isAdmin()
           );
 
-        allow update: if request.auth != null
-          && isAdmin();
+        // Ride bookings are created and changed only by
+        // trusted Cloud Functions or Admin operations.
+        allow create, update, delete: if isAdmin();
+      }
 
-        allow delete: if request.auth != null
-          && isAdmin();
+      // =====================================================
+      // RIDE SEAT HOLDS
+      // =====================================================
+
+      match /rideSeatHolds/{holdId} {
+
+        // Seat holds are fully server-controlled.
+        // Cloud Functions use the Admin SDK and bypass rules.
+        allow read, create, update, delete: if false;
       }
 
 

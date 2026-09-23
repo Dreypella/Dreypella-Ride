@@ -1357,6 +1357,11 @@ async function submitBooking(event) {
                     tripId:
                         selectedTripData.id,
 
+                    groupId:
+                        tripGroup
+                            ? tripGroup.value
+                            : "",
+
                     passengerName:
                         name,
 
@@ -1415,89 +1420,52 @@ async function submitBooking(event) {
          * flow for customer requests.
          */
 
-        const bookingReference =
-            generateBookingReference();
+        const functions =
+            firebase.functions();
 
-        const bookingDoc =
-            await db
-                .collection("rideBookings")
-                .add({
+        const createCustomRideRequest =
+            functions.httpsCallable(
+                "createCustomRideRequest"
+            );
 
-                    bookingReference:
+        const response =
+            await createCustomRideRequest({
 
-                        bookingReference,
+                bookingReference:
+                    generateBookingReference(),
 
-                    userId:
+                passengerName:
+                    name,
 
-                        user.uid,
+                passengerPhone:
+                    phone,
 
-                    passengerName:
+                fromCity:
+                    from,
 
-                        name,
+                toCity:
+                    to,
 
-                    passengerPhone:
+                travelDate:
+                    date,
 
-                        phone,
+                preferredTime:
+                    time,
 
-                    fromCity:
+                seats:
+                    seats
 
-                        from,
+            });
 
-                    toCity:
+        if (
+            !response.data ||
+            response.data.success !== true
+        ) {
+            throw new Error(
+                "Unable to submit ride request."
+            );
+        }
 
-                        to,
-
-                    travelDate:
-
-                        date,
-
-                    preferredTime:
-
-                        time,
-
-                    tripId:
-
-                        null,
-
-                    gatheringPoint:
-
-                        "",
-
-                    finalDestination:
-
-                        "",
-
-                    confirmedDeparture:
-
-                        null,
-
-                    seats:
-
-                        seats,
-
-                    totalFare:
-
-                        null,
-
-                    status:
-
-                        "REQUESTED",
-
-                    paymentStatus:
-
-                        "WAITING_CONFIRMATION",
-
-                    requestType:
-
-                        "CUSTOM_REQUEST",
-
-                    createdAt:
-
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
-
-                });
 
         showMessage(
             bookingMessage,

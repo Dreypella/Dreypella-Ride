@@ -689,6 +689,10 @@ const {
 } = require("./rideBooking");
 
 const {
+    createCustomRideRequest
+} = require("./rideRequests");
+
+const {
     createDelivery,
     calculateDeliveryQuote
 } = require("./deliveryCreation");
@@ -721,6 +725,39 @@ exports.createRideBooking =
                     "Unable to create ride booking."
                 );
             }
+        }
+    );
+
+exports.createCustomRideRequest =
+    onCall(
+        async request => {
+
+            try {
+
+                return await createCustomRideRequest(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Custom ride request error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to submit ride request."
+                );
+
+            }
+
         }
     );
 

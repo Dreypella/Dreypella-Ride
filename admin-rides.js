@@ -2066,23 +2066,51 @@ async function changeTripStatus(
 
     try {
 
-        await db
-            .collection("trips")
-            .doc(tripId)
-            .update({
+        if (status === "ACTIVE") {
 
-                status,
+            const functions =
+                firebase.functions();
 
-                updatedAt:
-                    firebase.firestore
-                    .FieldValue
-                    .serverTimestamp()
+            const startRideTrip =
+                functions.httpsCallable(
+                    "startRideTrip"
+                );
 
-            });
+            const result =
+                await startRideTrip({
+                    tripId
+                });
 
+            const data =
+                result.data || {};
+
+            if (
+                data.success !== true
+            ) {
+                throw new Error(
+                    "The ride trip could not be started."
+                );
+            }
+
+        } else {
+
+            await db
+                .collection("trips")
+                .doc(tripId)
+                .update({
+
+                    status,
+
+                    updatedAt:
+                        firebase.firestore
+                        .FieldValue
+                        .serverTimestamp()
+
+                });
+
+        }
 
         loadTrips();
-
 
     } catch (error) {
 
@@ -2092,13 +2120,13 @@ async function changeTripStatus(
         );
 
         alert(
+            error?.message ||
             "Unable to update trip status."
         );
 
     }
 
 }
-
 
 
 /* =====================================================

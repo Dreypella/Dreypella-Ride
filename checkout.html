@@ -606,6 +606,58 @@
                                     0
                                 );
 
+                            const isPayOnDepartureReservation =
+                                booking.status ===
+                                    "RESERVED" &&
+                                booking.paymentStatus ===
+                                    "UNPAID" &&
+                                booking.paymentMethod ===
+                                    "PAY_ON_DEPARTURE";
+
+                            if (
+                                isPayOnDepartureReservation
+                            ) {
+                                const payOnDepartureOption =
+                                    document.querySelector(
+                                        'input[name="paymentMethod"][value="PAY_ON_DEPARTURE"]'
+                                    );
+
+                                if (
+                                    payOnDepartureOption
+                                ) {
+                                    const optionLabel =
+                                        payOnDepartureOption.closest(
+                                            ".payment-option"
+                                        );
+
+                                    if (optionLabel) {
+                                        optionLabel.style.display =
+                                            "none";
+                                    }
+                                }
+
+                                const walletOption =
+                                    document.querySelector(
+                                        'input[name="paymentMethod"][value="WALLET"]'
+                                    );
+
+                                if (walletOption) {
+                                    walletOption.checked = true;
+                                }
+
+                                const paymentNote =
+                                    document.querySelector(
+                                        ".payment-note"
+                                    );
+
+                                if (paymentNote) {
+                                    paymentNote.textContent =
+                                        "Your seat is currently reserved for Pay on Departure. You can complete payment securely now using your Dreypella Wallet or Paystack. Payment must be completed before the trip starts.";
+                                }
+
+                                continueButton.textContent =
+                                    "PAY NOW";
+                            }
 
                             bookingSummary.innerHTML = `
 

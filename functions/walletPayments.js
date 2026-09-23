@@ -175,9 +175,440 @@ async function payWithWallet(data, context) {
             throw error;
         }
 
+        /*
+            RIDE SEAT HOLD CONVERSION
+            -------------------------
+            Wallet payment must convert the temporary seat holds
+            into permanent booked seats inside this SAME transaction
+            as the wallet debit and booking payment update.
+
+            Delivery and marketplace payments do not use ride seats.
+        */
+        let rideSeatHoldRefs = [];
+
+        if (paymentType === "RIDE") {
+            const isPayOnDepartureReservation =
+                record.status ===
+                "RESERVED" &&
+                record.paymentMethod ===
+                "PAY_ON_DEPARTURE";
+
+            if (
+                record.status !==
+                "PENDING_PAYMENT" &&
+                !isPayOnDepartureReservation
+            ) {
+                throw new Error(
+                    "This ride booking is no longer awaiting payment."
+                );
+            }
+
+            const tripId =
+                String(
+                    record.tripId ||
+                    ""
+                ).trim();
+
+            const groupId =
+                String(
+                    record.groupId ||
+                    ""
+                ).trim();
+
+            const assignedSeatNumbers =
+                Array.isArray(
+                    record.assignedSeatNumbers
+                )
+                    ? record.assignedSeatNumbers
+                        .map(
+                            seat =>
+                                Number(seat)
+                        )
+                        .filter(
+                            Number.isInteger
+                        )
+                    : [];
+
+            const requestedSeats =
+                Number(
+                    record.seats
+                );
+
+            if (
+                !tripId ||
+                !groupId ||
+                !Number.isInteger(
+                    requestedSeats
+                ) ||
+                requestedSeats < 1 ||
+                requestedSeats > 4 ||
+                assignedSeatNumbers.length !==
+                    requestedSeats ||
+                new Set(
+                    assignedSeatNumbers
+                ).size !==
+                    assignedSeatNumbers.length
+            ) {
+                throw new Error(
+                    "Ride booking seat information is invalid."
+                );
+            }
+
+            const tripRef =
+                db
+                    .collection("trips")
+                    .doc(tripId);
+
+            const tripSnapshot =
+                await transaction.get(
+                    tripRef
+                );
+
+            if (!tripSnapshot.exists) {
+                throw new Error(
+                    "Ride trip not found."
+                );
+            }
+
+            const trip =
+                tripSnapshot.data();
+
+            if (
+                isPayOnDepartureReservation
+            ) {
+                if (
+                    trip.status !==
+                    "AVAILABLE"
+                ) {
+                    throw new Error(
+                        "This Pay on Departure reservation can no longer be paid because the trip has started."
+                    );
+                }
+
+                const departureDate =
+                    trip.departureTime &&
+                    typeof trip.departureTime.toDate ===
+                        "function"
+                        ? trip.departureTime.toDate()
+                        : new Date(
+                            trip.departureTime ||
+                            ""
+                        );
+
+                if (
+                    !Number.isFinite(
+                        departureDate.getTime()
+                    ) ||
+                    departureDate.getTime() <=
+                        Date.now()
+                ) {
+                    throw new Error(
+                        "This Pay on Departure reservation can no longer be paid because the trip has reached its departure time."
+                    );
+                }
+            }
+
+            if (
+                !Array.isArray(
+                    trip.groups
+                )
+            ) {
+                throw new Error(
+                    "Ride trip group information is invalid."
+                );
+            }
+
+            const groupIndex =
+                trip.groups.findIndex(
+                    group =>
+                        String(
+                            group?.groupId ||
+                            ""
+                        ).trim() ===
+                        groupId
+                );
+
+            if (
+                groupIndex < 0
+            ) {
+                throw new Error(
+                    "Selected ride group was not found."
+                );
+            }
+
+            const selectedGroup =
+                trip.groups[groupIndex];
+
+            const capacity =
+                Number(
+                    selectedGroup.capacity
+                );
+
+            if (
+                !Number.isInteger(
+                    capacity
+                ) ||
+                capacity < 1
+            ) {
+                throw new Error(
+                    "Ride group capacity is invalid."
+                );
+            }
+
+            const rawBookedSeatNumbers =
+                Array.isArray(
+                    selectedGroup.bookedSeatNumbers
+                )
+                    ? selectedGroup.bookedSeatNumbers
+                    : [];
+
+            const bookedSeatNumbers =
+                rawBookedSeatNumbers.map(
+                    seat =>
+                        Number(seat)
+                );
+
+            if (
+                bookedSeatNumbers.some(
+                    seat =>
+                        !Number.isInteger(seat) ||
+                        seat < 1 ||
+                        seat > capacity
+                )
+            ) {
+                throw new Error(
+                    "Stored booked ride seat data is invalid."
+                );
+            }
+
+            const bookedSet =
+                new Set(
+                    bookedSeatNumbers
+                );
+
+            if (
+                bookedSet.size !==
+                bookedSeatNumbers.length
+            ) {
+                throw new Error(
+                    "Stored booked ride seat data contains duplicates."
+                );
+            }
+
+            for (
+                const seatNumber
+                of assignedSeatNumbers
+            ) {
+                if (
+                    seatNumber < 1 ||
+                    seatNumber > capacity
+                ) {
+                    throw new Error(
+                        "A booked ride seat is outside the group capacity."
+                    );
+                }
+
+                if (
+                    bookedSet.has(
+                        seatNumber
+                    )
+                ) {
+                    throw new Error(
+                        "One or more selected ride seats are already booked."
+                    );
+                }
+            }
+
+            const holdCollection =
+                db.collection(
+                    "rideSeatHolds"
+                );
+
+            const holdKeyPrefix =
+                encodeURIComponent(
+                    tripId
+                ) +
+                "__" +
+                encodeURIComponent(
+                    groupId
+                );
+
+            const now =
+                admin.firestore.Timestamp.now();
+
+            for (
+                const seatNumber
+                of assignedSeatNumbers
+            ) {
+                const holdRef =
+                    holdCollection.doc(
+                        holdKeyPrefix +
+                        "__" +
+                        seatNumber
+                    );
+
+                const holdSnapshot =
+                    await transaction.get(
+                        holdRef
+                    );
+
+                if (
+                    !holdSnapshot.exists
+                ) {
+                    throw new Error(
+                        "One or more ride seat holds are missing or have expired."
+                    );
+                }
+
+                const hold =
+                    holdSnapshot.data();
+
+                const expiresAt =
+                    hold.expiresAt;
+
+                const expectedHoldStatus =
+                    isPayOnDepartureReservation
+                        ? "RESERVED"
+                        : "HELD";
+
+                if (
+                    hold.status !==
+                    expectedHoldStatus ||
+                    String(
+                        hold.bookingId ||
+                        ""
+                    ) !==
+                    orderId ||
+                    String(
+                        hold.userId ||
+                        ""
+                    ) !==
+                    uid ||
+                    String(
+                        hold.tripId ||
+                        ""
+                    ) !==
+                    tripId ||
+                    String(
+                        hold.groupId ||
+                        ""
+                    ) !==
+                    groupId ||
+                    Number(
+                        hold.seatNumber
+                    ) !==
+                    seatNumber ||
+                    !expiresAt ||
+                    typeof expiresAt.toMillis !==
+                        "function" ||
+                    expiresAt.toMillis() <=
+                        now.toMillis()
+                ) {
+                    throw new Error(
+                        "One or more ride seat holds are invalid or have expired."
+                    );
+                }
+
+                rideSeatHoldRefs.push(
+                    holdRef
+                );
+            }
+
+            const updatedBookedSeatNumbers =
+                Array.from(
+                    new Set([
+                        ...bookedSeatNumbers,
+                        ...assignedSeatNumbers
+                    ])
+                ).sort(
+                    (a, b) =>
+                        a - b
+                );
+
+            const updatedGroup = {
+                ...selectedGroup,
+                bookedSeatNumbers:
+                    updatedBookedSeatNumbers,
+                availableSeats:
+                    capacity -
+                    updatedBookedSeatNumbers.length
+            };
+
+            const updatedGroups =
+                trip.groups.map(
+                    (group, index) =>
+                        index === groupIndex
+                            ? updatedGroup
+                            : group
+                );
+
+            const tripAvailableSeats =
+                updatedGroups.reduce(
+                    (total, group) => {
+                        const groupCapacity =
+                            Number(
+                                group.capacity
+                            );
+
+                        const groupBooked =
+                            Array.isArray(
+                                group.bookedSeatNumbers
+                            )
+                                ? group.bookedSeatNumbers
+                                    .map(
+                                        seat =>
+                                            Number(seat)
+                                    )
+                                    .filter(
+                                        Number.isInteger
+                                    ).length
+                                : 0;
+
+                        const groupAvailable =
+                            groupCapacity -
+                            groupBooked;
+
+                        return (
+                            total +
+                            Math.max(
+                                0,
+                                groupAvailable
+                            )
+                        );
+                    },
+                    0
+                );
+
+            transaction.update(
+                tripRef,
+                {
+                    groups:
+                        updatedGroups,
+                    availableSeats:
+                        tripAvailableSeats,
+                    updatedAt:
+                        admin.firestore.FieldValue.serverTimestamp()
+                }
+            );
+
+            for (
+                const holdRef
+                of rideSeatHoldRefs
+            ) {
+                transaction.delete(
+                    holdRef
+                );
+            }
+        }
+
         const newBalance = money(balance - amount);
         const transactionId = generateTransactionReference("DR-PAY");
 
+        /*
+            All transaction reads must be completed before any
+            transaction write. The wallet debit, ride seat
+            confirmation, and payment record update remain atomic.
+        */
         transaction.set(transactionRef, {
             transactionId,
             userId: uid,
@@ -203,7 +634,8 @@ async function payWithWallet(data, context) {
 
         /*
             Mark the actual business record paid inside the SAME
-            Firestore transaction as the wallet debit.
+            Firestore transaction as the wallet debit and, for rides,
+            the permanent seat assignment.
         */
         const paymentUpdate = {
             paymentStatus: "PAID",
