@@ -32,7 +32,10 @@
       "**/*.before-*",
       "**/*.work",
       "**/firebase-debug.log",
-      "**/firestore-debug.log"
+      "**/firestore-debug.log",
+      "**/checkout-test.js",
+      "**/support-step26-status.txt",
+      "**/| sed*"
     ]
   }
 }
