@@ -79,6 +79,39 @@ let selectedTripData = null;
 
 
 /* =========================================
+   CANONICAL RIDE ROUTE
+   ========================================= */
+
+function normalizeRideLocation(value) {
+
+    const normalized =
+        String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+    const aliases = {
+        "ogbomosho": "ogbomoso",
+        "ogbomoso": "ogbomoso"
+    };
+
+    return aliases[normalized] || normalized;
+
+}
+
+
+function normalizeRideRoute(fromCity, toCity) {
+
+    return (
+        normalizeRideLocation(fromCity) +
+        "->" +
+        normalizeRideLocation(toCity)
+    );
+
+}
+
+
+/* =========================================
    SUPPORTED LOCATIONS
    ========================================= */
 
@@ -134,12 +167,11 @@ function setMinimumDate() {
         dateString;
 
 
-    if (!travelDate.value) {
-
-        travelDate.value =
-            dateString;
-
-    }
+    /*
+     * Travel date is an optional suggestion for
+     * custom journey requests. Keep the minimum
+     * date constraint without forcing a value.
+     */
 
 }
 
@@ -262,7 +294,33 @@ async function findTrips() {
          */
 
 
-        const snapshot =
+        const routeKey =
+            normalizeRideRoute(
+                from,
+                to
+            );
+
+
+        /*
+         * New trips use canonical routeKey.
+         * Date/time remain suggestions only.
+         */
+        const routeSnapshot =
+            await db
+                .collection("trips")
+                .where(
+                    "routeKey",
+                    "==",
+                    routeKey
+                )
+                .get();
+
+
+        /*
+         * Keep compatibility with older trips
+         * that do not yet contain routeKey.
+         */
+        const legacySnapshot =
             await db
                 .collection("trips")
                 .where(
@@ -283,10 +341,48 @@ async function findTrips() {
                 .get();
 
 
+        const tripDocs =
+            new Map();
+
+
+        routeSnapshot.forEach(
+            function(doc) {
+
+                const trip =
+                    doc.data();
+
+                if (
+                    trip.status ===
+                    "AVAILABLE"
+                ) {
+
+                    tripDocs.set(
+                        doc.id,
+                        doc
+                    );
+
+                }
+
+            }
+        );
+
+
+        legacySnapshot.forEach(
+            function(doc) {
+
+                tripDocs.set(
+                    doc.id,
+                    doc
+                );
+
+            }
+        );
+
+
         availableTrips = [];
 
 
-        snapshot.forEach(
+        tripDocs.forEach(
             function(doc) {
 
                 const trip =
@@ -298,8 +394,8 @@ async function findTrips() {
                  * Admin decides the actual trip schedule.
                  *
                  * Therefore an AVAILABLE trip matching
-                 * the typed route is shown regardless of
-                 * the customer's suggested date/time.
+                 * the route is shown regardless of the
+                 * customer's suggested date/time.
                  */
 
                 availableTrips.push({
@@ -1243,9 +1339,7 @@ async function submitBooking(event) {
 
     if (
         !from ||
-        !to ||
-        !date ||
-        !time
+        !to
     ) {
 
         showMessage(
@@ -1275,12 +1369,12 @@ async function submitBooking(event) {
     if (
         !Number.isInteger(seats) ||
         seats < 1 ||
-        seats > 4
+        seats > 8
     ) {
 
         showMessage(
             bookingMessage,
-            "Seat count must be between 1 and 4.",
+            "Seat count must be between 1 and 8.",
             "error"
         );
 
@@ -1804,3 +1898,133 @@ function escapeHTML(value) {
         );
 
 }
+
+/* =========================================
+   DIRECT TRIP LINK
+   ========================================= */
+
+async function loadTripFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const tripId =
+        params.get("tripId");
+
+    if (!tripId) {
+
+        return;
+
+    }
+
+    try {
+
+        const tripSnapshot =
+            await db
+                .collection("trips")
+                .doc(tripId)
+                .get();
+
+        if (
+            !tripSnapshot.exists
+        ) {
+
+            showMessage(
+                journeyMessage,
+                "This trip is no longer available.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const trip =
+            tripSnapshot.data();
+
+        if (
+            trip.status !== "AVAILABLE"
+        ) {
+
+            showMessage(
+                journeyMessage,
+                "This trip is no longer available for booking.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const from =
+            trip.fromCity ||
+            trip.from ||
+            "";
+
+        const to =
+            trip.toCity ||
+            trip.to ||
+            "";
+
+        fromLocation.value =
+            from;
+
+        toLocation.value =
+            to;
+
+        if (
+            trip.travelDate
+        ) {
+
+            travelDate.value =
+                trip.travelDate;
+
+        }
+
+        if (
+            trip.departureTime &&
+            !preferredTime.value
+        ) {
+
+            preferredTime.value =
+                trip.departureTime;
+
+        }
+
+        availableTrips = [
+            {
+                id: tripSnapshot.id,
+                ...trip
+            }
+        ];
+
+        displayTrips();
+
+        selectTrip(
+            {
+                id: tripSnapshot.id,
+                ...trip
+            }
+        );
+
+    }
+    catch(error) {
+
+        console.error(
+            "Direct trip loading error:",
+            error
+        );
+
+        showMessage(
+            journeyMessage,
+            "Unable to load this trip. Please try again.",
+            "error"
+        );
+
+    }
+
+}
+
+loadTripFromURL();

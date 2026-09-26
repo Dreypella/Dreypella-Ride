@@ -2,6 +2,34 @@ const admin = require("firebase-admin");
 
 const db = admin.firestore();
 
+/* =====================================================
+   CANONICAL RIDE ROUTE
+   ===================================================== */
+
+function normalizeRideLocation(value) {
+    const normalized =
+        String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+    const aliases = {
+        "ogbomosho": "ogbomoso",
+        "ogbomoso": "ogbomoso"
+    };
+
+    return aliases[normalized] || normalized;
+}
+
+function normalizeRideRoute(fromCity, toCity) {
+    return (
+        normalizeRideLocation(fromCity) +
+        "->" +
+        normalizeRideLocation(toCity)
+    );
+}
+
+
 async function createCustomRideRequest(data, context) {
 
     if (!context.auth) {
@@ -23,6 +51,12 @@ async function createCustomRideRequest(data, context) {
 
     const toCity =
         String(data?.toCity || "").trim();
+
+    const routeKey =
+        normalizeRideRoute(
+            fromCity,
+            toCity
+        );
 
     const travelDate =
         String(data?.travelDate || "").trim();
@@ -49,21 +83,24 @@ async function createCustomRideRequest(data, context) {
         throw new Error("Destination is required.");
     }
 
-    if (!travelDate) {
-        throw new Error("Travel date is required.");
-    }
-
-    if (!preferredTime) {
-        throw new Error("Preferred time is required.");
-    }
+    /*
+     * Travel date and preferred time are optional
+     * suggestions for a custom ride request.
+     *
+     * A request without a travel date can still be
+     * submitted and may receive route-availability
+     * notifications, but it cannot participate in
+     * date-based consolidation until a valid date
+     * is available.
+     */
 
     if (
         !Number.isInteger(seats) ||
         seats < 1 ||
-        seats > 4
+        seats > 8
     ) {
         throw new Error(
-            "The number of passengers must be between 1 and 4."
+            "The number of passengers must be between 1 and 8."
         );
     }
 
@@ -92,6 +129,8 @@ async function createCustomRideRequest(data, context) {
         fromCity,
 
         toCity,
+
+        routeKey,
 
         travelDate,
 
