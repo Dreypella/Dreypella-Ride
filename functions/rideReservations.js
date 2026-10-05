@@ -215,7 +215,7 @@ async function reserveRideForPayOnDeparture(
 
                 if (
                     requestedSeats < 1 ||
-                    requestedSeats > 4 ||
+                    requestedSeats > 8 ||
                     assignedSeats.length !==
                         requestedSeats
                 ) {
@@ -292,6 +292,9 @@ async function reserveRideForPayOnDeparture(
                     if (
                         hold.status !== "HELD" ||
                         hold.bookingId !== bookingId ||
+                        hold.tripId !== tripId ||
+                        hold.groupId !== groupId ||
+                        Number(hold.seatNumber) !== seatNumber ||
                         hold.userId !== uid ||
                         !Number.isFinite(
                             expiresAt.getTime()
