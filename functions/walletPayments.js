@@ -241,7 +241,7 @@ async function payWithWallet(data, context) {
                     requestedSeats
                 ) ||
                 requestedSeats < 1 ||
-                requestedSeats > 4 ||
+                requestedSeats > 8 ||
                 assignedSeatNumbers.length !==
                     requestedSeats ||
                 new Set(
