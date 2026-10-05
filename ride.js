@@ -844,6 +844,164 @@ function buildGroupLabel(group) {
 }
 
 
+function updateSeatOptions(maxSeats) {
+
+    if (!seatCount) {
+        return;
+    }
+
+    const normalizedMax =
+        Math.min(
+            8,
+            Math.max(
+                0,
+                Number(maxSeats) || 0
+            )
+        );
+
+    const currentValue =
+        Number(
+            seatCount.value || 1
+        );
+
+    seatCount.innerHTML = "";
+
+    for (
+        let seats = 1;
+        seats <= normalizedMax;
+        seats++
+    ) {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            String(seats);
+
+        option.textContent =
+            seats === 1
+                ? "1 Seat"
+                : seats + " Seats";
+
+        seatCount.appendChild(
+            option
+        );
+
+    }
+
+    if (normalizedMax === 0) {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value = "0";
+        option.textContent = "No seats available";
+        option.selected = true;
+
+        seatCount.appendChild(
+            option
+        );
+
+        return;
+    }
+
+    seatCount.value =
+        String(
+            Math.min(
+                Math.max(
+                    1,
+                    currentValue
+                ),
+                normalizedMax
+            )
+        );
+
+    updateTotalFare();
+
+}
+
+
+function getSelectedTripGroup() {
+
+    if (
+        !selectedTripData ||
+        !Array.isArray(
+            selectedTripData.groups
+        )
+    ) {
+        return null;
+    }
+
+    const groupId =
+        tripGroup
+            ? String(
+                tripGroup.value || ""
+            )
+            : "";
+
+    return (
+        selectedTripData.groups.find(
+            group =>
+                String(
+                    group.groupId || ""
+                ) === groupId
+        ) ||
+        null
+    );
+
+}
+
+
+function syncSeatOptionsToTripGroup() {
+
+    if (!selectedTripData) {
+        return;
+    }
+
+    const selectedGroup =
+        getSelectedTripGroup();
+
+    if (selectedGroup) {
+
+        updateSeatOptions(
+            Number(
+                selectedGroup.availableSeats ??
+                selectedGroup.capacity ??
+                0
+            )
+        );
+
+        return;
+    }
+
+    if (
+        Array.isArray(
+            selectedTripData.groups
+        ) &&
+        selectedTripData.groups.length > 1
+    ) {
+        updateSeatOptions(0);
+        return;
+    }
+
+    const tripAvailableSeats =
+        selectedTripData.availableSeats == null
+            ? 8
+            : Number(
+                selectedTripData.availableSeats
+            );
+
+    updateSeatOptions(
+        tripAvailableSeats
+    );
+
+}
+
+
 function displayTripGroups(trip) {
 
     if (
@@ -876,6 +1034,17 @@ function displayTripGroups(trip) {
 
         tripGroupSection.classList.add(
             "hidden"
+        );
+
+        const legacyAvailableSeats =
+            trip.availableSeats == null
+                ? 8
+                : Number(
+                    trip.availableSeats
+                );
+
+        updateSeatOptions(
+            legacyAvailableSeats
         );
 
         return;
@@ -920,6 +1089,8 @@ function displayTripGroups(trip) {
         tripGroupSection.classList.add(
             "hidden"
         );
+
+        syncSeatOptionsToTripGroup();
 
         return;
 
@@ -980,6 +1151,18 @@ function displayTripGroups(trip) {
         "hidden"
     );
 
+    syncSeatOptionsToTripGroup();
+
+}
+
+
+if (tripGroup) {
+
+    tripGroup.addEventListener(
+        "change",
+        syncSeatOptionsToTripGroup
+    );
+
 }
 
 
@@ -1013,6 +1196,8 @@ requestRideButton.addEventListener(
             `;
 
         }
+
+        updateSeatOptions(8);
 
 
         selectedTrip.innerHTML = `
@@ -1383,14 +1568,57 @@ async function submitBooking(event) {
     }
 
     if (
+        selectedTripData &&
+        Array.isArray(
+            selectedTripData.groups
+        ) &&
+        selectedTripData.groups.length > 1 &&
+        !getSelectedTripGroup()
+    ) {
+
+        showMessage(
+            bookingMessage,
+            "Please select a gathering point and vehicle before booking.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    if (
         selectedTripData
     ) {
 
+        const selectedGroup =
+            Array.isArray(
+                selectedTripData.groups
+            )
+                ? selectedTripData.groups.find(
+                    group =>
+                        String(
+                            group.groupId ||
+                            ""
+                        ) ===
+                        String(
+                            tripGroup
+                                ? tripGroup.value
+                                : ""
+                        )
+                )
+                : null;
+
         const availableSeats =
-            Number(
-                selectedTripData.availableSeats ||
-                0
-            );
+            selectedGroup
+                ? Number(
+                    selectedGroup.availableSeats ??
+                    selectedGroup.capacity ??
+                    0
+                )
+                : Number(
+                    selectedTripData.availableSeats ||
+                    0
+                );
 
         if (
             seats > availableSeats
@@ -1398,7 +1626,7 @@ async function submitBooking(event) {
 
             showMessage(
                 bookingMessage,
-                "There are not enough seats available.",
+                "There are not enough seats available in the selected group.",
                 "error"
             );
 
