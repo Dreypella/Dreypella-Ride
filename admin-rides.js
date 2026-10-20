@@ -1207,10 +1207,8 @@ tripForm.addEventListener(
                     );
                 }
 
-                if (assigningRequestId) {
-                    assigningRequestId = null;
-                    assigningConsolidationGroupId = null;
-                }
+                assigningRequestId = null;
+                assigningConsolidationGroupId = null;
 
             }
 
