@@ -71,6 +71,13 @@ let editingTripId = null;
 /* Custom customer request currently being assigned */
 let assigningRequestId = null;
 
+/*
+ * Consolidation group currently being assigned,
+ * when the selected customer request belongs
+ * to a consolidation group.
+ */
+let assigningConsolidationGroupId = null;
+
 
 
 /* =====================================================
@@ -177,6 +184,7 @@ newTripButton.addEventListener(
 
         editingTripId = null;
         assigningRequestId = null;
+        assigningConsolidationGroupId = null;
 
         tripForm.reset();
 
@@ -830,6 +838,12 @@ tripForm.addEventListener(
                 to,
                 toCity: to,
 
+                routeKey:
+                    normalizeRideRoute(
+                        from,
+                        to
+                    ),
+
                 date,
                 travelDate: date,
 
@@ -887,6 +901,77 @@ tripForm.addEventListener(
 
             } else {
 
+                /*
+                 * Validate a consolidation group BEFORE creating
+                 * the trip. This prevents an invalid/unaccepted
+                 * consolidation from leaving behind a trip or
+                 * triggering route-availability notifications.
+                 *
+                 * The validated members are retained and reused
+                 * during assignment after trip creation.
+                 */
+                let consolidationGroupRequestsForAssignment = null;
+
+                if (assigningConsolidationGroupId) {
+                    const groupSnapshot = await db
+                        .collection("rideBookings")
+                        .where("consolidationGroupId", "==", assigningConsolidationGroupId)
+                        .get();
+
+                    const groupRequests = groupSnapshot.docs.map(function(doc) {
+                        return { id: doc.id, data: doc.data() };
+                    });
+
+                    const acceptedGroupRequests = groupRequests.filter(function(item) {
+                        return (
+                            item.data.requestType === "CUSTOM_REQUEST" &&
+                            item.data.status === "REQUESTED" &&
+                            !item.data.tripId &&
+                            item.data.consolidationStatus === "ACCEPTED" &&
+                            item.data.consolidationGroupId === assigningConsolidationGroupId
+                        );
+                    });
+
+                    if (acceptedGroupRequests.length < 1) {
+                        throw new Error(
+                            "At least one customer must accept the consolidation proposal before assigning this trip."
+                        );
+                    }
+
+                    const consolidationProposalDates = [
+                        ...new Set(acceptedGroupRequests.map(function(item) {
+                            return String(item.data.proposedTripDate || "").trim();
+                        }))
+                    ];
+                    const consolidationProposalTimes = [
+                        ...new Set(acceptedGroupRequests.map(function(item) {
+                            return String(item.data.proposedTripTime || "").trim();
+                        }))
+                    ];
+
+                    if (
+                        consolidationProposalDates.length !== 1 ||
+                        !consolidationProposalDates[0] ||
+                        consolidationProposalDates[0] !== String(date || "").trim()
+                    ) {
+                        throw new Error(
+                            "The trip date must match the accepted consolidation proposal."
+                        );
+                    }
+
+                    if (
+                        consolidationProposalTimes.length !== 1 ||
+                        (consolidationProposalTimes[0] &&
+                            consolidationProposalTimes[0] !== String(departureTime || "").trim())
+                    ) {
+                        throw new Error(
+                            "The departure time must match the accepted consolidation proposal."
+                        );
+                    }
+
+                    consolidationGroupRequestsForAssignment = groupRequests;
+                }
+
                 tripData.createdBy =
                     currentAdmin.uid;
 
@@ -894,44 +979,237 @@ tripForm.addEventListener(
                     firebase.firestore.FieldValue
                     .serverTimestamp();
 
-                const createdTrip =
-                    await db
-                        .collection("trips")
-                        .add(tripData);
+                const tripRef =
+                    db.collection("trips").doc();
+
+                const assignedAt =
+                    firebase.firestore.FieldValue.serverTimestamp();
 
                 /*
-                 * If this trip was created from a
-                 * customer's custom request, link
-                 * that booking to the new trip.
+                 * Re-read assignment targets transactionally.
+                 * If a customer declines while assignment is in
+                 * progress, Firestore retries or aborts this
+                 * transaction instead of assigning a dissolved group.
                  */
-                if (assigningRequestId) {
+                await db.runTransaction(async function(transaction) {
+                    let requestsToAssign = [];
+                      let pendingToClear = [];
+                      let pendingNotificationReads = [];
 
-                    await db
-                        .collection("rideBookings")
-                        .doc(assigningRequestId)
-                        .update({
+                    if (assigningConsolidationGroupId) {
+                        const selectedGroup = consolidationGroupRequestsForAssignment || [];
 
-                            tripId:
-                                createdTrip.id,
+                        if (selectedGroup.length < 1) {
+                            throw new Error(
+                                "No accepted consolidation requests are eligible for assignment."
+                            );
+                        }
 
-                            status:
-                                "PENDING_PAYMENT",
+                        // Re-read every discovered group member before making any writes.
+                        // Accepted members are assigned; still-pending proposals are cleared.
+                        pendingToClear = [];
+                        for (const item of selectedGroup) {
+                            const requestRef = db.collection("rideBookings").doc(item.id);
+                            const requestSnap = await transaction.get(requestRef);
 
-                            requestType:
-                                "SCHEDULED_TRIP",
+                            if (!requestSnap.exists) {
+                                throw new Error("A consolidation request no longer exists.");
+                            }
 
-                            assignedAt:
-                                firebase.firestore
-                                .FieldValue
-                                .serverTimestamp(),
+                            const requestData = requestSnap.data();
 
-                            assignedBy:
-                                currentAdmin.uid
+                            // A customer who declined may already have left this group.
+                            if (requestData.consolidationGroupId !== assigningConsolidationGroupId) {
+                                continue;
+                            }
 
+                            if (
+                                requestData.requestType !== "CUSTOM_REQUEST" ||
+                                requestData.status !== "REQUESTED" ||
+                                requestData.tripId
+                            ) {
+                                throw new Error(
+                                    "A consolidation request changed. Refresh the requests and try again."
+                                );
+                            }
+
+                            const currentItem = {
+                                id: item.id,
+                                ref: requestRef,
+                                data: requestData
+                            };
+
+                            if (requestData.consolidationStatus === "ACCEPTED") {
+                                requestsToAssign.push(currentItem);
+                            } else if (requestData.consolidationStatus === "PROPOSED") {
+                                pendingToClear.push(currentItem);
+                            } else {
+                                throw new Error(
+                                    "A group member has an unexpected consolidation status. Refresh and try again."
+                                );
+                            }
+                        }
+
+                        if (requestsToAssign.length < 1) {
+                            throw new Error(
+                                "At least one customer must still have an accepted consolidation proposal."
+                            );
+                        }
+
+                        if (requestsToAssign.some(function(item) {
+                            return (
+                                item.data.consolidationGroupId !== assigningConsolidationGroupId ||
+                                item.data.consolidationStatus !== "ACCEPTED"
+                            );
+                        })) {
+                            throw new Error(
+                                "An accepted consolidation request changed. Refresh the requests and try again."
+                            );
+                        }
+
+                        const proposalDates = [
+                            ...new Set(requestsToAssign.map(function(item) {
+                                return String(item.data.proposedTripDate || "").trim();
+                            }))
+                        ];
+                        const proposalTimes = [
+                            ...new Set(requestsToAssign.map(function(item) {
+                                return String(item.data.proposedTripTime || "").trim();
+                            }))
+                        ];
+
+                        if (
+                            proposalDates.length !== 1 ||
+                            !proposalDates[0] ||
+                            proposalDates[0] !== String(date || "").trim()
+                        ) {
+                            throw new Error(
+                                "The trip date must match the accepted consolidation proposal."
+                            );
+                        }
+
+                        if (
+                            proposalTimes.length !== 1 ||
+                            (proposalTimes[0] &&
+                                proposalTimes[0] !== String(departureTime || "").trim())
+                        ) {
+                            throw new Error(
+                                "The departure time must match the accepted consolidation proposal."
+                            );
+                        }
+
+                        // Read proposal notifications before the transaction performs any writes.
+                        pendingNotificationReads = [];
+                        for (const item of pendingToClear) {
+                            const notificationRef = db.collection("notifications").doc(
+                                assigningConsolidationGroupId + "__" + item.id
+                            );
+                            const notificationSnap = await transaction.get(notificationRef);
+                            pendingNotificationReads.push({
+                                ref: notificationRef,
+                                exists: notificationSnap.exists
+                            });
+                        }
+
+} else if (assigningRequestId) {
+                        const requestRef =
+                            db.collection("rideBookings").doc(
+                                assigningRequestId
+                            );
+                        const requestSnap =
+                            await transaction.get(requestRef);
+
+                        if (!requestSnap.exists) {
+                            throw new Error(
+                                "Ride request no longer exists."
+                            );
+                        }
+
+                        const request = requestSnap.data();
+
+                        if (
+                            request.requestType !== "CUSTOM_REQUEST" ||
+                            request.status !== "REQUESTED" ||
+                            request.tripId ||
+                            (
+                                request.consolidationStatus &&
+                                request.consolidationStatus !== "NONE"
+                            )
+                        ) {
+                            throw new Error(
+                                "This ride request is no longer eligible for individual assignment. Refresh the requests and try again."
+                            );
+                        }
+
+                        requestsToAssign.push({
+                            id: assigningRequestId,
+                            ref: requestRef,
+                            data: request
                         });
+                    }
 
+                    /*
+                     * Commit the trip and all request assignments
+                     * together, after every eligibility check passes.
+                     */
+                    transaction.set(tripRef, tripData);
+
+                    requestsToAssign.forEach(function(item) {
+                        transaction.update(item.ref, {
+                            tripId: tripRef.id,
+                            status: "PENDING_PAYMENT",
+                            requestType: "SCHEDULED_TRIP",
+                            assignedAt,
+                            assignedBy: currentAdmin.uid
+                        });
+                    });
+
+                    // Pending customers remain ordinary open requests, not group assignments.
+                    pendingToClear.forEach(function(item) {
+                        transaction.update(item.ref, {
+                            consolidationStatus: "NONE",
+                            consolidationGroupId: null,
+                            proposedTripDate: null,
+                            proposedTripTime: null,
+                            proposedAt: null,
+                            proposedBy: null,
+                            consolidationRespondedAt: null,
+                            consolidationAcceptedAt: null,
+                            consolidationAcceptedBy: null,
+                            lastConsolidationResponse: null
+                        });
+                    });
+
+                    pendingNotificationReads.forEach(function(item) {
+                        if (item.exists) {
+                            transaction.update(item.ref, { read: true });
+                        }
+                    });
+                });
+
+                const createdTrip = {
+                    id: tripRef.id
+                };
+
+                /*
+                 * Notification failures must not misreport a trip
+                 * and assignment that have already committed.
+                 */
+                try {
+                    await notifyMatchingRideRequests(
+                        createdTrip.id,
+                        tripData
+                    );
+                } catch (notificationError) {
+                    console.error(
+                        "Trip saved, but route-availability notifications failed:",
+                        notificationError
+                    );
+                }
+
+                if (assigningRequestId) {
                     assigningRequestId = null;
-
+                    assigningConsolidationGroupId = null;
                 }
 
             }
@@ -971,6 +1249,164 @@ tripForm.addEventListener(
     }
 );
 
+
+/* =====================================================
+   CANONICAL RIDE ROUTE
+   ===================================================== */
+
+function normalizeRideLocation(value) {
+    const normalized =
+        String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+    const aliases = {
+        "ogbomosho": "ogbomoso",
+        "ogbomoso": "ogbomoso"
+    };
+
+    return aliases[normalized] || normalized;
+}
+
+function normalizeRideRoute(fromCity, toCity) {
+    return (
+        normalizeRideLocation(fromCity) +
+        "->" +
+        normalizeRideLocation(toCity)
+    );
+}
+
+/* =====================================================
+   NOTIFY CUSTOMERS WITH MATCHING RIDE REQUESTS
+   ===================================================== */
+
+async function notifyMatchingRideRequests(tripId, trip) {
+    const tripRouteKey =
+        normalizeRideRoute(
+            trip.fromCity || trip.from,
+            trip.toCity || trip.to
+        );
+
+    const snapshot =
+        await db
+            .collection("rideBookings")
+            .where("requestType", "==", "CUSTOM_REQUEST")
+            .where("status", "==", "REQUESTED")
+            .get();
+
+    const matchingRequests =
+        snapshot.docs.filter(function(doc) {
+            const request = doc.data();
+
+            if (request.tripId) {
+                return false;
+            }
+
+            const requestRouteKey =
+                request.routeKey ||
+                normalizeRideRoute(
+                    request.fromCity || request.from,
+                    request.toCity || request.to
+                );
+
+            if (requestRouteKey !== tripRouteKey) {
+                return false;
+            }
+
+            if (!request.userId) {
+                return false;
+            }
+
+            /*
+             * Requests with a pending or declined consolidation
+             * proposal must not receive a generic trip-available
+             * notification. ACCEPTED requests remain eligible.
+             */
+            if (
+                request.consolidationStatus === "PROPOSED"
+            ) {
+                return false;
+            }
+
+            /*
+             * Route availability notifications are intentionally
+             * independent of the customer's requested date/time.
+             * Any still-REQUESTED request on the same normalized
+             * route may be notified when a matching trip appears.
+             */
+            return true;
+        });
+
+    if (matchingRequests.length === 0) {
+        return;
+    }
+
+    for (
+        let i = 0;
+        i < matchingRequests.length;
+        i += 500
+    ) {
+        const batch = db.batch();
+
+        const chunk =
+            matchingRequests.slice(
+                i,
+                i + 500
+            );
+
+        chunk.forEach(function(doc) {
+            const notificationId =
+                tripId + "__" + doc.id;
+
+            const notificationRef =
+                db
+                    .collection("notifications")
+                    .doc(notificationId);
+
+            batch.set(
+                notificationRef,
+                {
+                    userId:
+                        doc.data().userId,
+
+                    type:
+                        "RIDE_TRIP_AVAILABLE",
+
+                    title:
+                        "Trip Available for Your Route",
+
+                    message:
+                        "A Dreypella trip has been created for " +
+                        (trip.fromCity || trip.from || "") +
+                        " → " +
+                        (trip.toCity || trip.to || "") +
+                        ". Review the trip details and book it if the schedule and fare work for you.",
+
+                    tripId,
+
+                    bookingRequestId:
+                        doc.id,
+
+                    routeKey:
+                        tripRouteKey,
+
+                    read:
+                        false,
+
+                    createdAt:
+                        firebase.firestore.FieldValue
+                        .serverTimestamp()
+                },
+                {
+                    merge: true
+                }
+            );
+        });
+
+        await batch.commit();
+    }
+}
 
 /* =====================================================
    LOAD CUSTOMER REQUESTS
@@ -1024,7 +1460,18 @@ async function loadRequests() {
 
 
         requestsContainer.innerHTML =
-            "";
+            `<div class="consolidation-toolbar">
+                <button
+                    type="button"
+                    class="action-button approve"
+                    onclick="proposeSelectedRideConsolidation()"
+                >
+                    CONSOLIDATE SELECTED
+                </button>
+                <span class="consolidation-selection-count">
+                    Select 2 or more requests with compatible routes and dates.
+                </span>
+            </div>`;
 
 
         requestDocs.forEach(function(doc) {
@@ -1088,6 +1535,28 @@ function renderRequest(
     card.innerHTML = `
 
         <div class="request-top">
+
+            <label class="consolidation-select">
+                <input
+                    type="checkbox"
+                    class="consolidation-request-checkbox"
+                    data-request-id="${requestId}"
+                    ${
+                        request.consolidationStatus === "PROPOSED" ||
+                        request.consolidationStatus === "ACCEPTED"
+                            ? "disabled"
+                            : ""
+                    }
+                    onchange="updateConsolidationSelection()"
+                >
+                ${
+                    request.consolidationStatus === "PROPOSED"
+                        ? "Awaiting customer response"
+                        : request.consolidationStatus === "ACCEPTED"
+                            ? "Consolidation accepted"
+                            : "Select for consolidation"
+                }
+            </label>
 
             <div>
 
@@ -1279,11 +1748,27 @@ async function prepareTripFromRequest(
         const request =
             snapshot.data();
 
+        if (
+            request.consolidationStatus ===
+            "PROPOSED"
+        ) {
+            alert(
+                "This request has a pending consolidation proposal. The customer must accept or decline it before a trip can be assigned."
+            );
+            return;
+        }
+
+
 
         editingTripId = null;
 
         assigningRequestId =
             requestId;
+
+        assigningConsolidationGroupId =
+            request.consolidationStatus === "ACCEPTED"
+                ? (request.consolidationGroupId || null)
+                : null;
 
         tripForm.reset();
 
@@ -1363,6 +1848,130 @@ async function prepareTripFromRequest(
 /* =====================================================
    REJECT REQUEST
    ===================================================== */
+
+const selectedConsolidationRequests =
+    new Set();
+
+
+function updateConsolidationSelection() {
+
+    const checkboxes =
+        document.querySelectorAll(
+            ".consolidation-request-checkbox"
+        );
+
+    selectedConsolidationRequests.clear();
+
+    checkboxes.forEach(function(checkbox) {
+
+        if (checkbox.checked) {
+            selectedConsolidationRequests.add(
+                checkbox.dataset.requestId
+            );
+        }
+
+    });
+
+    const countElement =
+        document.querySelector(
+            ".consolidation-selection-count"
+        );
+
+    if (countElement) {
+        countElement.textContent =
+            selectedConsolidationRequests.size +
+            " request(s) selected.";
+    }
+}
+
+
+async function proposeSelectedRideConsolidation() {
+
+    const requestIds =
+        Array.from(
+            selectedConsolidationRequests
+        );
+
+    if (requestIds.length < 2) {
+
+        alert(
+            "Select at least 2 ride requests for consolidation."
+        );
+
+        return;
+    }
+
+
+    const proposedTripDate =
+        window.prompt(
+            "Enter the proposed common trip date (YYYY-MM-DD):"
+        );
+
+
+    if (!proposedTripDate) {
+        return;
+    }
+
+
+    const proposedTripTime =
+        window.prompt(
+            "Enter the proposed departure time (optional, HH:MM):"
+        );
+
+
+    try {
+
+        const functions =
+            firebase.functions();
+
+        const propose =
+            functions.httpsCallable(
+                "proposeRideConsolidation"
+            );
+
+        const result =
+            await propose({
+                requestIds:
+                    requestIds,
+                proposedTripDate:
+                    proposedTripDate.trim(),
+                proposedTripTime:
+                    proposedTripTime
+                        ? proposedTripTime.trim()
+                        : ""
+            });
+
+
+        const data =
+            result.data || {};
+
+
+        alert(
+            "Consolidation proposal created successfully. " +
+            "Only customers who accept will be assigned through consolidation. " +
+              "Other customers can still book the scheduled trip normally, subject to seat availability."
+        );
+
+
+        selectedConsolidationRequests.clear();
+
+        await loadRequests();
+
+    } catch (error) {
+
+        console.error(
+            "Ride consolidation proposal error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Unable to create the consolidation proposal."
+        );
+
+    }
+}
+
 
 async function rejectRequest(
     requestId

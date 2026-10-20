@@ -693,6 +693,13 @@ const {
 } = require("./rideRequests");
 
 const {
+    findConsolidationCandidates,
+    respondToRideConsolidation,
+    proposeRideConsolidation
+} = require("./rideConsolidation");
+
+
+const {
     createDelivery,
     calculateDeliveryQuote
 } = require("./deliveryCreation");
@@ -760,6 +767,109 @@ exports.createCustomRideRequest =
 
         }
     );
+
+
+exports.findConsolidationCandidates =
+    onCall(
+        async request => {
+
+            try {
+
+                return await findConsolidationCandidates(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Ride consolidation candidate error:",
+                    error
+                );
+
+                if (error instanceof HttpsError) {
+                    throw error;
+                }
+
+                throw new HttpsError("internal", "Unable to find consolidation candidates.");
+
+            }
+
+        }
+    );
+
+
+exports.proposeRideConsolidation =
+    onCall(
+        async request => {
+
+            try {
+
+                return await proposeRideConsolidation(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Ride consolidation proposal error:",
+                    error
+                );
+
+                if (error instanceof HttpsError) {
+                    throw error;
+                }
+
+                throw new HttpsError("internal", "Unable to propose ride consolidation.");
+
+            }
+
+        }
+    );
+
+
+exports.respondToRideConsolidation =
+    onCall(
+        async request => {
+
+            try {
+
+                return await respondToRideConsolidation(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Ride consolidation response error:",
+                    error
+                );
+
+                if (error instanceof HttpsError) {
+                    throw error;
+                }
+
+                throw new HttpsError("internal", "Unable to respond to ride consolidation.");
+
+            }
+
+        }
+    );
+
 
 
 exports.calculateDeliveryQuote =
