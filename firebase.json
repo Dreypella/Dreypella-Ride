@@ -17,7 +17,8 @@
     }
   ],
   "firestore": {
-    "rules": "firestore.rules"
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   },
   "hosting": {
     "site": "dreypella-ride-4",
@@ -37,5 +38,20 @@
       "**/support-step26-status.txt",
       "**/| sed*"
     ]
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
   }
 }
