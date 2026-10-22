@@ -1,199 +1,541 @@
-const admin = require("firebase-admin");
-const db = admin.firestore();
+const admin =
+    require("firebase-admin");
 
-function normalizeLocation(value) {
-    const text = String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
-    return text === "ogbomosho" ? "ogbomoso" : text;
+const { HttpsError } = require("firebase-functions/v2/https");
+
+const db =
+    admin.firestore();
+
+const CONSOLIDATION_WINDOW_DAYS = 3;
+
+function normalizeRideLocation(value) {
+    const normalized =
+        String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+    const aliases = {
+        "ogbomosho": "ogbomoso",
+        "ogbomoso": "ogbomoso"
+    };
+
+    return aliases[normalized] || normalized;
 }
 
-function routeKey(from, to) {
-    return normalizeLocation(from) + "->" + normalizeLocation(to);
+function normalizeRideRoute(fromCity, toCity) {
+    return (
+        normalizeRideLocation(fromCity) +
+        "->" +
+        normalizeRideLocation(toCity)
+    );
 }
 
-async function requireAdmin(context) {
-    if (!context || !context.auth || !context.auth.uid) {
-        throw new Error("Authentication is required.");
+function parseDateOnly(value) {
+    const text =
+        String(value || "").trim();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+        return null;
     }
 
-    const user = await db.collection("users").doc(context.auth.uid).get();
-    const role = user.exists ? user.data().role : "";
+    const date =
+        new Date(text + "T00:00:00");
 
-    if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
-        throw new Error("Administrator permission is required.");
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const [year, month, day] =
+        text.split("-").map(Number);
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() + 1 !== month ||
+        date.getDate() !== day
+    ) {
+        return null;
+    }
+
+    return date;
+}
+
+function dateDifferenceInDays(firstDate, secondDate) {
+    const millisecondsPerDay =
+        24 * 60 * 60 * 1000;
+
+    return Math.round(
+        Math.abs(
+            firstDate.getTime() -
+            secondDate.getTime()
+        ) / millisecondsPerDay
+    );
+}
+
+function requireAuthenticatedUser(context) {
+    if (!context || !context.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
     }
 
     return context.auth.uid;
 }
 
-async function createConsolidationProposal(data, context) {
-    const adminUid = await requireAdmin(context);
-    const ids = Array.isArray(data && data.requestIds)
-        ? [...new Set(data.requestIds.map(String))]
-        : [];
+async function respondToRideConsolidation(data, context) {
+    const uid = requireAuthenticatedUser(context);
+    const requestId = String(data?.requestId || "").trim();
+    const response = String(data?.response || "").trim().toUpperCase();
 
-    if (ids.length < 2 || ids.length > 8 || ids.some(id => !id.trim())) {
-        throw new Error("Select between 2 and 8 valid ride requests.");
+    if (!requestId) {
+        throw new HttpsError("invalid-argument", "Ride request is required.");
+    }
+    if (response !== "ACCEPTED" && response !== "DECLINED") {
+        throw new HttpsError("invalid-argument", "Response must be ACCEPTED or DECLINED.");
     }
 
-    const refs = ids.map(id => db.collection("rideBookings").doc(id));
-    const proposalRef = db.collection("rideConsolidationProposals").doc();
+    const requestRef = db.collection("rideBookings").doc(requestId);
 
-    await db.runTransaction(async tx => {
-        const snapshots = [];
-
-        for (const ref of refs) {
-            snapshots.push(await tx.get(ref));
+    return db.runTransaction(async transaction => {
+        const requestSnap = await transaction.get(requestRef);
+        if (!requestSnap.exists) {
+            throw new HttpsError("not-found", "Ride request no longer exists.");
         }
 
-        const requests = snapshots.map((snap, index) => {
-            if (!snap.exists) throw new Error("A selected ride request no longer exists.");
-
-            const item = snap.data();
-            if (item.requestType !== "CUSTOM_REQUEST" || item.status !== "REQUESTED") {
-                throw new Error("Only pending custom ride requests can be proposed.");
-            }
-            if (!item.userId || !item.travelDate || !item.routeKey) {
-                throw new Error("Each request needs a customer, route and travel date.");
-            }
-            if (item.consolidationProposalId) {
-                throw new Error("A selected request already has a consolidation proposal.");
-            }
-
-            return { id: refs[index].id, ...item };
-        });
-
-        const first = requests[0];
-        const key = routeKey(first.fromCity, first.toCity);
-
-        if (requests.some(item =>
-            routeKey(item.fromCity, item.toCity) !== key ||
-            
-            item.travelDate !== first.travelDate
-        )) {
-            throw new Error("Requests must have the same route and travel date.");
+        const request = requestSnap.data();
+        if (request.userId !== uid) {
+            throw new HttpsError("permission-denied", "You are not authorized to respond to this ride consolidation.");
+        }
+        if (request.requestType !== "CUSTOM_REQUEST") {
+            throw new HttpsError("failed-precondition", "This is not a custom ride request.");
+        }
+        if (request.consolidationStatus !== "PROPOSED") {
+            throw new HttpsError("failed-precondition", "This consolidation proposal is no longer awaiting your response.");
         }
 
-        const members = requests.map(item => ({
-            bookingId: item.id,
-            userId: item.userId,
-            passengerName: item.passengerName || "",
-            seats: Number(item.seats || 1),
-            responseStatus: "PENDING"
-        }));
+        const now = admin.firestore.Timestamp.now();
 
-        tx.set(proposalRef, {
-            routeKey: key,
-            fromCity: first.fromCity,
-            toCity: first.toCity,
-            travelDate: first.travelDate,
-            status: "OPEN",
-            members,
-            memberUids: members.map(member => member.userId),
-            createdBy: adminUid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        if (response === "ACCEPTED") {
+            transaction.update(requestRef, {
+                consolidationStatus: "ACCEPTED",
+                consolidationRespondedAt: now,
+                consolidationAcceptedAt: now,
+                consolidationAcceptedBy: uid
+            });
+            return { success: true, requestId, response };
+        }
+
+        // Read this customer's proposal notification before any transaction writes.
+        const groupId = request.consolidationGroupId || null;
+        const notificationRef = groupId
+            ? db.collection("notifications").doc(groupId + "__" + requestId)
+            : null;
+        const notificationSnap = notificationRef
+            ? await transaction.get(notificationRef)
+            : null;
+
+        // Declining removes only this customer; other members can still respond.
+        transaction.update(requestRef, {
+            consolidationStatus: "NONE",
+            consolidationGroupId: null,
+            proposedTripDate: null,
+            proposedTripTime: null,
+            consolidationRespondedAt: null,
+            consolidationAcceptedAt: null,
+            consolidationAcceptedBy: null,
+            lastConsolidationResponse: "DECLINED"
         });
 
-        refs.forEach(ref => tx.update(ref, {
-            consolidationProposalId: proposalRef.id,
-            consolidationStatus: "PROPOSED"
-        }));
+        if (notificationSnap && notificationSnap.exists) {
+            transaction.update(notificationRef, { read: true });
+        }
+
+        return {
+            success: true,
+            requestId,
+            response,
+            consolidationDissolved: false
+        };
     });
-
-    return { success: true, proposalId: proposalRef.id, status: "OPEN" };
 }
 
-async function getMyConsolidationProposals(data, context) {
-    if (!context || !context.auth || !context.auth.uid) {
-        throw new Error("You must be logged in.");
+async function findConsolidationCandidates(
+    data,
+    context
+) {
+    const uid =
+        requireAuthenticatedUser(context);
+
+    const userSnap =
+        await db
+            .collection("users")
+            .doc(uid)
+            .get();
+
+    if (!userSnap.exists) {
+        throw new HttpsError("permission-denied", "Admin access is required.");
     }
 
-    const uid = context.auth.uid;
-    const snapshot = await db.collection("rideConsolidationProposals")
-        .where("memberUids", "array-contains", uid)
-        .limit(30)
-        .get();
+    const user =
+        userSnap.data();
+
+    if (
+        user.role !== "ADMIN" &&
+        user.role !== "SUPER_ADMIN"
+    ) {
+        throw new HttpsError("permission-denied", "Admin access is required.");
+    }
+
+    const requestId =
+        String(
+            data?.requestId || ""
+        ).trim();
+
+    if (!requestId) {
+        throw new HttpsError("invalid-argument", "Ride request is required.");
+    }
+
+    const requestSnap =
+        await db
+            .collection("rideBookings")
+            .doc(requestId)
+            .get();
+
+    if (!requestSnap.exists) {
+        throw new HttpsError("not-found", "Ride request no longer exists.");
+    }
+
+    const request =
+        requestSnap.data();
+
+    if (
+        request.requestType !==
+        "CUSTOM_REQUEST"
+    ) {
+        throw new HttpsError("failed-precondition", "This is not a custom ride request.");
+    }
+
+    if (
+        request.status !==
+        "REQUESTED"
+    ) {
+        throw new HttpsError("failed-precondition", "Only pending ride requests can be consolidated.");
+    }
+
+    if (request.tripId) {
+        throw new HttpsError("failed-precondition", "This ride request is already assigned to a trip.");
+    }
+
+    if (
+        request.consolidationStatus &&
+        request.consolidationStatus !== "NONE"
+    ) {
+        throw new HttpsError("failed-precondition", "This ride request already has a consolidation status and cannot be used for a new consolidation search.");
+    }
+
+    const requestedDate =
+        parseDateOnly(
+            request.travelDate
+        );
+
+    if (!requestedDate) {
+        throw new HttpsError("failed-precondition", "The request does not contain a valid travel date.");
+    }
+
+    const routeKey =
+        request.routeKey ||
+        normalizeRideRoute(
+            request.fromCity ||
+            request.from,
+            request.toCity ||
+            request.to
+        );
+
+    const snapshot =
+        await db
+            .collection("rideBookings")
+            .where(
+                "requestType",
+                "==",
+                "CUSTOM_REQUEST"
+            )
+            .where(
+                "status",
+                "==",
+                "REQUESTED"
+            )
+            .get();
+
+    const candidates =
+        snapshot.docs
+            .filter(doc => {
+                if (doc.id === requestId) {
+                    return true;
+                }
+
+                const candidate =
+                    doc.data();
+
+                if (candidate.tripId) {
+                    return false;
+                }
+
+                if (
+                    candidate.consolidationStatus &&
+                    candidate.consolidationStatus !== "NONE"
+                ) {
+                    return false;
+                }
+
+                const candidateRoute =
+                    candidate.routeKey ||
+                    normalizeRideRoute(
+                        candidate.fromCity ||
+                        candidate.from,
+                        candidate.toCity ||
+                        candidate.to
+                    );
+
+                if (
+                    candidateRoute !==
+                    routeKey
+                ) {
+                    return false;
+                }
+
+                const candidateDate =
+                    parseDateOnly(
+                        candidate.travelDate
+                    );
+
+                if (!candidateDate) {
+                    return false;
+                }
+
+                return (
+                    dateDifferenceInDays(
+                        requestedDate,
+                        candidateDate
+                    ) <=
+                    CONSOLIDATION_WINDOW_DAYS
+                );
+            })
+            .map(doc => ({
+                requestId:
+                    doc.id,
+                ...doc.data()
+            }));
 
     return {
         success: true,
-        proposals: snapshot.docs.map(doc => {
-            const proposal = doc.data();
-            return {
-                proposalId: doc.id,
-                routeKey: proposal.routeKey,
-                fromCity: proposal.fromCity,
-                toCity: proposal.toCity,
-                travelDate: proposal.travelDate,
-                status: proposal.status,
-                createdAt: proposal.createdAt || null,
-                members: (proposal.members || []).filter(member => member.userId === uid)
-            };
-        })
+        windowDays:
+            CONSOLIDATION_WINDOW_DAYS,
+        routeKey,
+        candidates
     };
 }
 
-const { applyMemberResponse } = require("./rideConsolidationLogic");
 
-async function respondToConsolidationProposal(data, context) {
-    if (!context || !context.auth || !context.auth.uid) {
-        throw new Error("You must be logged in.");
+async function proposeRideConsolidation(
+    data,
+    context
+) {
+    const uid = requireAuthenticatedUser(context);
+
+    const userSnap = await db.collection("users").doc(uid).get();
+
+    if (
+        !userSnap.exists ||
+        !["ADMIN", "SUPER_ADMIN"].includes(userSnap.data().role)
+    ) {
+        throw new HttpsError("permission-denied", "Admin access is required.");
     }
 
-    const uid = context.auth.uid;
-    const proposalId = String(data && data.proposalId || "").trim();
-    const response = String(data && data.response || "").trim().toUpperCase();
+    const requestIds = Array.isArray(data?.requestIds)
+        ? data.requestIds.map(id => String(id || "").trim()).filter(Boolean)
+        : [];
 
-    if (!proposalId || !["ACCEPT", "DECLINE"].includes(response)) {
-        throw new Error("A valid proposal and ACCEPT or DECLINE response are required.");
+    const proposedTripDate = String(data?.proposedTripDate || "").trim();
+    const proposedTripTime = String(data?.proposedTripTime || "").trim();
+
+    if (requestIds.length < 2) {
+        throw new HttpsError("invalid-argument", "Select at least two ride requests for consolidation.");
     }
 
-    const proposalRef = db.collection("rideConsolidationProposals").doc(proposalId);
+    if (requestIds.length > 100) {
+        throw new HttpsError("invalid-argument", "Too many ride requests were selected.");
+    }
 
-    return db.runTransaction(async tx => {
-        const proposalSnap = await tx.get(proposalRef);
-        if (!proposalSnap.exists) throw new Error("This proposal no longer exists.");
+    const proposedDate = parseDateOnly(proposedTripDate);
 
-        const proposal = proposalSnap.data();
-        const members = Array.isArray(proposal.members) ? proposal.members : [];
-        const member = members.find(item => item.userId === uid);
+    if (!proposedDate) {
+        throw new HttpsError("invalid-argument", "A valid proposed travel date is required.");
+    }
 
-        if (!member || !(proposal.memberUids || []).includes(uid)) {
-            throw new Error("You are not an active member of this proposal.");
+    if (
+        proposedTripTime &&
+        !/^([01]\d|2[0-3]):[0-5]\d$/.test(proposedTripTime)
+    ) {
+        throw new HttpsError("invalid-argument", "The proposed departure time must use HH:MM format.");
+    }
+
+    const uniqueRequestIds = [...new Set(requestIds)];
+    const requestRefs = uniqueRequestIds.map(
+        requestId => db.collection("rideBookings").doc(requestId)
+    );
+
+    const consolidationGroupId =
+        "RC-" +
+        Date.now().toString(36) +
+        "-" +
+        Math.random().toString(36).slice(2, 8).toUpperCase();
+
+    const result = await db.runTransaction(async transaction => {
+        /*
+         * Read and validate every request inside the transaction.
+         * Concurrent proposals touching the same request conflict;
+         * Firestore retries, then the stale proposal is rejected.
+         * Complete all reads before scheduling any writes.
+         */
+        const requestSnaps = [];
+
+        for (const requestRef of requestRefs) {
+            requestSnaps.push(await transaction.get(requestRef));
         }
-        if (proposal.status !== "OPEN" || member.responseStatus !== "PENDING") {
-            throw new Error("This proposal is no longer awaiting your response.");
+
+        const requests = [];
+
+        for (let index = 0; index < requestSnaps.length; index++) {
+            const snapshot = requestSnaps[index];
+
+            if (!snapshot.exists) {
+                throw new HttpsError("not-found", "One or more selected ride requests no longer exist.");
+            }
+
+            const request = snapshot.data();
+
+            if (request.requestType !== "CUSTOM_REQUEST") {
+                throw new HttpsError("failed-precondition", "Only custom ride requests can be consolidated.");
+            }
+
+            if (request.status !== "REQUESTED") {
+                throw new HttpsError("failed-precondition", "One or more selected ride requests are no longer pending.");
+            }
+
+            if (request.tripId) {
+                throw new HttpsError("failed-precondition", "An already-assigned ride request cannot be consolidated.");
+            }
+
+            if (
+                request.consolidationStatus &&
+                request.consolidationStatus !== "NONE"
+            ) {
+                throw new HttpsError("failed-precondition", "One or more selected ride requests already has a consolidation status and cannot be added to another consolidation group.");
+            }
+
+            if (!request.userId) {
+                throw new HttpsError("failed-precondition", "A selected ride request has no associated customer.");
+            }
+
+            const requestedDate = parseDateOnly(request.travelDate);
+
+            if (!requestedDate) {
+                throw new HttpsError("failed-precondition", "Every selected ride request must have a valid travel date.");
+            }
+
+            const routeKey =
+                request.routeKey ||
+                normalizeRideRoute(
+                    request.fromCity || request.from,
+                    request.toCity || request.to
+                );
+
+            if (index > 0 && routeKey !== requests[0].routeKey) {
+                throw new HttpsError("failed-precondition", "All selected ride requests must have the same route.");
+            }
+
+            if (
+                requests.some(item =>
+                    dateDifferenceInDays(item.requestedDate, requestedDate) >
+                    CONSOLIDATION_WINDOW_DAYS
+                )
+            ) {
+                throw new HttpsError("failed-precondition", "Selected ride requests must have requested travel dates within the 3-day consolidation window.");
+            }
+
+            if (
+                dateDifferenceInDays(proposedDate, requestedDate) >
+                CONSOLIDATION_WINDOW_DAYS
+            ) {
+                throw new HttpsError("failed-precondition", "The proposed date must be within the 3-day consolidation window for every selected request.");
+            }
+
+            requests.push({
+                requestId: snapshot.id,
+                request,
+                routeKey,
+                requestedDate
+            });
         }
 
-        const bookingRef = db.collection("rideBookings").doc(member.bookingId);
-        const bookingSnap = await tx.get(bookingRef);
+        const now = admin.firestore.Timestamp.now();
 
-        if (!bookingSnap.exists || bookingSnap.data().userId !== uid ||
-            bookingSnap.data().consolidationProposalId !== proposalId) {
-            throw new Error("The linked ride request could not be verified.");
+        for (const item of requests) {
+            transaction.update(
+                db.collection("rideBookings").doc(item.requestId),
+                {
+                    consolidationStatus: "PROPOSED",
+                    consolidationGroupId,
+                    proposedTripDate,
+                    proposedTripTime: proposedTripTime || null,
+                    proposedAt: now,
+                    proposedBy: uid,
+                    consolidationRespondedAt: null
+                }
+            );
+
+            const notificationId =
+                consolidationGroupId + "__" + item.requestId;
+
+            transaction.set(
+                db.collection("notifications").doc(notificationId),
+                {
+                    userId: item.request.userId,
+                    type: "RIDE_CONSOLIDATION_PROPOSED",
+                    title: "Ride Consolidation Proposal",
+                    message:
+                        "Dreypella has proposed a shared trip for your requested route on " +
+                        proposedTripDate +
+                        (proposedTripTime ? " at " + proposedTripTime : "") +
+                        ". Review the proposal and accept or decline it.",
+                    requestId: item.requestId,
+                    consolidationGroupId,
+                    routeKey: item.routeKey,
+                    proposedTripDate,
+                    proposedTripTime: proposedTripTime || null,
+                    read: false,
+                    createdAt: now
+                }
+            );
         }
 
-        const transition = applyMemberResponse(proposal, uid, response);
-        const { members: nextMembers, memberUids: nextUids, declinedMembers, status: nextStatus } = transition;
-
-        tx.update(proposalRef, {
-            members: nextMembers,
-            memberUids: nextUids,
-            declinedMembers,
-            status: nextStatus,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        tx.update(bookingRef, {
-            consolidationStatus: response === "ACCEPT" ? "ACCEPTED" : "DECLINED",
-            consolidationRespondedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        return { success: true, response, proposalStatus: nextStatus };
+        return {
+            routeKey: requests[0].routeKey,
+            requestIds: uniqueRequestIds
+        };
     });
+
+    return {
+        success: true,
+        consolidationGroupId,
+        routeKey: result.routeKey,
+        requestIds: result.requestIds,
+        proposedTripDate,
+        proposedTripTime: proposedTripTime || null
+    };
 }
 
 module.exports = {
-    applyMemberResponse,
-    createConsolidationProposal,
-    getMyConsolidationProposals,
-    respondToConsolidationProposal
+    findConsolidationCandidates,
+    respondToRideConsolidation,
+    proposeRideConsolidation,
+    CONSOLIDATION_WINDOW_DAYS
 };

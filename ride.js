@@ -320,29 +320,64 @@ async function findTrips() {
          * Keep compatibility with older trips
          * that do not yet contain routeKey.
          */
-        const legacySnapshot = await db
-            .collection("trips")
-            .where("status", "==", "AVAILABLE")
-            .get();
+        const legacySnapshot =
+            await db
+                .collection("trips")
+                .where(
+                    "fromCity",
+                    "==",
+                    from
+                )
+                .where(
+                    "toCity",
+                    "==",
+                    to
+                )
+                .where(
+                    "status",
+                    "==",
+                    "AVAILABLE"
+                )
+                .get();
 
-        const tripDocs = new Map();
 
-        routeSnapshot.forEach(function(doc) {
-            const trip = doc.data();
-            if (trip.status === "AVAILABLE") {
-                tripDocs.set(doc.id, doc);
+        const tripDocs =
+            new Map();
+
+
+        routeSnapshot.forEach(
+            function(doc) {
+
+                const trip =
+                    doc.data();
+
+                if (
+                    trip.status ===
+                    "AVAILABLE"
+                ) {
+
+                    tripDocs.set(
+                        doc.id,
+                        doc
+                    );
+
+                }
+
             }
-        });
+        );
 
-        legacySnapshot.forEach(function(doc) {
-            const trip = doc.data();
-            if (
-                trip.status === "AVAILABLE" &&
-                normalizeRideRoute(trip.fromCity, trip.toCity) === routeKey
-            ) {
-                tripDocs.set(doc.id, doc);
+
+        legacySnapshot.forEach(
+            function(doc) {
+
+                tripDocs.set(
+                    doc.id,
+                    doc
+                );
+
             }
-        });
+        );
+
 
         availableTrips = [];
 

@@ -493,7 +493,6 @@ function renderPostCheckoutPaymentState() {
                     "OPEN PAYMENT LINK";
 
                 card.appendChild(link);
-
                 const number = normalizeNigerianWhatsAppNumber(request.recipientPhone);
                 if (number) {
                     const url = new URL(request.paymentUrl, window.location.href).href;

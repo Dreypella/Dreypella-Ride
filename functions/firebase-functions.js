@@ -693,10 +693,11 @@ const {
 } = require("./rideRequests");
 
 const {
-    createConsolidationProposal,
-    getMyConsolidationProposals,
-    respondToConsolidationProposal
+    findConsolidationCandidates,
+    respondToRideConsolidation,
+    proposeRideConsolidation
 } = require("./rideConsolidation");
+
 
 const {
     createDelivery,
@@ -768,32 +769,108 @@ exports.createCustomRideRequest =
     );
 
 
-exports.createConsolidationProposal = onCall(async request => {
-    try {
-        return await createConsolidationProposal(request.data || {}, { auth: request.auth });
-    } catch (error) {
-        console.error("Create consolidation proposal error:", error);
-        throw new HttpsError("failed-precondition", error.message || "Unable to create consolidation proposal.");
-    }
-});
+exports.findConsolidationCandidates =
+    onCall(
+        async request => {
 
-exports.getMyConsolidationProposals = onCall(async request => {
-    try {
-        return await getMyConsolidationProposals(request.data || {}, { auth: request.auth });
-    } catch (error) {
-        console.error("Get consolidation proposals error:", error);
-        throw new HttpsError("failed-precondition", error.message || "Unable to load consolidation proposals.");
-    }
-});
+            try {
 
-exports.respondToConsolidationProposal = onCall(async request => {
-    try {
-        return await respondToConsolidationProposal(request.data || {}, { auth: request.auth });
-    } catch (error) {
-        console.error("Respond to consolidation proposal error:", error);
-        throw new HttpsError("failed-precondition", error.message || "Unable to respond to consolidation proposal.");
-    }
-});
+                return await findConsolidationCandidates(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Ride consolidation candidate error:",
+                    error
+                );
+
+                if (error instanceof HttpsError) {
+                    throw error;
+                }
+
+                throw new HttpsError("internal", "Unable to find consolidation candidates.");
+
+            }
+
+        }
+    );
+
+
+exports.proposeRideConsolidation =
+    onCall(
+        async request => {
+
+            try {
+
+                return await proposeRideConsolidation(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Ride consolidation proposal error:",
+                    error
+                );
+
+                if (error instanceof HttpsError) {
+                    throw error;
+                }
+
+                throw new HttpsError("internal", "Unable to propose ride consolidation.");
+
+            }
+
+        }
+    );
+
+
+exports.respondToRideConsolidation =
+    onCall(
+        async request => {
+
+            try {
+
+                return await respondToRideConsolidation(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Ride consolidation response error:",
+                    error
+                );
+
+                if (error instanceof HttpsError) {
+                    throw error;
+                }
+
+                throw new HttpsError("internal", "Unable to respond to ride consolidation.");
+
+            }
+
+        }
+    );
+
+
 
 exports.calculateDeliveryQuote =
     onCall(

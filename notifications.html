@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Notifications | Dreypella Ride</title>
+    <title>Notifications | Dreypella</title>
 
     <style>
         * {
@@ -98,6 +98,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="auth-guard.js"></script>
 
@@ -122,7 +123,7 @@ dreypellaAuth.onAuthStateChanged(async function(user) {
             notificationsList.innerHTML = `
                 <div class="empty">
                     <h3>No notifications</h3>
-                    <p>Your Dreypella Ride updates will appear here.</p>
+                    <p>Your Dreypella updates will appear here.</p>
                 </div>
             `;
             return;
@@ -158,7 +159,7 @@ dreypellaAuth.onAuthStateChanged(async function(user) {
                 const title =
                     notification.title ||
                     notification.type ||
-                    "Dreypella Ride";
+                    "Dreypella";
 
                 const text =
                     notification.message ||
@@ -192,6 +193,48 @@ dreypellaAuth.onAuthStateChanged(async function(user) {
                                 ? `<div class="notification-date">${escapeHTML(date)}</div>`
                                 : ""
                         }
+
+                        ${
+                            notification.type === "RIDE_TRIP_AVAILABLE" &&
+                            notification.tripId
+                                ? `
+                                    <div style="margin-top:14px;">
+                                        <a
+                                            href="ride.html?tripId=${encodeURIComponent(notification.tripId)}"
+                                            style="display:inline-block;padding:10px 16px;background:#081b5a;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;"
+                                        >
+                                            View Trip &amp; Book
+                                        </a>
+                                    </div>
+                                  `
+                                : ""
+                        }
+
+                        ${
+                            notification.type === "RIDE_CONSOLIDATION_PROPOSED" &&
+                            notification.requestId &&
+                            !notification.read
+                                ? `
+                                    <div style="margin-top:14px;">
+                                        <button
+                                            type="button"
+                                            onclick="respondToRideConsolidation('${encodeURIComponent(notification.requestId)}','ACCEPTED','${encodeURIComponent(notification.id)}')"
+                                            style="padding:10px 16px;background:#081b5a;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer;margin-right:8px;"
+                                        >
+                                            Accept Proposal
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onclick="respondToRideConsolidation('${encodeURIComponent(notification.requestId)}','DECLINED','${encodeURIComponent(notification.id)}')"
+                                            style="padding:10px 16px;background:#fff;color:#081b5a;border:1px solid #081b5a;border-radius:8px;font-weight:600;cursor:pointer;"
+                                        >
+                                            Decline Proposal
+                                        </button>
+                                    </div>
+                                  `
+                                : ""
+                        }
                     </div>
                 `;
 
@@ -212,6 +255,78 @@ dreypellaAuth.onAuthStateChanged(async function(user) {
         `;
     }
 });
+
+async function respondToRideConsolidation(
+    encodedRequestId,
+    response,
+    encodedNotificationId
+) {
+
+    const requestId =
+        decodeURIComponent(encodedRequestId);
+
+    const notificationId =
+        decodeURIComponent(encodedNotificationId);
+
+    if (
+        response !== "ACCEPTED" &&
+        response !== "DECLINED"
+    ) {
+        return;
+    }
+
+    const actionText =
+        response === "ACCEPTED"
+            ? "accept this consolidation proposal"
+            : "decline this consolidation proposal";
+
+    if (!window.confirm("Are you sure you want to " + actionText + "?")) {
+        return;
+    }
+
+    try {
+
+        const functions =
+            firebase.functions();
+
+        const respond =
+            functions.httpsCallable(
+                "respondToRideConsolidation"
+            );
+
+        await respond({
+            requestId,
+            response
+        });
+
+        await dreypellaDB
+            .collection("notifications")
+            .doc(notificationId)
+            .update({
+                read: true
+            });
+
+        alert(
+            response === "ACCEPTED"
+                ? "Consolidation proposal accepted."
+                : "Consolidation proposal declined."
+        );
+
+        window.location.reload();
+
+    } catch (error) {
+
+        console.error(
+            "Ride consolidation response error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Unable to respond to the consolidation proposal."
+        );
+    }
+}
 
 function escapeHTML(value) {
 

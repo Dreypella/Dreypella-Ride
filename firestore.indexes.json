@@ -1,0 +1,27 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "rideBookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "paymentStatus",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "requestType",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "seatHoldExpiresAt",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

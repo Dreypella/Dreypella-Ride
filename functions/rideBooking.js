@@ -125,11 +125,11 @@ async function createRideBooking(
             requestedSeats
         ) ||
         requestedSeats < 1 ||
-        requestedSeats > 4
+        requestedSeats > 8
     ) {
 
         throw new Error(
-            "Seat count must be between 1 and 4."
+            "Seat count must be between 1 and 8."
         );
 
     }
