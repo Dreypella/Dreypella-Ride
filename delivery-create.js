@@ -33,10 +33,12 @@ async function createDelivery(
         */
 
         const deliveryId =
+            deliveryData.deliveryId ||
             generateDeliveryId();
 
 
         const bookingReference =
+            deliveryData.bookingReference ||
             generateBookingReference();
 
 
@@ -70,6 +72,9 @@ async function createDelivery(
 
                 deliveryData.payer ||
                 "SENDER",
+            paymentMethod:
+                deliveryData.paymentMethod || null,
+
 
 
             pickup: {
@@ -164,6 +169,12 @@ async function createDelivery(
                 "",
 
 
+            recipientEmail:
+
+                deliveryData.recipientEmail ||
+                "",
+
+
             deliveryInstructions:
 
                 deliveryData.deliveryInstructions ||
@@ -188,6 +199,17 @@ async function createDelivery(
                 Number(
                     deliveryData.customerPrice
                 ) || 0,
+
+
+            /*
+                Delivery type:
+                LOCAL, INTERSTATE, or INTERNATIONAL.
+            */
+
+            deliveryType:
+
+                deliveryData.deliveryType ||
+                null,
 
 
             /*

@@ -308,6 +308,44 @@ body {
 }
 
 
+/* RECEIVER PAYMENT LINKS */
+
+.receiver-payment-links {
+    margin-top: 20px;
+}
+
+.receiver-payment-links h2 {
+    margin-bottom: 10px;
+}
+
+.receiver-payment-links > p {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.receiver-payment-links .recipient-box {
+    margin-bottom: 15px;
+    background: #F5F7FA;
+}
+
+.receiver-payment-links .recipient-box p {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 13px;
+    color: #555;
+}
+
+.receiver-payment-links .confirm-button {
+    display: block;
+    grid-column: 1 / -1;
+    box-sizing: border-box;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 5px;
+}
+
 /* RECIPIENT */
 
 .recipient-box {

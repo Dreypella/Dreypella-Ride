@@ -80,13 +80,15 @@ dreypellaAuth.onAuthStateChanged(
 
             };
 
+            console.log("ADMIN PROFILE:", user.uid, profile);
+
 
             initializeAdmin();
 
 
         } catch (error) {
 
-            console.error(error);
+            console.error("RIDE CREATE ERROR:", error.code, error.message, error);
 
             alert(
                 "Unable to verify administrator account."
@@ -116,7 +118,8 @@ async function initializeAdmin() {
 
     setupLogout();
 
-    setupRideModal();
+    setupSupportModal();
+
 
     setupPricing();
 
@@ -124,7 +127,6 @@ async function initializeAdmin() {
 
     await loadPricing();
 
-    await loadRides();
 
     await loadDeliveries();
 
@@ -151,7 +153,7 @@ function setupNavigation() {
 
     const buttons =
         document.querySelectorAll(
-            ".nav-item"
+            ".nav-item[data-section]"
         );
 
 
@@ -620,10 +622,30 @@ async function loadPricing() {
 
 
         setInput(
-            "baseFare",
-            pricing.baseFare
+            "walkerDifferencePercentage",
+            pricing.walkerDifferencePercentage
         );
 
+        setInput(
+            "bicyclistDifferencePercentage",
+            pricing.bicyclistDifferencePercentage
+        );
+
+        setInput(
+            "riderDifferencePercentage",
+            pricing.riderDifferencePercentage
+        );
+
+        setInput(
+            "vehicleDifferencePercentage",
+            pricing.vehicleDifferencePercentage
+        );
+
+
+        setInput(
+            "baseDeliveryFare",
+            pricing.baseDeliveryFare
+        );
 
         setInput(
             "pricePerKm",
@@ -643,10 +665,7 @@ async function loadPricing() {
         );
 
 
-        setInput(
-            "walkerDifference",
-            pricing.walkerDifference
-        );
+
 
 
         setInput(
@@ -709,8 +728,20 @@ async function savePricing() {
 
     const pricing = {
 
-        baseFare:
-            numberInput("baseFare"),
+        walkerDifferencePercentage:
+            numberInput("walkerDifferencePercentage"),
+
+        bicyclistDifferencePercentage:
+            numberInput("bicyclistDifferencePercentage"),
+
+        riderDifferencePercentage:
+            numberInput("riderDifferencePercentage"),
+
+        vehicleDifferencePercentage:
+            numberInput("vehicleDifferencePercentage"),
+
+        baseDeliveryFare:
+            numberInput("baseDeliveryFare"),
 
         pricePerKm:
             numberInput("pricePerKm"),
@@ -721,8 +752,7 @@ async function savePricing() {
         maximumDeliveryFee:
             numberInput("maximumDeliveryFee"),
 
-        walkerDifference:
-            numberInput("walkerDifference"),
+
 
         mediumPackageFee:
             numberInput("mediumPackageFee"),
@@ -774,13 +804,24 @@ async function savePricing() {
     }
 
 
+    const methodPercentages = [
+        pricing.walkerDifferencePercentage,
+        pricing.bicyclistDifferencePercentage,
+        pricing.riderDifferencePercentage,
+        pricing.vehicleDifferencePercentage
+    ];
+
     if (
-        pricing.walkerDifference < 100 ||
-        pricing.walkerDifference > 200
+        methodPercentages.some(
+            percentage =>
+                !Number.isFinite(percentage) ||
+                percentage < 0 ||
+                percentage > 100
+        )
     ) {
 
         message.textContent =
-            "Walker difference should normally be between ₦100 and ₦200.";
+            "Each delivery method difference must be between 0% and 100%.";
 
         message.style.color =
             "#E31B23";
@@ -792,18 +833,61 @@ async function savePricing() {
 
     try {
 
-        await dreypellaDB
+        const deliveryPricing = {
+            walkerDifferencePercentage:
+                pricing.walkerDifferencePercentage,
+            bicyclistDifferencePercentage:
+                pricing.bicyclistDifferencePercentage,
+            riderDifferencePercentage:
+                pricing.riderDifferencePercentage,
+            vehicleDifferencePercentage:
+                pricing.vehicleDifferencePercentage,
+            baseDeliveryFare:
+                pricing.baseDeliveryFare,
+            pricePerKm:
+                pricing.pricePerKm,
+            minimumDeliveryFee:
+                pricing.minimumDeliveryFee,
+            maximumDeliveryFee:
+                pricing.maximumDeliveryFee,
+            mediumPackageFee:
+                pricing.mediumPackageFee,
+            largePackageFee:
+                pricing.largePackageFee,
+            extraWeightPerKg:
+                pricing.extraWeightPerKg,
+            updatedAt:
+                pricing.updatedAt,
+            updatedBy:
+                pricing.updatedBy
+        };
 
-            .collection("settings")
-            .doc("pricing")
+        const batch =
+            dreypellaDB.batch();
 
-            .set(
-                pricing,
-                {
-                    merge:
-                        true
-                }
-            );
+        batch.set(
+            dreypellaDB
+                .collection("settings")
+                .doc("pricing"),
+            pricing,
+            {
+                merge:
+                    true
+            }
+        );
+
+        batch.set(
+            dreypellaDB
+                .collection("settings")
+                .doc("deliveryPricing"),
+            deliveryPricing,
+            {
+                merge:
+                    true
+            }
+        );
+
+        await batch.commit();
 
 
         await createAuditLog(
@@ -831,353 +915,6 @@ async function savePricing() {
 
         message.style.color =
             "#E31B23";
-
-    }
-
-}
-
-
-// =====================================================
-// RIDE MANAGEMENT
-// =====================================================
-
-function setupRideModal() {
-
-    const modal =
-        document.getElementById(
-            "rideModal"
-        );
-
-
-    document
-        .getElementById(
-            "addRideButton"
-        )
-        .addEventListener(
-
-            "click",
-
-            function () {
-
-                modal.classList.add(
-                    "show"
-                );
-
-            }
-
-        );
-
-
-    document
-        .getElementById(
-            "closeRideModal"
-        )
-        .addEventListener(
-
-            "click",
-
-            function () {
-
-                modal.classList.remove(
-                    "show"
-                );
-
-            }
-
-        );
-
-
-    document
-        .getElementById(
-            "rideForm"
-        )
-        .addEventListener(
-
-            "submit",
-
-            createRide
-
-        );
-
-}
-
-
-async function createRide(
-    event
-) {
-
-    event.preventDefault();
-
-
-    const ride = {
-
-        origin:
-            getValue("rideOrigin"),
-
-        destination:
-            getValue("rideDestination"),
-
-        meetingPoint:
-            getValue("meetingPoint"),
-
-        finalDestination:
-            getValue("finalDestination"),
-
-        departureDate:
-            getValue("rideDate"),
-
-        departureTime:
-            getValue("rideTime"),
-
-        price:
-            numberInput("ridePrice"),
-
-        availableSeats:
-            numberInput("rideSeats"),
-
-        bookedSeats:
-            0,
-
-        vehicleInfo:
-            getValue("vehicleInfo"),
-
-        status:
-            "AVAILABLE",
-
-        createdBy:
-            currentAdmin.uid,
-
-        createdAt:
-            firebase.firestore
-                .FieldValue
-                .serverTimestamp()
-
-    };
-
-
-    const message =
-        document.getElementById(
-            "rideMessage"
-        );
-
-
-    try {
-
-
-        await dreypellaDB
-
-            .collection("rides")
-
-            .add(ride);
-
-
-        await createAuditLog(
-
-            "RIDE_CREATED",
-
-            `Ride created: ${ride.origin} to ${ride.destination}`
-
-        );
-
-
-        message.textContent =
-            "Ride created successfully.";
-
-        message.style.color =
-            "#16803C";
-
-
-        document
-            .getElementById(
-                "rideForm"
-            )
-            .reset();
-
-
-        await loadRides();
-
-
-        setTimeout(
-
-            function () {
-
-                document
-                    .getElementById(
-                        "rideModal"
-                    )
-                    .classList.remove(
-                        "show"
-                    );
-
-            },
-
-            1000
-
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        message.textContent =
-            "Unable to create ride.";
-
-        message.style.color =
-            "#E31B23";
-
-    }
-
-}
-
-
-// =====================================================
-// LOAD RIDES
-// =====================================================
-
-async function loadRides() {
-
-    const container =
-        document.getElementById(
-            "ridesTable"
-        );
-
-
-    try {
-
-        const snapshot =
-
-            await dreypellaDB
-
-                .collection("rides")
-                .get();
-
-
-        if (snapshot.empty) {
-
-            container.innerHTML =
-                "<p>No rides available.</p>";
-
-            return;
-
-        }
-
-
-        const rows =
-            snapshot.docs.map(
-
-                doc => {
-
-                    const ride =
-                        doc.data();
-
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${escapeHTML(doc.id)}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.origin || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.destination || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.meetingPoint || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.departureDate || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHTML(
-                                    ride.departureTime || ""
-                                )}
-                            </td>
-
-                            <td>
-                                ₦${formatMoney(
-                                    ride.price || 0
-                                )}
-                            </td>
-
-                            <td>
-                                ${ride.bookedSeats || 0}
-                                /
-                                ${ride.availableSeats || 0}
-                            </td>
-
-                            <td>
-                                <span class="status active">
-                                    ${escapeHTML(
-                                        ride.status || ""
-                                    )}
-                                </span>
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-
-            ).join("");
-
-
-        container.innerHTML = `
-
-            <table class="data-table">
-
-                <thead>
-
-                    <tr>
-
-                        <th>ID</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Gathering Point</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Price</th>
-                        <th>Seats</th>
-                        <th>Status</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    ${rows}
-
-                </tbody>
-
-            </table>
-
-        `;
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        container.innerHTML =
-            "Unable to load rides.";
 
     }
 
@@ -1815,16 +1552,16 @@ async function loadSupport() {
             "supportTable"
         );
 
+    if (!container) {
+        return;
+    }
 
     try {
 
         const snapshot =
-
             await dreypellaDB
-
                 .collection("supportTickets")
                 .get();
-
 
         if (snapshot.empty) {
 
@@ -1835,6 +1572,42 @@ async function loadSupport() {
 
         }
 
+        const tickets = snapshot.docs
+            .map(function (doc) {
+
+                return {
+                    id: doc.id,
+                    ...doc.data()
+                };
+
+            })
+            .sort(function (a, b) {
+
+                const aTime =
+                    a.updatedAt &&
+                    a.updatedAt.toMillis
+                        ? a.updatedAt.toMillis()
+                        : (
+                            a.createdAt &&
+                            a.createdAt.toMillis
+                                ? a.createdAt.toMillis()
+                                : 0
+                        );
+
+                const bTime =
+                    b.updatedAt &&
+                    b.updatedAt.toMillis
+                        ? b.updatedAt.toMillis()
+                        : (
+                            b.createdAt &&
+                            b.createdAt.toMillis
+                                ? b.createdAt.toMillis()
+                                : 0
+                        );
+
+                return bTime - aTime;
+
+            });
 
         container.innerHTML = `
 
@@ -1845,9 +1618,11 @@ async function loadSupport() {
                     <tr>
 
                         <th>Ticket</th>
+                        <th>Subject</th>
                         <th>Category</th>
                         <th>User</th>
                         <th>Status</th>
+                        <th>Action</th>
 
                     </tr>
 
@@ -1855,47 +1630,60 @@ async function loadSupport() {
 
                 <tbody>
 
-                    ${snapshot.docs.map(
+                    ${tickets.map(function (ticket) {
 
-                        doc => {
+                        const status =
+                            ticket.status || "OPEN";
 
-                            const ticket =
-                                doc.data();
+                        return `
 
+                            <tr>
 
-                            return `
+                                <td>
+                                    ${escapeHTML(ticket.id)}
+                                </td>
 
-                                <tr>
+                                <td>
+                                    ${escapeHTML(
+                                        ticket.subject || "—"
+                                    )}
+                                </td>
 
-                                    <td>
-                                        ${escapeHTML(doc.id)}
-                                    </td>
+                                <td>
+                                    ${escapeHTML(
+                                        ticket.category || "—"
+                                    )}
+                                </td>
 
-                                    <td>
-                                        ${escapeHTML(
-                                            ticket.category || ""
-                                        )}
-                                    </td>
+                                <td>
+                                    ${escapeHTML(
+                                        ticket.userEmail ||
+                                        ticket.userId ||
+                                        "—"
+                                    )}
+                                </td>
 
-                                    <td>
-                                        ${escapeHTML(
-                                            ticket.userId || ""
-                                        )}
-                                    </td>
+                                <td>
+                                    ${escapeHTML(status)}
+                                </td>
 
-                                    <td>
-                                        ${escapeHTML(
-                                            ticket.status || "OPEN"
-                                        )}
-                                    </td>
+                                <td>
 
-                                </tr>
+                                    <button
+                                        type="button"
+                                        class="small-button"
+                                        onclick="openSupportTicket('${escapeHTML(ticket.id)}')"
+                                    >
+                                        OPEN
+                                    </button>
 
-                            `;
+                                </td>
 
-                        }
+                            </tr>
 
-                    ).join("")}
+                        `;
+
+                    }).join("")}
 
                 </tbody>
 
@@ -1903,10 +1691,12 @@ async function loadSupport() {
 
         `;
 
-
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Support tickets error:",
+            error
+        );
 
         container.innerHTML =
             "Unable to load support tickets.";
@@ -1914,6 +1704,489 @@ async function loadSupport() {
     }
 
 }
+
+
+// =====================================================
+// OPEN SUPPORT TICKET
+// =====================================================
+
+async function openSupportTicket(ticketId) {
+
+    const modal =
+        document.getElementById(
+            "supportModal"
+        );
+
+    const details =
+        document.getElementById(
+            "supportTicketDetails"
+        );
+
+    const messages =
+        document.getElementById(
+            "supportMessages"
+        );
+
+    const ticketInput =
+        document.getElementById(
+            "supportTicketId"
+        );
+
+    const statusSelect =
+        document.getElementById(
+            "supportStatus"
+        );
+
+    if (
+        !modal ||
+        !details ||
+        !messages ||
+        !ticketInput ||
+        !statusSelect
+    ) {
+        console.error(
+            "Support modal elements are missing."
+        );
+
+        return;
+    }
+
+    modal.style.display = "flex";
+
+    details.innerHTML =
+        "Loading ticket details...";
+
+    messages.innerHTML =
+        "Loading conversation...";
+
+    ticketInput.value =
+        ticketId;
+
+    try {
+
+        const ticketDoc =
+            await dreypellaDB
+                .collection("supportTickets")
+                .doc(ticketId)
+                .get();
+
+        if (!ticketDoc.exists) {
+
+            details.innerHTML =
+                "<p>Ticket no longer exists.</p>";
+
+            messages.innerHTML = "";
+
+            return;
+
+        }
+
+        const ticket =
+            ticketDoc.data();
+
+        statusSelect.value =
+            ticket.status || "OPEN";
+
+        details.innerHTML = `
+
+            <div class="card">
+
+                <strong>
+                    ${escapeHTML(
+                        ticket.subject || "Support Request"
+                    )}
+                </strong>
+
+                <p>
+                    <strong>Category:</strong>
+                    ${escapeHTML(
+                        ticket.category || "—"
+                    )}
+                </p>
+
+                <p>
+                    <strong>Customer:</strong>
+                    ${escapeHTML(
+                        ticket.userEmail ||
+                        ticket.userId ||
+                        "—"
+                    )}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    ${escapeHTML(
+                        ticket.status || "OPEN"
+                    )}
+                </p>
+
+            </div>
+
+        `;
+
+        await loadSupportMessages(
+            ticketId,
+            messages
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Unable to open support ticket:",
+            error
+        );
+
+        details.innerHTML =
+            "<p>Unable to load ticket.</p>";
+
+        messages.innerHTML =
+            "<p>Unable to load conversation.</p>";
+
+    }
+
+}
+
+
+// =====================================================
+// LOAD SUPPORT CONVERSATION
+// =====================================================
+
+async function loadSupportMessages(
+    ticketId,
+    container
+) {
+
+    try {
+
+        const snapshot =
+            await dreypellaDB
+                .collection("supportTickets")
+                .doc(ticketId)
+                .collection("messages")
+                .get();
+
+        if (snapshot.empty) {
+
+            container.innerHTML =
+                "<p>No messages yet.</p>";
+
+            return;
+
+        }
+
+        const messages =
+            snapshot.docs
+                .map(function (doc) {
+
+                    return {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+
+                })
+                .sort(function (a, b) {
+
+                    const aTime =
+                        a.createdAt &&
+                        a.createdAt.toMillis
+                            ? a.createdAt.toMillis()
+                            : 0;
+
+                    const bTime =
+                        b.createdAt &&
+                        b.createdAt.toMillis
+                            ? b.createdAt.toMillis()
+                            : 0;
+
+                    return aTime - bTime;
+
+                });
+
+        container.innerHTML =
+            messages.map(function (message) {
+
+                const role =
+                    String(
+                        message.senderRole ||
+                        "CUSTOMER"
+                    ).toLowerCase();
+
+                let label =
+                    "Customer";
+
+                if (role === "bot") {
+                    label =
+                        "Dreypella Bot";
+                }
+
+                if (role === "admin") {
+                    label =
+                        "Dreypella Support";
+                }
+
+                return `
+
+                    <div class="message ${escapeHTML(role)}">
+
+                        <strong>
+                            ${escapeHTML(label)}
+                        </strong>
+
+                        <p>
+                            ${escapeHTML(
+                                message.message || ""
+                            )}
+                        </p>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    } catch (error) {
+
+        console.error(
+            "Support messages error:",
+            error
+        );
+
+        container.innerHTML =
+            "<p>Unable to load conversation.</p>";
+
+    }
+
+}
+
+
+// =====================================================
+// CLOSE SUPPORT MODAL
+// =====================================================
+
+function closeSupportModal() {
+
+    const modal =
+        document.getElementById(
+            "supportModal"
+        );
+
+    if (modal) {
+
+        modal.style.display =
+            "none";
+
+    }
+
+}
+
+
+// =====================================================
+// SEND ADMIN SUPPORT REPLY
+// =====================================================
+
+async function sendSupportReply() {
+
+    const ticketInput =
+        document.getElementById(
+            "supportTicketId"
+        );
+
+    const replyInput =
+        document.getElementById(
+            "supportReply"
+        );
+
+    const statusSelect =
+        document.getElementById(
+            "supportStatus"
+        );
+
+    const button =
+        document.getElementById(
+            "supportReplyButton"
+        );
+
+    const messageBox =
+        document.getElementById(
+            "supportReplyMessage"
+        );
+
+    if (
+        !ticketInput ||
+        !replyInput ||
+        !statusSelect ||
+        !button
+    ) {
+        return;
+    }
+
+    const ticketId =
+        ticketInput.value.trim();
+
+    const reply =
+        replyInput.value.trim();
+
+    const status =
+        statusSelect.value;
+
+    if (!ticketId || !reply) {
+
+        if (messageBox) {
+
+            messageBox.textContent =
+                "Please enter a reply.";
+
+        }
+
+        return;
+
+    }
+
+    button.disabled = true;
+    button.textContent = "SENDING...";
+
+    if (messageBox) {
+        messageBox.textContent = "";
+    }
+
+    try {
+
+        const now =
+            firebase.firestore.FieldValue
+                .serverTimestamp();
+
+        await dreypellaDB
+            .collection("supportTickets")
+            .doc(ticketId)
+            .collection("messages")
+            .add({
+
+                senderId:
+                    currentAdmin &&
+                    currentAdmin.uid
+                        ? currentAdmin.uid
+                        : "admin",
+
+                senderRole:
+                    "ADMIN",
+
+                message:
+                    reply,
+
+                createdAt:
+                    now
+
+            });
+
+        await dreypellaDB
+            .collection("supportTickets")
+            .doc(ticketId)
+            .update({
+
+                status:
+                    status,
+
+                updatedAt:
+                    now,
+
+                escalated:
+                    status !== "RESOLVED"
+
+            });
+
+        replyInput.value = "";
+
+        if (messageBox) {
+
+            messageBox.textContent =
+                "Reply sent successfully.";
+
+        }
+
+        const messages =
+            document.getElementById(
+                "supportMessages"
+            );
+
+        if (messages) {
+
+            await loadSupportMessages(
+                ticketId,
+                messages
+            );
+
+        }
+
+        await loadSupport();
+
+    } catch (error) {
+
+        console.error(
+            "Support reply failed:",
+            error
+        );
+
+        if (messageBox) {
+
+            messageBox.textContent =
+                error.message ||
+                "Unable to send reply.";
+
+        }
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent =
+            "SEND REPLY";
+
+    }
+
+}
+
+
+// =====================================================
+// SUPPORT MODAL EVENTS
+// =====================================================
+
+function setupSupportModal() {
+
+    const closeButton =
+        document.getElementById(
+            "closeSupportModal"
+        );
+
+    const form =
+        document.getElementById(
+            "supportReplyForm"
+        );
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            closeSupportModal
+        );
+
+    }
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            function (event) {
+
+                event.preventDefault();
+
+                sendSupportReply();
+
+            }
+        );
+
+    }
+
+}
+
 
 
 // =====================================================

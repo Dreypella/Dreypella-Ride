@@ -1,0 +1,1019 @@
+const admin =
+    require("firebase-admin");
+
+
+const {
+    onCall,
+    HttpsError
+} =
+    require("firebase-functions/v2/https");
+
+
+
+
+
+const {
+    payWithWallet
+} =
+    require(
+        "./walletPayments"
+    );
+
+
+const {
+    requestWalletWithdrawal
+} =
+    require(
+        "./walletWithdrawals"
+    );
+
+const {
+    getCustomerTransactions
+} =
+    require(
+        "./customerWallet"
+    );
+
+const {
+    approveWithdrawal,
+    declineWithdrawal
+} =
+    require(
+        "./adminWithdrawals"
+    );
+
+
+
+/*
+    =========================================
+    PAY WITH WALLET
+    =========================================
+*/
+
+exports.payWithWallet =
+    onCall(
+        async request => {
+
+            try {
+
+                return await payWithWallet(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "payWithWallet error:",
+                    error
+                );
+
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Wallet payment failed.",
+                    {
+                        code:
+                            error.code ||
+                            "WALLET_PAYMENT_FAILED",
+                        shortfall:
+                            error.shortfall || null,
+                        walletBalance:
+                            error.walletBalance || null,
+                        requiredAmount:
+                            error.requiredAmount || null
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+
+/*
+    =========================================
+    GET CUSTOMER TRANSACTIONS
+    =========================================
+*/
+exports.getCustomerTransactions = onCall(
+    async request => {
+        try {
+            return await getCustomerTransactions(
+                request.data || {},
+                {
+                    auth: request.auth
+                }
+            );
+        }
+        catch(error) {
+            console.error(
+                "Customer transactions error:",
+                error
+            );
+
+            throw new HttpsError(
+                "failed-precondition",
+                error.message ||
+                "Unable to load transactions."
+            );
+        }
+    }
+);
+
+/*
+    =========================================
+    REQUEST WITHDRAWAL
+    =========================================
+*/
+
+exports.requestWalletWithdrawal =
+    onCall(
+        async request => {
+
+            try {
+
+                return await requestWalletWithdrawal(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Withdrawal error:",
+                    error
+                );
+
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Withdrawal request failed."
+                );
+
+            }
+
+        }
+    );
+
+/*
+    =========================================
+    VERIFY BANK ACCOUNT
+    =========================================
+*/
+
+const {
+    verifyBankAccount: resolveBankAccount
+} = require("./bankFunctions");
+
+exports.verifyBankAccount =
+    onCall(
+        async request => {
+
+            if (!request.auth) {
+
+                throw new HttpsError(
+                    "unauthenticated",
+                    "You must be logged in."
+                );
+
+            }
+
+            const bankCode =
+                String(
+                    request.data?.bankCode || ""
+                ).trim();
+
+            const accountNumber =
+                String(
+                    request.data?.accountNumber || ""
+                ).trim();
+
+            if (!bankCode) {
+
+                throw new HttpsError(
+                    "invalid-argument",
+                    "Bank code is required."
+                );
+
+            }
+
+            if (
+                !/^\d{10}$/.test(
+                    accountNumber
+                )
+            ) {
+
+                throw new HttpsError(
+                    "invalid-argument",
+                    "Account number must contain 10 digits."
+                );
+
+            }
+
+            try {
+
+                const result =
+                    await resolveBankAccount(
+                        bankCode,
+                        accountNumber
+                    );
+
+                return {
+                    success: true,
+                    accountName:
+                        result.accountName
+                };
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Bank account verification error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to verify bank account."
+                );
+
+            }
+
+        }
+    );
+
+/*
+    =========================================
+    WALLET FUNDING
+    PAYSTACK
+    =========================================
+*/
+
+const {
+    initializeWalletFunding,
+    verifyWalletFunding
+} = require("./walletFunding");
+
+/*
+    =========================================
+    RIDE PAYMENTS
+    PAYSTACK
+    =========================================
+*/
+
+const {
+    initializeRidePayment,
+    verifyRidePayment
+} = require("./ridePayments");
+
+const {
+    reserveRideForPayOnDeparture
+} = require("./rideReservations");
+
+exports.initializeRidePayment =
+    onCall(
+        async request => {
+
+            try {
+                return await initializeRidePayment(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+                console.error(
+                    "Ride payment initialization error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to initialize ride payment."
+                );
+            }
+        }
+    );
+
+
+exports.verifyRidePayment =
+    onCall(
+        async request => {
+
+            try {
+                return await verifyRidePayment(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+                console.error(
+                    "Ride payment verification error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to verify ride payment."
+                );
+            }
+        }
+    );
+
+
+exports.reserveRideForPayOnDeparture =
+    onCall(
+        async request => {
+
+            try {
+                return await reserveRideForPayOnDeparture(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+                console.error(
+                    "Ride pay on departure reservation error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to reserve ride for pay on departure."
+                );
+            }
+        }
+    );
+
+
+exports.initializeWalletFunding =
+    onCall(
+        async request => {
+
+            try {
+
+                return await initializeWalletFunding(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Wallet funding initialization error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to initialize wallet funding."
+                );
+
+            }
+
+        }
+    );
+
+
+exports.verifyWalletFunding =
+    onCall(
+        async request => {
+
+            try {
+
+                return await verifyWalletFunding(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Wallet funding verification error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to verify wallet funding."
+                );
+
+            }
+
+        }
+    );
+
+
+/*
+    =========================================
+    DELIVERY PAYMENTS
+    PAYSTACK
+    SENDER PAYS
+    =========================================
+*/
+
+const {
+    initializeDeliveryPayment,
+    verifyDeliveryPayment
+} =
+    require("./deliveryPayments");
+
+
+exports.initializeDeliveryPayment =
+    onCall(
+        async request => {
+
+            try {
+
+                return await initializeDeliveryPayment(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Delivery payment initialization error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to initialize delivery payment."
+                );
+
+            }
+
+        }
+    );
+
+
+exports.verifyDeliveryPayment =
+    onCall(
+        async request => {
+
+            try {
+
+                return await verifyDeliveryPayment(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Delivery payment verification error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to verify delivery payment."
+                );
+
+            }
+
+        }
+    );
+
+/*
+    =========================================
+    RECEIVER PAYMENT REQUESTS
+    PUBLIC RECEIVER PAYMENT FLOW
+    =========================================
+*/
+
+const {
+    createReceiverPaymentRequest,
+    getReceiverPaymentRequest,
+    initializeReceiverPayment,
+    verifyReceiverPayment
+} =
+    require("./receiverPayments");
+
+
+/*
+    AUTHENTICATED SENDER
+    CREATES SECURE RECEIVER PAYMENT LINK
+*/
+
+exports.createReceiverPaymentRequest =
+    onCall(
+        async request => {
+
+            try {
+
+                return await createReceiverPaymentRequest(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Receiver payment request creation error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to create receiver payment request."
+                );
+
+            }
+
+        }
+    );
+
+
+/*
+    PUBLIC RECEIVER ACCESS
+
+    Authentication is NOT required.
+
+    The secure payment token is the credential.
+*/
+
+exports.getReceiverPaymentRequest =
+    onCall(
+        async request => {
+
+            try {
+
+                return await getReceiverPaymentRequest(
+                    request.data || {}
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Receiver payment request lookup error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to load receiver payment request."
+                );
+
+            }
+
+        }
+    );
+
+
+exports.initializeReceiverPayment =
+    onCall(
+        async request => {
+
+            try {
+
+                return await initializeReceiverPayment(
+                    request.data || {}
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Receiver payment initialization error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to initialize receiver payment."
+                );
+
+            }
+
+        }
+    );
+
+
+exports.verifyReceiverPayment =
+    onCall(
+        async request => {
+
+            try {
+
+                return await verifyReceiverPayment(
+                    request.data || {}
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Receiver payment verification error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to verify receiver payment."
+                );
+
+            }
+
+        }
+    );
+
+
+
+/*
+    =========================================
+    DELIVERY ASSIGNMENT
+    PARTNER ACCEPTS DELIVERY
+    =========================================
+*/
+
+const {
+    createRideBooking
+} = require("./rideBooking");
+
+const {
+    createCustomRideRequest
+} = require("./rideRequests");
+
+const {
+    createConsolidationProposal,
+    getMyConsolidationProposals,
+    respondToConsolidationProposal
+} = require("./rideConsolidation");
+
+const {
+    createDelivery,
+    calculateDeliveryQuote
+} = require("./deliveryCreation");
+
+const {
+    acceptDelivery
+} = require("./deliveryAssignment");
+
+
+exports.createRideBooking =
+    onCall(
+        async request => {
+            try {
+                return await createRideBooking(
+                    request.data || {},
+                    {
+                        auth: request.auth
+                    }
+                );
+            }
+            catch(error) {
+                console.error(
+                    "Ride booking error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to create ride booking."
+                );
+            }
+        }
+    );
+
+exports.createCustomRideRequest =
+    onCall(
+        async request => {
+
+            try {
+
+                return await createCustomRideRequest(
+                    request.data || {},
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Custom ride request error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to submit ride request."
+                );
+
+            }
+
+        }
+    );
+
+
+exports.createConsolidationProposal = onCall(async request => {
+    try {
+        return await createConsolidationProposal(request.data || {}, { auth: request.auth });
+    } catch (error) {
+        console.error("Create consolidation proposal error:", error);
+        throw new HttpsError("failed-precondition", error.message || "Unable to create consolidation proposal.");
+    }
+});
+
+exports.getMyConsolidationProposals = onCall(async request => {
+    try {
+        return await getMyConsolidationProposals(request.data || {}, { auth: request.auth });
+    } catch (error) {
+        console.error("Get consolidation proposals error:", error);
+        throw new HttpsError("failed-precondition", error.message || "Unable to load consolidation proposals.");
+    }
+});
+
+exports.respondToConsolidationProposal = onCall(async request => {
+    try {
+        return await respondToConsolidationProposal(request.data || {}, { auth: request.auth });
+    } catch (error) {
+        console.error("Respond to consolidation proposal error:", error);
+        throw new HttpsError("failed-precondition", error.message || "Unable to respond to consolidation proposal.");
+    }
+});
+
+exports.calculateDeliveryQuote =
+    onCall(
+        async request => {
+            try {
+                return await calculateDeliveryQuote(
+                    request.data || {},
+                    {
+                        auth: request.auth
+                    }
+                );
+            }
+            catch(error) {
+                console.error(
+                    "Delivery quote error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to calculate delivery quote."
+                );
+            }
+        }
+    );
+
+exports.createDelivery =
+    onCall(
+        async request => {
+            try {
+                return await createDelivery(
+                    request.data || {},
+                    {
+                        auth: request.auth
+                    }
+                );
+            }
+            catch(error) {
+                console.error(
+                    "Delivery creation error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to create delivery."
+                );
+            }
+        }
+    );
+
+exports.acceptDelivery =
+    onCall(
+        async request => {
+
+            try {
+
+                return await acceptDelivery(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Delivery acceptance error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to accept delivery."
+                );
+
+            }
+
+        }
+    );
+
+
+
+/*
+    =========================================
+    AVAILABLE DELIVERIES
+    PARTNER MATCHING
+    =========================================
+*/
+
+/*
+    =========================================
+    DELIVERY COMPLETION
+    PARTNER COMPLETES DELIVERY
+    =========================================
+*/
+
+const {
+    completeDelivery
+} = require("./deliveryCompletion");
+
+exports.completeDelivery =
+    onCall(
+        async request => {
+
+            try {
+
+                return await completeDelivery(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Delivery completion error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to complete delivery."
+                );
+
+            }
+
+        }
+    );
+
+const {
+    getAvailableDeliveries
+} = require("./deliveryAssignment");
+
+
+exports.getAvailableDeliveries =
+    onCall(
+        async request => {
+
+            try {
+
+                return await getAvailableDeliveries(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Available deliveries error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to load available deliveries."
+                );
+
+            }
+
+        }
+    );
+
+
+/*
+    =========================================
+    PARTNER LOCATION
+    ONLINE / OFFLINE
+    AVAILABILITY
+    =========================================
+*/
+
+const {
+    updatePartnerLocation
+} = require("./partnerLocation");
+
+
+exports.updatePartnerLocation =
+    onCall(
+        async request => {
+
+            try {
+
+                return await updatePartnerLocation(
+                    request.data,
+                    {
+                        auth:
+                            request.auth
+                    }
+                );
+
+            }
+            catch(error) {
+
+                console.error(
+                    "Partner location update error:",
+                    error
+                );
+
+                throw new HttpsError(
+                    "failed-precondition",
+                    error.message ||
+                    "Unable to update partner location."
+                );
+
+            }
+
+        }
+    );

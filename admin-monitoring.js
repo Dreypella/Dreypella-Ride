@@ -713,15 +713,31 @@ function createDeliveryCard(
                 <div>
 
                     <small>
-                        DESTINATION
+                        ${
+                            Array.isArray(delivery.destinations) &&
+                            delivery.destinations.length > 1
+                                ? "DESTINATIONS"
+                                : "DESTINATION"
+                        }
                     </small>
 
                     <strong>
-                        ${escapeHTML(
-                            getLocationName(
-                                delivery.destination
-                            )
-                        )}
+                        ${
+                            Array.isArray(delivery.destinations) &&
+                            delivery.destinations.length
+                                ? delivery.destinations.map((item, index) => {
+                                    const destination =
+                                        item?.destination || item || {};
+                                    return `${index + 1}. ${
+                                        getLocationName(destination)
+                                    }`;
+                                }).join("<br>")
+                                : escapeHTML(
+                                    getLocationName(
+                                        delivery.destination
+                                    )
+                                )
+                        }
                     </strong>
 
                 </div>

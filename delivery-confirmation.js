@@ -12,6 +12,9 @@ const bookingData =
     );
 
 
+const functions =
+    firebase.functions();
+
 const pickupText =
     document.getElementById(
         "pickupText"
@@ -42,14 +45,9 @@ const categoryText =
         "categoryText"
     );
 
-const recipientName =
+const recipientsContainer =
     document.getElementById(
-        "recipientName"
-    );
-
-const recipientPhone =
-    document.getElementById(
-        "recipientPhone"
+        "recipientsContainer"
     );
 
 const instructionsText =
@@ -85,6 +83,11 @@ const insurance =
 const insuranceInfo =
     document.getElementById(
         "insuranceInfo"
+    );
+
+const receiverPaymentLinks =
+    document.getElementById(
+        "receiverPaymentLinks"
     );
 
 
@@ -123,19 +126,9 @@ function loadBooking() {
         "Destination";
 
 
-    recipientName.textContent =
-        bookingData.recipientName ||
-        "—";
+renderRecipients();
 
-
-    recipientPhone.textContent =
-        bookingData.recipientPhone ||
-        "—";
-
-
-    instructionsText.textContent =
-        bookingData.instructions ||
-        "No special instructions";
+    renderInstructions();
 
 
     categoryText.textContent =
@@ -163,224 +156,389 @@ function loadBooking() {
         into Firebase Cloud Functions.
     */
 
-    calculateConfirmationRoute();
+    loadConfirmationDetails();
+    renderPostCheckoutPaymentState();
 
 }
 
 
 /*
-    CALCULATE ROUTE AGAIN
+    DISPLAY ALL RECIPIENTS
 */
 
-async function calculateConfirmationRoute() {
+function renderRecipients() {
+
+    if (!recipientsContainer) {
+        return;
+    }
+
+    const destinations =
+        Array.isArray(bookingData.destinations) &&
+        bookingData.destinations.length
+            ? bookingData.destinations
+            : [{
+                destination:
+                    bookingData.destination || {},
+                recipientName:
+                    bookingData.recipientName || "",
+                recipientPhone:
+                    bookingData.recipientPhone || ""
+            }];
+
+    recipientsContainer.innerHTML = "";
+
+    destinations.forEach(
+        (item, index) => {
+
+            const destination =
+                item?.destination ||
+                item ||
+                {};
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "recipient-box";
+
+            card.innerHTML = `
+                <div>
+                    <span>
+                        Destination ${index + 1}
+                    </span>
+                    <strong>
+                        ${escapeHtml(
+                            destination.name ||
+                            destination.address ||
+                            "—"
+                        )}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        Recipient
+                    </span>
+                    <strong>
+                        ${escapeHtml(
+                            item?.recipientName ||
+                            "—"
+                        )}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        Phone
+                    </span>
+                    <strong>
+                        ${escapeHtml(
+                            item?.recipientPhone ||
+                            "—"
+                        )}
+                    </strong>
+                </div>
+            `;
+
+            recipientsContainer.appendChild(card);
+        }
+    );
+}
+
+/*
+    DISPLAY DELIVERY INSTRUCTIONS
+*/
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function renderInstructions() {
+
+    if (!instructionsText) {
+        return;
+    }
+
+    const destinations =
+        Array.isArray(bookingData.destinations) &&
+        bookingData.destinations.length
+            ? bookingData.destinations
+            : [{
+                instructions:
+                    bookingData.instructions || ""
+            }];
+
+    const instructions = destinations
+        .map((item, index) => {
+            const text =
+                item?.instructions ||
+                "No special instructions";
+
+            return `Destination ${index + 1}: ${escapeHtml(text)}`;
+        });
+
+    instructionsText.innerHTML =
+        instructions.join("<br><br>");
+}
+
+/*
+    DISPLAY BOOKING DETAILS
+*/
+
+function loadConfirmationDetails() {
+
+    const destinations =
+        Array.isArray(bookingData.destinations) &&
+        bookingData.destinations.length
+            ? bookingData.destinations
+            : [{
+                destination:
+                    bookingData.destination || {}
+            }];
+
+    const destinationNames =
+        destinations.map(
+            (item, index) => {
+
+                const destination =
+                    item?.destination ||
+                    item ||
+                    {};
+
+                return (
+                    destination.name ||
+                    destination.address ||
+                    `Destination ${index + 1}`
+                );
+
+            }
+        );
+
+    destinationText.textContent =
+        destinationNames.join(" | ");
+
+    distanceText.textContent =
+        bookingData.distanceKm
+            ? Number(
+                bookingData.distanceKm
+              ).toFixed(1) + " km"
+            : "—";
+
+    timeText.textContent =
+        bookingData.durationMinutes
+            ? formatTime(
+                bookingData.durationMinutes
+              )
+            : "—";
+
+    priceText.textContent =
+        bookingData.customerPrice
+            ? formatCurrency(
+                bookingData.customerPrice
+              )
+            : "—";
+}
+
+
+/*
+    POST-CHECKOUT PAYMENT STATE
+*/
+
+function normalizeNigerianWhatsAppNumber(phone) {
+    const digits = String(phone || "").replace(/\D/g, "");
+    if (/^234\d{10}$/.test(digits)) return digits;
+    if (/^0\d{10}$/.test(digits)) return "234" + digits.slice(1);
+    if (/^\d{10}$/.test(digits)) return "234" + digits;
+    return "";
+}
+
+function renderPostCheckoutPaymentState() {
+
+    if (!bookingData) {
+        return;
+    }
+
+    const receiverRequests =
+        Array.isArray(
+            bookingData.receiverPaymentRequests
+        )
+            ? bookingData.receiverPaymentRequests
+            : [];
+
+    const walletPaymentCompleted =
+        bookingData.paymentStatus === "PAID" &&
+        bookingData.status === "PAYMENT_CONFIRMED";
 
     if (
-        !bookingData.pickup ||
-        !bookingData.destination
+        !receiverRequests.length &&
+        !walletPaymentCompleted
     ) {
+        return;
+    }
+
+    confirmButton.disabled = true;
+    backButton.style.display = "none";
+
+    if (walletPaymentCompleted) {
+
+        confirmButton.textContent =
+            "PAYMENT CONFIRMED";
+
+        confirmationMessage.textContent =
+            "Payment successful. Your delivery has been confirmed.";
 
         return;
     }
 
+    receiverPaymentLinks.style.display =
+        "block";
 
-    const pickup =
-        bookingData.pickup;
+    receiverPaymentLinks.textContent = "";
 
-    const destination =
-        bookingData.destination;
+    const heading =
+        document.createElement("h2");
 
+    heading.textContent =
+        "Receiver Payment Links";
 
-    const url =
-        "https://router.project-osrm.org/route/v1/driving/" +
-        pickup.lon +
-        "," +
-        pickup.lat +
-        ";" +
-        destination.lon +
-        "," +
-        destination.lat +
-        "?overview=false";
+    receiverPaymentLinks.appendChild(
+        heading
+    );
 
+    const message =
+        document.createElement("p");
 
-    try {
+    message.textContent =
+        "Send each recipient their secure payment link. All required receiver payments must be completed before the delivery can be fully confirmed.";
 
-        const response =
-            await fetch(url);
+    receiverPaymentLinks.appendChild(
+        message
+    );
 
+    receiverRequests.forEach(
+        (request, index) => {
 
-        const data =
-            await response.json();
+            const card =
+                document.createElement("div");
 
+            card.className =
+                "recipient-box";
 
-        if (
-            !data.routes ||
-            !data.routes.length
-        ) {
+            const recipient =
+                document.createElement("strong");
 
-            throw new Error(
-                "Route not found"
+            recipient.textContent =
+                request.recipientName ||
+                `Recipient ${index + 1}`;
+
+            card.appendChild(recipient);
+
+            const destination =
+                Array.isArray(
+                    bookingData.destinations
+                )
+                    ? bookingData.destinations[
+                        Number(
+                            request.destinationIndex
+                        )
+                    ]
+                    : null;
+
+            const destinationText =
+                document.createElement("p");
+
+            destinationText.textContent =
+                destination?.destination?.address ||
+                destination?.destination?.name ||
+                "Destination";
+
+            card.appendChild(
+                destinationText
+            );
+
+            const amount =
+                document.createElement("p");
+
+            amount.textContent =
+                `Amount: ₦${Number(
+                    request.amount || 0
+                ).toLocaleString()}`;
+
+            card.appendChild(amount);
+
+            if (request.paymentUrl) {
+
+                const link =
+                    document.createElement("a");
+
+                link.href =
+                    request.paymentUrl;
+
+                link.target =
+                    "_blank";
+
+                link.rel =
+                    "noopener noreferrer";
+
+                link.className =
+                    "confirm-button";
+
+                link.textContent =
+                    "OPEN PAYMENT LINK";
+
+                card.appendChild(link);
+
+                const number = normalizeNigerianWhatsAppNumber(request.recipientPhone);
+                if (number) {
+                    const url = new URL(request.paymentUrl, window.location.href).href;
+                    const message = `Hello ${request.recipientName || "there"}, please complete your Dreypella delivery payment.\nBooking reference: ${bookingData.bookingReference || "—"}\nAmount due: ₦${Number(request.amount || 0).toLocaleString()}\nSecure payment link: ${url}`;
+                    const wa = document.createElement("a");
+                    wa.href = "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
+                    wa.target = "_blank";
+                    wa.rel = "noopener noreferrer";
+                    wa.className = "confirm-button";
+                    wa.textContent = "SHARE VIA WHATSAPP";
+                    card.appendChild(wa);
+                }
+
+            } else {
+
+                const unavailable =
+                    document.createElement("p");
+
+                unavailable.textContent =
+                    "Payment link unavailable.";
+
+                card.appendChild(
+                    unavailable
+                );
+            }
+
+            receiverPaymentLinks.appendChild(
+                card
             );
         }
+    );
 
+    confirmationMessage.textContent =
+        "Delivery created. Send each secure payment link to the corresponding recipient.";
 
-        const route =
-            data.routes[0];
-
-
-        const distanceKm =
-            route.distance / 1000;
-
-
-        const durationMinutes =
-            route.duration / 60;
-
-
-        distanceText.textContent =
-            distanceKm.toFixed(1) +
-            " km";
-
-
-        timeText.textContent =
-            formatTime(
-                durationMinutes
-            );
-
-
-        /*
-            Use the same temporary pricing
-            rules as delivery.js.
-
-            Later Firebase will provide
-            the admin-controlled price.
-        */
-
-        const price =
-            calculatePrice(
-                distanceKm,
-                bookingData.method
-            );
-
-
-        bookingData.distanceKm =
-            Number(
-                distanceKm.toFixed(2)
-            );
-
-
-        bookingData.durationMinutes =
-            Math.round(
-                durationMinutes
-            );
-
-
-        bookingData.customerPrice =
-            price;
-
-
-        priceText.textContent =
-            formatCurrency(price);
-
-
-        /*
-            Update local booking.
-        */
-
-        localStorage.setItem(
-            "dreypellaDeliveryBooking",
-            JSON.stringify(
-                bookingData
-            )
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        confirmationMessage.textContent =
-            "Unable to calculate the route. Please go back and try again.";
-
-        confirmButton.disabled =
-            true;
-    }
-
+    confirmButton.textContent =
+        "PAYMENT LINKS CREATED";
 }
 
-
 /*
-    TEMPORARY CUSTOMER PRICING
-
-    Admin-controlled pricing will later
-    replace these values through Firebase.
+    INITIAL CONFIRMATION DISPLAY
 */
 
-function calculatePrice(
-    distanceKm,
-    method
-) {
-
-    const baseFare =
-        500;
-
-
-    const pricePerKm =
-        120;
-
-
-    const vehicleSurcharge =
-        300;
-
-
-    const riderSurcharge =
-        150;
-
-
-    const walkerDifference =
-        150;
-
-
-    let price =
-        baseFare +
-        (
-            distanceKm *
-            pricePerKm
-        );
-
-
-    if (method === "VEHICLE") {
-
-        price +=
-            vehicleSurcharge;
-    }
-
-
-    if (method === "RIDER") {
-
-        price +=
-            riderSurcharge;
-    }
-
-
-    if (method === "WALKER") {
-
-        price -=
-            walkerDifference;
-    }
-
-
-    if (price < 700) {
-
-        price = 700;
-    }
-
-
-    price =
-        Math.ceil(
-            price / 50
-        ) * 50;
-
-
-    return price;
+if (bookingData) {
+    loadConfirmationDetails();
 }
 
 
@@ -414,56 +572,53 @@ insurance.addEventListener(
 confirmButton.addEventListener(
     "click",
     () => {
-
         if (!bookingData) {
-
             return;
         }
 
+        if (
+            Array.isArray(
+                bookingData.receiverPaymentRequests
+            ) &&
+            bookingData.receiverPaymentRequests.length
+        ) {
+            return;
+        }
+
+        if (
+            bookingData.paymentStatus === "PAID" &&
+            bookingData.status === "PAYMENT_CONFIRMED"
+        ) {
+            return;
+        }
 
         if (!bookingData.customerPrice) {
-
             confirmationMessage.textContent =
                 "Please wait for the delivery price to load.";
-
             return;
         }
-
 
         bookingData.insurance =
             insurance.checked;
 
-
-        bookingData.status =
-            "AWAITING_PAYMENT";
-
-
         localStorage.setItem(
             "dreypellaDeliveryBooking",
-            JSON.stringify(
-                bookingData
-            )
+            JSON.stringify(bookingData)
         );
 
-
-        /*
-            Payment page comes next.
-        */
-
         window.location.href =
-            "delivery-payment.html";
-
+            "delivery-checkout.html";
     }
 );
-
-
-/*
-    BACK
-*/
 
 backButton.addEventListener(
     "click",
     () => {
+
+        localStorage.setItem(
+            "dreypellaDeliveryEditMode",
+            "true"
+        );
 
         window.location.href =
             "delivery.html";

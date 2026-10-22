@@ -2,12 +2,16 @@
     DREYPELLA RIDE
     RECEIVER PAYMENT PAGE
 
-    This page reads the delivery booking
-    reference from the URL.
+    Public payment page.
+
+    Authentication is NOT required.
+
+    The secure payment token in the URL is the
+    credential used to access the payment request.
 
     Example:
 
-    receiver-payment.html?booking=DR-12345678-123
+    receiver-payment.html?token=SECURE_TOKEN
 */
 
 
@@ -15,6 +19,7 @@ const paymentMessage =
     document.getElementById(
         "paymentMessage"
     );
+
 
 const payButton =
     document.getElementById(
@@ -27,35 +32,42 @@ const bookingReferenceElement =
         "bookingReference"
     );
 
+
 const pickupText =
     document.getElementById(
         "pickupText"
     );
+
 
 const destinationText =
     document.getElementById(
         "destinationText"
     );
 
+
 const methodText =
     document.getElementById(
         "methodText"
     );
+
 
 const distanceText =
     document.getElementById(
         "distanceText"
     );
 
+
 const recipientText =
     document.getElementById(
         "recipientText"
     );
 
+
 const priceText =
     document.getElementById(
         "priceText"
     );
+
 
 const statusText =
     document.getElementById(
@@ -63,9 +75,14 @@ const statusText =
     );
 
 
+const functions =
+    firebase.functions();
+
+
 /*
-    GET BOOKING REFERENCE
+    GET SECURE PAYMENT TOKEN
 */
+
 
 const urlParams =
     new URLSearchParams(
@@ -73,126 +90,218 @@ const urlParams =
     );
 
 
-const bookingReference =
+const paymentToken =
     urlParams.get(
-        "booking"
+        "token"
     );
 
 
 /*
-    GET STORED BOOKING
-
-    This is useful while developing
-    the application in TrebEdit.
-
-    In production, the booking should
-    be retrieved from Firestore using
-    a secure backend.
+    INITIAL PAGE STATE
 */
 
-let bookingData =
-    JSON.parse(
-        localStorage.getItem(
-            "dreypellaDeliveryBooking"
-        )
-    );
 
-
-/*
-    CHECK BOOKING
-*/
-
-if (!bookingReference) {
+if (!paymentToken) {
 
     showError(
-        "This payment link is missing a booking reference."
+        "This payment link is missing its secure payment token."
     );
 
-} else if (!bookingData) {
-
-    showError(
-        "This delivery payment request could not be found."
-    );
-
-} else if (
-    bookingData.bookingReference !==
-    bookingReference
+}
+else if (
+    paymentToken.length < 32
 ) {
 
     showError(
-        "This payment request does not match the delivery."
+        "This payment link is invalid."
     );
 
-} else {
+}
+else {
 
-    loadBooking();
+    loadPaymentRequest();
 
 }
 
 
 /*
-    LOAD BOOKING
+    LOAD PAYMENT REQUEST
 */
 
-function loadBooking() {
+
+async function loadPaymentRequest() {
+
+    payButton.disabled =
+        true;
+
+    payButton.textContent =
+        "LOADING PAYMENT...";
+
+    paymentMessage.textContent =
+        "";
+
+    statusText.textContent =
+        "Loading payment request...";
+
+
+    try {
+
+        const getPaymentRequest =
+            functions.httpsCallable(
+                "getReceiverPaymentRequest"
+            );
+
+
+        const result =
+            await getPaymentRequest({
+                token:
+                    paymentToken
+            });
+
+
+        const data =
+            result.data;
+
+
+        if (
+            !data ||
+            !data.success
+        ) {
+
+            throw new Error(
+                "Unable to load this payment request."
+            );
+
+        }
+
+
+        /*
+            Store only the limited response
+            needed by this page.
+
+            The amount comes from the secure
+            backend response, not from the URL.
+        */
+
+
+        renderPaymentRequest(
+            data
+        );
+
+
+    }
+    catch(error) {
+
+        console.error(
+            "Receiver payment request error:",
+            error
+        );
+
+
+        showError(
+            getErrorMessage(
+                error
+            )
+        );
+
+    }
+
+}
+
+
+/*
+    DISPLAY PAYMENT REQUEST
+*/
+
+
+function renderPaymentRequest(
+    data
+) {
 
     bookingReferenceElement.textContent =
-        bookingData.bookingReference;
+        data.bookingReference ||
+        "—";
 
 
     pickupText.textContent =
-        bookingData.pickup?.name ||
+        data.pickup?.name ||
         "Pickup location";
 
 
     destinationText.textContent =
-        bookingData.destination?.name ||
+        data.destination?.name ||
         "Destination";
 
 
     methodText.textContent =
         formatMethod(
-            bookingData.method
+            data.method
         );
 
 
     distanceText.textContent =
-        bookingData.distanceKm
-            ? bookingData.distanceKm +
-              " km"
+        Number.isFinite(
+            Number(
+                data.distanceKm
+            )
+        )
+            ? Number(
+                data.distanceKm
+            ) + " km"
             : "—";
 
 
     recipientText.textContent =
-        bookingData.recipientName ||
+        data.recipientName ||
         "—";
 
 
     priceText.textContent =
         formatCurrency(
-            bookingData.customerPrice
+            data.amount
         );
 
 
-    /*
-        Check current payment status.
-    */
-
     if (
-        bookingData.paymentStatus ===
-        "PAID"
+        data.alreadyPaid === true ||
+        data.status === "PAID"
     ) {
 
         statusText.textContent =
             "Payment completed";
 
-        payButton.textContent =
-            "PAYMENT COMPLETED";
+
+        paymentMessage.textContent =
+            "This delivery has already been paid.";
+
 
         payButton.disabled =
             true;
 
+
+        payButton.textContent =
+            "PAYMENT COMPLETED";
+
+
+        return;
+
     }
+
+
+    statusText.textContent =
+        "Payment pending";
+
+
+    paymentMessage.textContent =
+        "Review the delivery details, then continue to secure payment.";
+
+
+    payButton.disabled =
+        false;
+
+
+    payButton.textContent =
+        "PAY NOW";
 
 }
 
@@ -201,6 +310,7 @@ function loadBooking() {
     PAY BUTTON
 */
 
+
 payButton.addEventListener(
     "click",
     startPayment
@@ -208,214 +318,128 @@ payButton.addEventListener(
 
 
 /*
-    START PAYMENT
+    START RECEIVER PAYMENT
 */
 
-function startPayment() {
 
-    if (!bookingData) {
+async function startPayment() {
+
+    if (!paymentToken) {
 
         showError(
-            "Delivery information is unavailable."
+            "This payment link is invalid."
         );
 
         return;
+
     }
 
-
-    if (
-        bookingData.paymentStatus ===
-        "PAID"
-    ) {
-
-        return;
-    }
-
-
-    /*
-        Make sure this is a receiver-payment
-        request.
-    */
-
-    if (
-        bookingData.payer !==
-        "RECEIVER"
-    ) {
-
-        showError(
-            "This delivery is not configured for receiver payment."
-        );
-
-        return;
-    }
-
-
-    /*
-        Prevent duplicate clicks.
-    */
 
     payButton.disabled =
         true;
-
 
     payButton.textContent =
         "CONNECTING TO PAYMENT...";
 
-
     paymentMessage.textContent =
-        "";
+        "Preparing secure payment...";
 
 
-    /*
-        IMPORTANT:
+    try {
 
-        This is where the real payment provider
-        will be connected.
-
-        DO NOT mark payment as PAID here.
-
-        The payment provider must confirm the
-        transaction through your backend.
-    */
+        const initializePayment =
+            functions.httpsCallable(
+                "initializeReceiverPayment"
+            );
 
 
-    createPaymentRequest();
-
-}
-
-
-/*
-    CREATE PAYMENT REQUEST
-*/
-
-function createPaymentRequest() {
-
-    /*
-        DEVELOPMENT VERSION
-
-        For now, create a payment reference.
-
-        Later this should call:
-
-        Firebase Cloud Function
-                  ↓
-        Payment Provider
-                  ↓
-        Payment Checkout
-    */
+        const result =
+            await initializePayment({
+                token:
+                    paymentToken
+            });
 
 
-    const paymentReference =
-        generatePaymentReference();
+        const data =
+            result.data;
 
 
-    bookingData.paymentReference =
-        paymentReference;
+        if (
+            !data ||
+            !data.authorizationUrl
+        ) {
+
+            throw new Error(
+                "Unable to initialize receiver payment."
+            );
+
+        }
 
 
-    bookingData.paymentStatus =
-        "PROCESSING";
+        /*
+            Paystack now handles the
+            actual payment.
+
+            We do NOT mark the delivery
+            as paid from the browser.
+        */
 
 
-    bookingData.status =
-        "PAYMENT_PROCESSING";
+        window.location.href =
+            data.authorizationUrl;
 
+    }
+    catch(error) {
 
-    bookingData.paymentStartedAt =
-        new Date().toISOString();
-
-
-    localStorage.setItem(
-        "dreypellaDeliveryBooking",
-        JSON.stringify(
-            bookingData
-        )
-    );
-
-
-    /*
-        IMPORTANT:
-
-        Do NOT change this to PAID manually.
-
-        The next page is a payment-provider
-        checkout page when the real provider
-        is connected.
-    */
-
-
-    /*
-        For now we show a development
-        message instead of pretending
-        payment succeeded.
-    */
-
-    showDevelopmentMessage(
-        paymentReference
-    );
-
-}
-
-
-/*
-    DEVELOPMENT MESSAGE
-*/
-
-function showDevelopmentMessage(
-    paymentReference
-) {
-
-    paymentMessage.innerHTML =
-        "Payment gateway is ready for integration.<br>" +
-        "Payment Reference: <strong>" +
-        paymentReference +
-        "</strong>";
-
-
-    payButton.disabled =
-        true;
-
-
-    payButton.textContent =
-        "PAYMENT GATEWAY REQUIRED";
-
-}
-
-
-/*
-    GENERATE PAYMENT REFERENCE
-*/
-
-function generatePaymentReference() {
-
-    const timestamp =
-        Date.now()
-        .toString()
-        .slice(-10);
-
-
-    const random =
-        Math.floor(
-            1000 +
-            Math.random() * 9000
+        console.error(
+            "Receiver payment initialization error:",
+            error
         );
 
 
-    return (
-        "PAY-" +
-        timestamp +
-        "-" +
-        random
-    );
+        showError(
+            getErrorMessage(
+                error
+            )
+        );
+
+    }
 
 }
 
 
 /*
-    ERROR
+    ERROR MESSAGE
 */
 
-function showError(message) {
+
+function getErrorMessage(
+    error
+) {
+
+    if (
+        error &&
+        error.message
+    ) {
+
+        return error.message;
+
+    }
+
+
+    return "Unable to process this payment request.";
+
+}
+
+
+/*
+    ERROR DISPLAY
+*/
+
+
+function showError(
+    message
+) {
 
     statusText.textContent =
         "Payment unavailable";
@@ -439,19 +463,30 @@ function showError(message) {
     CURRENCY
 */
 
-function formatCurrency(amount) {
+
+function formatCurrency(
+    amount
+) {
+
+    const numericAmount =
+        Number(
+            amount
+        );
+
 
     if (
-        amount === undefined ||
-        amount === null
+        !Number.isFinite(
+            numericAmount
+        )
     ) {
 
         return "₦0";
+
     }
 
 
     return "₦" +
-        Number(amount).toLocaleString(
+        numericAmount.toLocaleString(
             "en-NG"
         );
 
@@ -462,21 +497,28 @@ function formatCurrency(amount) {
     METHOD
 */
 
-function formatMethod(method) {
+
+function formatMethod(
+    method
+) {
 
     const methods = {
 
-        WALKER: "Walker",
+        WALKER:
+            "Walker",
 
-        RIDER: "Rider",
+        RIDER:
+            "Rider",
 
-        VEHICLE: "Vehicle"
+        VEHICLE:
+            "Vehicle"
 
     };
 
 
     return methods[
         method
-    ] || "Delivery Partner";
+    ] ||
+        "Delivery Partner";
 
 }

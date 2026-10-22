@@ -1,26 +1,17 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const menuToggle = document.getElementById("menuToggle");
-    const mainNav = document.getElementById("mainNav");
+const admin = require("firebase-admin");
 
-    if (!menuToggle || !mainNav) return;
+admin.initializeApp();
 
-    menuToggle.addEventListener("click", () => {
-        mainNav.classList.toggle("active");
+const walletFunctions = require("./wallet-functions");
+const walletPayments = require("./firebase-functions");
+const adminWallet = require("./adminWallet");
+const adminWithdrawals = require("./adminWithdrawals");
+const adminRides = require("./adminRides");
 
-        const isOpen = mainNav.classList.contains("active");
-
-        menuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-        menuToggle.setAttribute(
-            "aria-label",
-            isOpen ? "Close menu" : "Open menu"
-        );
-    });
-
-    mainNav.querySelectorAll("a").forEach((link) => {
-        link.addEventListener("click", () => {
-            mainNav.classList.remove("active");
-            menuToggle.setAttribute("aria-expanded", "false");
-            menuToggle.setAttribute("aria-label", "Open menu");
-        });
-    });
-});
+module.exports = {
+    ...walletFunctions,
+    ...walletPayments,
+    ...adminWallet,
+    ...adminWithdrawals,
+    ...adminRides
+};

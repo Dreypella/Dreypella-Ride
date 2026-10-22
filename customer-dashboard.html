@@ -60,7 +60,7 @@
                 <span>Wallet</span>
             </a>
 
-            <a href="tracking.html" class="nav-link">
+            <a href="customer-delivery-tracking.html" class="nav-link">
                 <span>📍</span>
                 <span>Track</span>
             </a>
@@ -70,7 +70,7 @@
                 <span>My Orders</span>
             </a>
 
-            <a href="history.html" class="nav-link">
+            <a href="customer-orders.html" class="nav-link">
                 <span>🕘</span>
                 <span>History</span>
             </a>
@@ -240,7 +240,14 @@
             </section>
 
 
-            <!-- ACTIVE TRIP -->
+            <!-- RIDE CONSOLIDATION PROPOSALS -->
+<section class="section" id="consolidationSection">
+  <div class="section-heading"><h2>Shared Ride Offers</h2></div>
+  <p>Review shared-ride offers for your requested route and date. Accepting an offer expresses interest; it does not confirm a trip or payment.</p>
+  <div id="consolidationProposalList" aria-live="polite"><p>Loading shared-ride offers...</p></div>
+</section>
+
+<!-- ACTIVE TRIP -->
             <section
                 class="section"
                 id="activeTripSection"
@@ -250,7 +257,7 @@
                 <div class="section-heading">
                     <h2>Active Trip</h2>
 
-                    <a href="tracking.html">
+                    <a href="customer-delivery-tracking.html">
                         Track
                     </a>
                 </div>
@@ -313,7 +320,7 @@
                     </div>
 
                     <a
-                        href="tracking.html"
+                        href="customer-delivery-tracking.html"
                         class="primary-button"
                     >
                         TRACK CURRENT TRIP
@@ -374,7 +381,7 @@
 
 
                     <a
-                        href="history.html"
+                        href="customer-orders.html"
                         class="summary-card"
                     >
 
@@ -404,7 +411,7 @@
 
                     <h2>Recent Activity</h2>
 
-                    <a href="history.html">
+                    <a href="customer-orders.html">
                         View all
                     </a>
 
@@ -497,9 +504,11 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 <script src="firebase-config.js"></script>
 
 <script src="customer-dashboard.js"></script>
 
+<script src="auth-guard.js"></script>
 </body>
 </html>

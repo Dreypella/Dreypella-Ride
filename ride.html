@@ -75,37 +75,13 @@
                     ●
                 </span>
 
-                <select id="fromLocation">
-
-                    <option value="">
-                        Select departure city
-                    </option>
-
-                    <option value="Ogbomosho">
-                        Ogbomosho
-                    </option>
-
-                    <option value="Iseyin">
-                        Iseyin
-                    </option>
-
-                    <option value="Oyo">
-                        Oyo
-                    </option>
-
-                    <option value="Ibadan">
-                        Ibadan
-                    </option>
-
-                    <option value="Lagos">
-                        Lagos
-                    </option>
-
-                    <option value="Ilorin">
-                        Ilorin
-                    </option>
-
-                </select>
+                <input
+                    type="text"
+                    id="fromLocation"
+                    placeholder="Enter departure location"
+                    autocomplete="off"
+                    required
+                >
 
             </div>
 
@@ -129,37 +105,13 @@
                     ●
                 </span>
 
-                <select id="toLocation">
-
-                    <option value="">
-                        Select destination city
-                    </option>
-
-                    <option value="Ogbomosho">
-                        Ogbomosho
-                    </option>
-
-                    <option value="Iseyin">
-                        Iseyin
-                    </option>
-
-                    <option value="Oyo">
-                        Oyo
-                    </option>
-
-                    <option value="Ibadan">
-                        Ibadan
-                    </option>
-
-                    <option value="Lagos">
-                        Lagos
-                    </option>
-
-                    <option value="Ilorin">
-                        Ilorin
-                    </option>
-
-                </select>
+                <input
+                    type="text"
+                    id="toLocation"
+                    placeholder="Enter destination"
+                    autocomplete="off"
+                    required
+                >
 
             </div>
 
@@ -174,13 +126,12 @@
             <div>
 
                 <label>
-                    Travel Date
+                    Preferred Travel Date (Optional suggestion)
                 </label>
 
                 <input
                     type="date"
                     id="travelDate"
-                    required
                 >
 
             </div>
@@ -189,13 +140,12 @@
             <div>
 
                 <label>
-                    Preferred Time
+                    Preferred Time <small>(Optional)</small>
                 </label>
 
                 <input
                     type="time"
                     id="preferredTime"
-                    required
                 >
 
             </div>
@@ -264,7 +214,6 @@
         id="bookingSection"
         class="booking-section hidden">
 
-
         <div class="section-heading">
 
             <p>PASSENGER</p>
@@ -275,17 +224,12 @@
 
         </div>
 
-
-
         <div
             id="selectedTrip"
             class="selected-trip">
         </div>
 
-
-
         <form id="bookingForm">
-
 
             <label>
                 Passenger Name
@@ -298,8 +242,6 @@
                 required
             >
 
-
-
             <label>
                 Phone Number
             </label>
@@ -311,7 +253,21 @@
                 required
             >
 
+            <div
+                id="tripGroupSection"
+                class="hidden">
 
+                <label>
+                    Gathering Point & Vehicle
+                </label>
+
+                <select id="tripGroup">
+                    <option value="">
+                        Select gathering point and vehicle
+                    </option>
+                </select>
+
+            </div>
 
             <label>
                 Number of Seats
@@ -335,9 +291,23 @@
                     4 Seats
                 </option>
 
+                <option value="5">
+                    5 Seats
+                </option>
+
+                <option value="6">
+                    6 Seats
+                </option>
+
+                <option value="7">
+                    7 Seats
+                </option>
+
+                <option value="8">
+                    8 Seats
+                </option>
+
             </select>
-
-
 
             <div
                 id="fareBox"
@@ -353,16 +323,12 @@
 
             </div>
 
-
-
             <p class="confirmation-note">
 
                 Final fare, gathering point and vehicle details
                 will be confirmed by Dreypella Ride.
 
             </p>
-
-
 
             <button
                 type="submit"
@@ -372,8 +338,6 @@
 
             </button>
 
-
-
             <div
                 id="bookingMessage"
                 class="message">
@@ -382,7 +346,6 @@
         </form>
 
     </section>
-
 
 
     <!-- REQUEST INFO -->
@@ -412,8 +375,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 
 <script src="firebase-config.js"></script>
+
+<script src="auth-guard.js"></script>
 
 <script src="ride.js"></script>
 

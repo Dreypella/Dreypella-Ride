@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Ride Payment | Dreypella Ride
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="responsive.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="ride-payment-success.css"
+    >
+</head>
+
+<body>
+
+    <header class="payment-header">
+
+        <div class="payment-header-inner">
+
+            <a
+                href="customer-dashboard.html"
+                class="payment-brand"
+            >
+                DREYPELLA RIDE
+            </a>
+
+            <span class="payment-header-label">
+                RIDE PAYMENT
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <main class="payment-page">
+
+        <section
+            id="paymentLoading"
+            class="payment-state payment-loading"
+        >
+
+            <div class="payment-icon">
+                ⏳
+            </div>
+
+            <span class="section-label">
+                PAYMENT
+            </span>
+
+            <h1>
+                Confirming Payment
+            </h1>
+
+            <p>
+                Please wait while we securely verify your Paystack payment.
+            </p>
+
+            <div class="payment-loader"></div>
+
+        </section>
+
+
+        <section
+            id="paymentSuccess"
+            class="payment-state payment-success"
+            hidden
+        >
+
+            <div class="payment-icon">
+                ✓
+            </div>
+
+            <span class="section-label">
+                PAYMENT SUCCESSFUL
+            </span>
+
+            <h1>
+                Ride Booking Confirmed
+            </h1>
+
+            <p>
+                Your payment has been verified successfully and your ride booking is now confirmed.
+            </p>
+
+            <div class="payment-details">
+
+                <div class="payment-detail-row">
+
+                    <span>
+                        Amount Paid
+                    </span>
+
+                    <strong id="successAmount">
+                        —
+                    </strong>
+
+                </div>
+
+                <div class="payment-detail-row">
+
+                    <span>
+                        Booking Reference
+                    </span>
+
+                    <strong id="successBookingId">
+                        —
+                    </strong>
+
+                </div>
+
+                <div class="payment-detail-row">
+
+                    <span>
+                        Payment Reference
+                    </span>
+
+                    <strong id="successReference">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="payment-actions">
+
+                <a
+                    href="customer-dashboard.html"
+                    class="payment-button primary"
+                >
+                    GO TO DASHBOARD
+                </a>
+
+                <a
+                    href="ride.html"
+                    class="payment-button secondary"
+                >
+                    BOOK ANOTHER RIDE
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="paymentError"
+            class="payment-state payment-error"
+            hidden
+        >
+
+            <div class="payment-icon">
+                !
+            </div>
+
+            <span class="section-label">
+                PAYMENT VERIFICATION
+            </span>
+
+            <h1>
+                Payment Could Not Be Confirmed
+            </h1>
+
+            <p id="paymentErrorMessage">
+                We could not confirm this payment.
+            </p>
+
+            <div class="payment-warning">
+                If money was deducted from your account, do not pay again immediately.
+                Please contact Dreypella Ride support with your payment reference.
+            </div>
+
+            <div class="payment-details">
+
+                <div class="payment-detail-row">
+
+                    <span>
+                        Payment Reference
+                    </span>
+
+                    <strong id="errorReference">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="payment-actions">
+
+                <a
+                    href="customer-dashboard.html"
+                    class="payment-button primary"
+                >
+                    RETURN TO DASHBOARD
+                </a>
+
+                <a
+                    href="contact.html"
+                    class="payment-button secondary"
+                >
+                    CONTACT SUPPORT
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"
+    ></script>
+
+    <script
+        src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"
+    ></script>
+
+    <script
+        src="firebase-config.js"
+    ></script>
+
+    <script
+        src="auth-guard.js"
+    ></script>
+
+    <script
+        src="ride-payment-success.js"
+    ></script>
+
+</body>
+</html>

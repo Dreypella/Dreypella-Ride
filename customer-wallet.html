@@ -546,6 +546,18 @@
                 required
             >
 
+            <button
+                type="button"
+                class="modal-submit"
+                id="verifyAccountButton"
+            >
+                VERIFY ACCOUNT
+            </button>
+
+            <div
+                id="accountVerificationMessage"
+                class="form-message"
+            ></div>
 
             <label>
                 Account Name
@@ -554,7 +566,8 @@
             <input
                 type="text"
                 id="accountName"
-                placeholder="Account name"
+                placeholder="Verified account name"
+                readonly
                 required
             >
 
@@ -618,13 +631,13 @@
 
 <!-- FIREBASE -->
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 
 
 <!-- YOUR FIREBASE CONFIG -->
@@ -646,6 +659,7 @@
 <script src="customer-wallet.js"></script>
 
 
+<script src="auth-guard.js"></script>
 </body>
 
 </html>

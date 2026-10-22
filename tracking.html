@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Track | Dreypella Ride</title>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth-guard.js"></script>
+</head>
+
+<body>
+
+<script>
+(function () {
+    const params = window.location.search;
+
+    window.location.replace(
+        "customer-delivery-tracking.html" + params
+    );
+})();
+</script>
+
+</body>
+</html>

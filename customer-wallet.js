@@ -111,6 +111,16 @@ const accountName =
         "accountName"
     );
 
+const verifyAccountButton =
+    document.getElementById(
+        "verifyAccountButton"
+    );
+
+const accountVerificationMessage =
+    document.getElementById(
+        "accountVerificationMessage"
+    );
+
 const fundMessage =
     document.getElementById(
         "fundMessage"
@@ -140,7 +150,202 @@ let transactionListener = null;
 
 let transactions = [];
 
+let accountVerified = false;
 
+let verifiedBankCode = "";
+
+let verifiedAccountNumber = "";
+let withdrawalRequestId = "";
+
+
+
+/* =========================================
+   ACCOUNT VERIFICATION RESET
+   ========================================= */
+
+function resetAccountVerification() {
+
+    accountVerified = false;
+
+    verifiedBankCode = "";
+
+    verifiedAccountNumber = "";
+
+    accountName.value = "";
+
+    accountVerificationMessage.textContent = "";
+
+    accountVerificationMessage.className =
+        "form-message";
+
+    verifyAccountButton.disabled = false;
+
+    verifyAccountButton.textContent =
+        "VERIFY ACCOUNT";
+}
+
+bankCode.addEventListener(
+    "change",
+    resetAccountVerification
+);
+
+accountNumber.addEventListener(
+    "input",
+    function() {
+
+        if (
+            accountVerified ||
+            verifiedAccountNumber
+        ) {
+            resetAccountVerification();
+        }
+
+    }
+);
+
+
+/* =========================================
+   BANK ACCOUNT VERIFICATION
+   ========================================= */
+
+verifyAccountButton.addEventListener(
+    "click",
+    async function() {
+
+        clearFormMessage(
+            accountVerificationMessage
+        );
+
+        const selectedBankCode =
+            bankCode.value.trim();
+
+        const enteredAccountNumber =
+            accountNumber.value.trim();
+
+        if (!selectedBankCode) {
+
+            showFormMessage(
+                accountVerificationMessage,
+                "Please select a bank.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (
+            !/^\d{10}$/.test(
+                enteredAccountNumber
+            )
+        ) {
+
+            showFormMessage(
+                accountVerificationMessage,
+                "Account number must contain 10 digits.",
+                "error"
+            );
+
+            return;
+        }
+
+        verifyAccountButton.disabled =
+            true;
+
+        verifyAccountButton.textContent =
+            "VERIFYING...";
+
+        try {
+
+            const callable =
+                functions.httpsCallable(
+                    "verifyBankAccount"
+                );
+
+            const response =
+                await callable({
+
+                    bankCode:
+                        selectedBankCode,
+
+                    accountNumber:
+                        enteredAccountNumber
+
+                });
+
+            const result =
+                response.data || {};
+
+            if (
+                !result.success ||
+                !result.accountName
+            ) {
+
+                throw new Error(
+                    "Unable to verify this bank account."
+                );
+
+            }
+
+            accountName.value =
+                result.accountName;
+
+            accountVerified =
+                true;
+
+            verifiedBankCode =
+                selectedBankCode;
+
+            verifiedAccountNumber =
+                enteredAccountNumber;
+
+            showFormMessage(
+                accountVerificationMessage,
+                "Account verified successfully.",
+                "success"
+            );
+
+            verifyAccountButton.textContent =
+                "ACCOUNT VERIFIED";
+
+        }
+        catch(error) {
+
+            accountVerified =
+                false;
+
+            verifiedBankCode =
+                "";
+
+            verifiedAccountNumber =
+                "";
+
+            accountName.value =
+                "";
+
+            console.error(
+                "Account verification error:",
+                error
+            );
+
+            showFormMessage(
+                accountVerificationMessage,
+                getErrorMessage(error),
+                "error"
+            );
+
+            verifyAccountButton.textContent =
+                "VERIFY ACCOUNT";
+
+        }
+        finally {
+
+            verifyAccountButton.disabled =
+                false;
+
+        }
+
+    }
+);
 
 /* =========================================
    AUTHENTICATION
@@ -310,84 +515,33 @@ function showNoWallet() {
 
 function listenToTransactions() {
 
-    if (
-        transactionListener
-    ) {
+    const getCustomerTransactions =
+        functions.httpsCallable("getCustomerTransactions");
 
-        transactionListener();
+    getCustomerTransactions({
+        limit: 30
+    })
+        .then(function(result) {
+            transactions =
+                result.data && Array.isArray(result.data.transactions)
+                    ? result.data.transactions
+                    : [];
 
-    }
-
-
-    transactionListener =
-        db
-            .collection(
-                "walletTransactions"
-            )
-            .where(
-                "userId",
-                "==",
-                currentUser.uid
-            )
-            .orderBy(
-                "createdAt",
-                "desc"
-            )
-            .limit(30)
-            .onSnapshot(
-
-                function(snapshot) {
-
-                    transactions = [];
-
-
-                    snapshot.forEach(
-                        function(doc) {
-
-                            transactions.push({
-
-                                id:
-                                    doc.id,
-
-                                ...doc.data()
-
-                            });
-
-                        }
-                    );
-
-
-                    renderTransactions();
-
-                },
-
-                function(error) {
-
-                    console.error(
-                        "Transaction listener error:",
-                        error
-                    );
-
-
-                    transactionList.innerHTML = `
-
-                        <div class="empty-state">
-
-                            <h3>
-                                Unable to load transactions
-                            </h3>
-
-                            <p>
-                                Please refresh and try again.
-                            </p>
-
-                        </div>
-
-                    `;
-
-                }
-
+            renderTransactions();
+        })
+        .catch(function(error) {
+            console.error(
+                "Transaction load error:",
+                error
             );
+
+            transactionList.innerHTML = `
+                <div class="empty-state">
+                    <h3>Unable to load transactions</h3>
+                    <p>Please refresh and try again.</p>
+                </div>
+            `;
+        });
 
 }
 
@@ -838,6 +992,33 @@ fundWalletForm.addEventListener(
 
 
 /* =========================================
+   PREFILL FUNDING AMOUNT
+   ========================================= */
+
+const fundingParams =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const requestedFundAmount =
+    Number(
+        fundingParams.get("fundAmount")
+    );
+
+if (
+    Number.isFinite(
+        requestedFundAmount
+    ) &&
+    requestedFundAmount >= 100
+) {
+    fundAmount.value =
+        Math.ceil(
+            requestedFundAmount
+        );
+}
+
+
+/* =========================================
    WITHDRAW MODAL
    ========================================= */
 
@@ -852,6 +1033,8 @@ document
             clearFormMessage(
                 withdrawMessage
             );
+
+            withdrawalRequestId = crypto.randomUUID();
 
             openModal(
                 withdrawModal
@@ -887,6 +1070,11 @@ withdrawForm.addEventListener(
         const bank =
             bankCode.value;
 
+        const bankName =
+            bankCode.options[
+                bankCode.selectedIndex
+            ]?.textContent.trim() || "";
+
 
         const account =
             accountNumber.value.trim();
@@ -914,8 +1102,7 @@ withdrawForm.addEventListener(
 
         if (
             !bank ||
-            account.length !== 10 ||
-            !name
+            account.length !== 10
         ) {
 
             showFormMessage(
@@ -928,6 +1115,22 @@ withdrawForm.addEventListener(
 
         }
 
+
+        if (
+            !accountVerified ||
+            verifiedBankCode !== bank ||
+            verifiedAccountNumber !== account
+        ) {
+
+            showFormMessage(
+                withdrawMessage,
+                "Please verify this bank account before requesting a withdrawal.",
+                "error"
+            );
+
+            return;
+
+        }
 
         const button =
             document.getElementById(
@@ -955,18 +1158,17 @@ withdrawForm.addEventListener(
                 amount:
                     amount,
 
-                bankDetails: {
+                bankCode:
+                    bank,
 
-                    bankCode:
-                        bank,
+                bankName:
+                    bankName,
 
-                    accountNumber:
-                        account,
+                accountNumber:
+                    account,
 
-                    accountName:
-                        name
-
-                }
+                  withdrawalRequestId:
+                      withdrawalRequestId
 
             });
 
@@ -979,6 +1181,12 @@ withdrawForm.addEventListener(
 
 
             withdrawForm.reset();
+
+              accountVerified = false;
+              verifiedBankCode = "";
+              verifiedAccountNumber = "";
+              withdrawalRequestId = "";
+
 
 
             setTimeout(

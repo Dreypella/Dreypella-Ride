@@ -378,6 +378,33 @@ body {
 }
 
 
+/* MULTI-RECIPIENT CHECKOUT */
+
+.recipient-checkout-card {
+    background: #F5F7FA;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.recipient-checkout-card:last-child {
+    margin-bottom: 0;
+}
+
+.recipient-checkout-card h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    color: #081B5A;
+}
+
+.recipient-checkout-card .recipient-destination {
+    margin: 0 0 15px;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+}
+
 /* PAYMENT CHOICE */
 
 .payment-choice-container {

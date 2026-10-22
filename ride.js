@@ -66,9 +66,49 @@ const bookingMessage =
     document.getElementById("bookingMessage");
 
 
+const tripGroupSection =
+    document.getElementById("tripGroupSection");
+
+const tripGroup =
+    document.getElementById("tripGroup");
+
+
 let availableTrips = [];
 
 let selectedTripData = null;
+
+
+/* =========================================
+   CANONICAL RIDE ROUTE
+   ========================================= */
+
+function normalizeRideLocation(value) {
+
+    const normalized =
+        String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+    const aliases = {
+        "ogbomosho": "ogbomoso",
+        "ogbomoso": "ogbomoso"
+    };
+
+    return aliases[normalized] || normalized;
+
+}
+
+
+function normalizeRideRoute(fromCity, toCity) {
+
+    return (
+        normalizeRideLocation(fromCity) +
+        "->" +
+        normalizeRideLocation(toCity)
+    );
+
+}
 
 
 /* =========================================
@@ -127,12 +167,11 @@ function setMinimumDate() {
         dateString;
 
 
-    if (!travelDate.value) {
-
-        travelDate.value =
-            dateString;
-
-    }
+    /*
+     * Travel date is an optional suggestion for
+     * custom journey requests. Keep the minimum
+     * date constraint without forcing a value.
+     */
 
 }
 
@@ -146,7 +185,7 @@ setMinimumDate();
 
 findTripsButton.addEventListener(
     "click",
-    findTrips
+    function () { console.log("DREYPELLA CHECK AVAILABILITY CLICKED"); findTrips(); }
 );
 
 
@@ -173,22 +212,6 @@ async function findTrips() {
         preferredTime.value;
 
 
-    /* VALIDATE LOCATION */
-
-    if (
-        !supportedLocations.includes(from) ||
-        !supportedLocations.includes(to)
-    ) {
-
-        showMessage(
-            journeyMessage,
-            "Please select a valid location.",
-            "error"
-        );
-
-        return;
-
-    }
 
 
     /* SAME LOCATION */
@@ -206,67 +229,43 @@ async function findTrips() {
     }
 
 
-    /* DATE */
+    /* TIME IS OPTIONAL */
 
-    if (!date) {
+    const suggestedTime =
+        time || "";
 
-        showMessage(
-            journeyMessage,
-            "Please select your travel date.",
-            "error"
+
+
+    /* PREVENT PAST DATE WHEN A DATE IS SUGGESTED */
+
+    if (date) {
+
+        const selectedDate =
+            new Date(
+                date + "T00:00:00"
+            );
+
+        const today =
+            new Date();
+
+        today.setHours(
+            0,
+            0,
+            0,
+            0
         );
 
-        return;
+        if (selectedDate < today) {
 
-    }
+            showMessage(
+                journeyMessage,
+                "Please select today or a future date.",
+                "error"
+            );
 
+            return;
 
-    /* TIME */
-
-    if (!time) {
-
-        showMessage(
-            journeyMessage,
-            "Please select your preferred departure time.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    /* PREVENT PAST DATE */
-
-    const selectedDate =
-        new Date(
-            date + "T00:00:00"
-        );
-
-
-    const today =
-        new Date();
-
-
-    today.setHours(
-        0,
-        0,
-        0,
-        0
-    );
-
-
-    if (
-        selectedDate < today
-    ) {
-
-        showMessage(
-            journeyMessage,
-            "Please select today or a future date.",
-            "error"
-        );
-
-        return;
+        }
 
     }
 
@@ -295,31 +294,60 @@ async function findTrips() {
          */
 
 
-        const snapshot =
+        const routeKey =
+            normalizeRideRoute(
+                from,
+                to
+            );
+
+
+        /*
+         * New trips use canonical routeKey.
+         * Date/time remain suggestions only.
+         */
+        const routeSnapshot =
             await db
                 .collection("trips")
                 .where(
-                    "fromCity",
+                    "routeKey",
                     "==",
-                    from
-                )
-                .where(
-                    "toCity",
-                    "==",
-                    to
-                )
-                .where(
-                    "status",
-                    "==",
-                    "AVAILABLE"
+                    routeKey
                 )
                 .get();
 
 
+        /*
+         * Keep compatibility with older trips
+         * that do not yet contain routeKey.
+         */
+        const legacySnapshot = await db
+            .collection("trips")
+            .where("status", "==", "AVAILABLE")
+            .get();
+
+        const tripDocs = new Map();
+
+        routeSnapshot.forEach(function(doc) {
+            const trip = doc.data();
+            if (trip.status === "AVAILABLE") {
+                tripDocs.set(doc.id, doc);
+            }
+        });
+
+        legacySnapshot.forEach(function(doc) {
+            const trip = doc.data();
+            if (
+                trip.status === "AVAILABLE" &&
+                normalizeRideRoute(trip.fromCity, trip.toCity) === routeKey
+            ) {
+                tripDocs.set(doc.id, doc);
+            }
+        });
+
         availableTrips = [];
 
 
-        snapshot.forEach(
+        tripDocs.forEach(
             function(doc) {
 
                 const trip =
@@ -327,49 +355,21 @@ async function findTrips() {
 
 
                 /*
-                 * Only display trips
-                 * matching customer's date.
+                 * Customer date/time are only suggestions.
+                 * Admin decides the actual trip schedule.
+                 *
+                 * Therefore an AVAILABLE trip matching
+                 * the route is shown regardless of the
+                 * customer's suggested date/time.
                  */
 
+                availableTrips.push({
 
-                let tripDate = "";
+                    id: doc.id,
 
+                    ...trip
 
-                if (
-                    trip.departureTime &&
-                    trip.departureTime.toDate
-                ) {
-
-                    tripDate =
-                        formatDateForInput(
-                            trip.departureTime.toDate()
-                        );
-
-                }
-                else if (
-                    trip.travelDate
-                ) {
-
-                    tripDate =
-                        trip.travelDate;
-
-                }
-
-
-                if (
-                    !tripDate ||
-                    tripDate === date
-                ) {
-
-                    availableTrips.push({
-
-                        id: doc.id,
-
-                        ...trip
-
-                    });
-
-                }
+                });
 
             }
         );
@@ -667,6 +667,11 @@ function selectTrip(trip) {
         trip;
 
 
+    displayTripGroups(
+        trip
+    );
+
+
     const fare =
         Number(
             trip.fare || 0
@@ -772,6 +777,361 @@ function selectTrip(trip) {
 
 
 /* =========================================
+   TRIP GROUP SELECTION
+   ========================================= */
+
+function buildGroupLabel(group) {
+
+    const gatheringPoint =
+        group.gatheringPoint ||
+        "Gathering point to be confirmed";
+
+    const vehicle =
+        group.vehicle ||
+        "Vehicle to be confirmed";
+
+    const availableSeats =
+        Number(
+            group.availableSeats ??
+            group.capacity ??
+            0
+        );
+
+    return (
+        gatheringPoint +
+        " • " +
+        vehicle +
+        " • " +
+        availableSeats +
+        " seats available"
+    );
+
+}
+
+
+function updateSeatOptions(maxSeats) {
+
+    if (!seatCount) {
+        return;
+    }
+
+    const normalizedMax =
+        Math.min(
+            8,
+            Math.max(
+                0,
+                Number(maxSeats) || 0
+            )
+        );
+
+    const currentValue =
+        Number(
+            seatCount.value || 1
+        );
+
+    seatCount.innerHTML = "";
+
+    for (
+        let seats = 1;
+        seats <= normalizedMax;
+        seats++
+    ) {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            String(seats);
+
+        option.textContent =
+            seats === 1
+                ? "1 Seat"
+                : seats + " Seats";
+
+        seatCount.appendChild(
+            option
+        );
+
+    }
+
+    if (normalizedMax === 0) {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value = "0";
+        option.textContent = "No seats available";
+        option.selected = true;
+
+        seatCount.appendChild(
+            option
+        );
+
+        return;
+    }
+
+    seatCount.value =
+        String(
+            Math.min(
+                Math.max(
+                    1,
+                    currentValue
+                ),
+                normalizedMax
+            )
+        );
+
+    updateTotalFare();
+
+}
+
+
+function getSelectedTripGroup() {
+
+    if (
+        !selectedTripData ||
+        !Array.isArray(
+            selectedTripData.groups
+        )
+    ) {
+        return null;
+    }
+
+    const groupId =
+        tripGroup
+            ? String(
+                tripGroup.value || ""
+            )
+            : "";
+
+    return (
+        selectedTripData.groups.find(
+            group =>
+                String(
+                    group.groupId || ""
+                ) === groupId
+        ) ||
+        null
+    );
+
+}
+
+
+function syncSeatOptionsToTripGroup() {
+
+    if (!selectedTripData) {
+        return;
+    }
+
+    const selectedGroup =
+        getSelectedTripGroup();
+
+    if (selectedGroup) {
+
+        updateSeatOptions(
+            Number(
+                selectedGroup.availableSeats ??
+                selectedGroup.capacity ??
+                0
+            )
+        );
+
+        return;
+    }
+
+    if (
+        Array.isArray(
+            selectedTripData.groups
+        ) &&
+        selectedTripData.groups.length > 1
+    ) {
+        updateSeatOptions(0);
+        return;
+    }
+
+    const tripAvailableSeats =
+        selectedTripData.availableSeats == null
+            ? 8
+            : Number(
+                selectedTripData.availableSeats
+            );
+
+    updateSeatOptions(
+        tripAvailableSeats
+    );
+
+}
+
+
+function displayTripGroups(trip) {
+
+    if (
+        !tripGroupSection ||
+        !tripGroup
+    ) {
+
+        return;
+
+    }
+
+
+    tripGroup.innerHTML = "";
+
+
+    const groups =
+        Array.isArray(trip.groups)
+            ? trip.groups
+            : [];
+
+
+    /*
+     * Legacy trip without groups.
+     * Cloud Function handles this as DEFAULT.
+     */
+
+    if (
+        groups.length === 0
+    ) {
+
+        tripGroupSection.classList.add(
+            "hidden"
+        );
+
+        const legacyAvailableSeats =
+            trip.availableSeats == null
+                ? 8
+                : Number(
+                    trip.availableSeats
+                );
+
+        updateSeatOptions(
+            legacyAvailableSeats
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * One group:
+     * automatically select it.
+     */
+
+    if (
+        groups.length === 1
+    ) {
+
+        const group =
+            groups[0];
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            String(
+                group.groupId || ""
+            );
+
+        option.textContent =
+            buildGroupLabel(
+                group
+            );
+
+        tripGroup.appendChild(
+            option
+        );
+
+        tripGroup.value =
+            option.value;
+
+        tripGroupSection.classList.add(
+            "hidden"
+        );
+
+        syncSeatOptionsToTripGroup();
+
+        return;
+
+    }
+
+
+    /*
+     * Multiple groups:
+     * customer must choose.
+     */
+
+    const placeholder =
+        document.createElement(
+            "option"
+        );
+
+    placeholder.value =
+        "";
+
+    placeholder.textContent =
+        "Select gathering point and vehicle";
+
+    placeholder.selected =
+        true;
+
+    tripGroup.appendChild(
+        placeholder
+    );
+
+
+    groups.forEach(
+        function(group) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                String(
+                    group.groupId || ""
+                );
+
+            option.textContent =
+                buildGroupLabel(
+                    group
+                );
+
+            tripGroup.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    tripGroupSection.classList.remove(
+        "hidden"
+    );
+
+    syncSeatOptionsToTripGroup();
+
+}
+
+
+if (tripGroup) {
+
+    tripGroup.addEventListener(
+        "change",
+        syncSeatOptionsToTripGroup
+    );
+
+}
+
+
+/* =========================================
    REQUEST JOURNEY WITHOUT TRIP
    ========================================= */
 
@@ -781,6 +1141,28 @@ requestRideButton.addEventListener(
 
         selectedTripData =
             null;
+
+
+        if (tripGroupSection) {
+
+            tripGroupSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        if (tripGroup) {
+
+            tripGroup.innerHTML = `
+                <option value="">
+                    Select gathering point and vehicle
+                </option>
+            `;
+
+        }
+
+        updateSeatOptions(8);
 
 
         selectedTrip.innerHTML = `
@@ -877,6 +1259,26 @@ function showRequestForm() {
 
     selectedTripData =
         null;
+
+
+    if (tripGroupSection) {
+
+        tripGroupSection.classList.add(
+            "hidden"
+        );
+
+    }
+
+
+    if (tripGroup) {
+
+        tripGroup.innerHTML = `
+            <option value="">
+                Select gathering point and vehicle
+            </option>
+        `;
+
+    }
 
 
     selectedTrip.innerHTML = `
@@ -1018,15 +1420,12 @@ async function submitBooking(event) {
 
     event.preventDefault();
 
-
     clearMessage(
         bookingMessage
     );
 
-
     const user =
         auth.currentUser;
-
 
     if (!user) {
 
@@ -1035,7 +1434,6 @@ async function submitBooking(event) {
             "Please login before booking a ride.",
             "error"
         );
-
 
         setTimeout(
             function() {
@@ -1047,41 +1445,32 @@ async function submitBooking(event) {
             1200
         );
 
-
         return;
 
     }
 
-
     const name =
         passengerName.value.trim();
 
-
     const phone =
         passengerPhone.value.trim();
-
 
     const seats =
         Number(
             seatCount.value
         );
 
-
     const from =
         fromLocation.value;
-
 
     const to =
         toLocation.value;
 
-
     const date =
         travelDate.value;
 
-
     const time =
         preferredTime.value;
-
 
     if (
         !name ||
@@ -1098,12 +1487,9 @@ async function submitBooking(event) {
 
     }
 
-
     if (
         !from ||
-        !to ||
-        !date ||
-        !time
+        !to
     ) {
 
         showMessage(
@@ -1115,7 +1501,6 @@ async function submitBooking(event) {
         return;
 
     }
-
 
     if (
         from === to
@@ -1131,23 +1516,74 @@ async function submitBooking(event) {
 
     }
 
+    if (
+        !Number.isInteger(seats) ||
+        seats < 1 ||
+        seats > 8
+    ) {
 
-    /*
-     * If an admin trip was selected,
-     * check available seats.
-     */
+        showMessage(
+            bookingMessage,
+            "Seat count must be between 1 and 8.",
+            "error"
+        );
 
+        return;
+
+    }
+
+    if (
+        selectedTripData &&
+        Array.isArray(
+            selectedTripData.groups
+        ) &&
+        selectedTripData.groups.length > 1 &&
+        !getSelectedTripGroup()
+    ) {
+
+        showMessage(
+            bookingMessage,
+            "Please select a gathering point and vehicle before booking.",
+            "error"
+        );
+
+        return;
+
+    }
 
     if (
         selectedTripData
     ) {
 
-        const availableSeats =
-            Number(
-                selectedTripData.availableSeats ||
-                0
-            );
+        const selectedGroup =
+            Array.isArray(
+                selectedTripData.groups
+            )
+                ? selectedTripData.groups.find(
+                    group =>
+                        String(
+                            group.groupId ||
+                            ""
+                        ) ===
+                        String(
+                            tripGroup
+                                ? tripGroup.value
+                                : ""
+                        )
+                )
+                : null;
 
+        const availableSeats =
+            selectedGroup
+                ? Number(
+                    selectedGroup.availableSeats ??
+                    selectedGroup.capacity ??
+                    0
+                )
+                : Number(
+                    selectedTripData.availableSeats ||
+                    0
+                );
 
         if (
             seats > availableSeats
@@ -1155,7 +1591,7 @@ async function submitBooking(event) {
 
             showMessage(
                 bookingMessage,
-                "There are not enough seats available.",
+                "There are not enough seats available in the selected group.",
                 "error"
             );
 
@@ -1165,211 +1601,79 @@ async function submitBooking(event) {
 
     }
 
-
     const submitButton =
         bookingForm.querySelector(
             "button[type='submit']"
         );
 
-
     submitButton.disabled =
         true;
-
 
     submitButton.textContent =
         "SUBMITTING...";
 
-
     try {
 
-        const bookingReference =
-            generateBookingReference();
-
-
-        let totalFare =
-            null;
-
-
-        let bookingStatus =
-            "REQUESTED";
-
-
-        let tripId =
-            null;
-
-
-        let gatheringPoint =
-            "";
-
-
-        let finalDestination =
-            "";
-
-
-        let confirmedDeparture =
-            null;
-
-
         /*
-         * ADMIN TRIP EXISTS
+         * SCHEDULED TRIP
+         *
+         * The Cloud Function is the
+         * authoritative booking flow.
+         *
+         * It validates the trip, checks
+         * availability, assigns seats,
+         * reduces available seats and
+         * creates the booking atomically.
          */
-
 
         if (
             selectedTripData
         ) {
 
-            const fare =
-                Number(
-                    selectedTripData.fare ||
-                    0
+            const functions =
+                firebase.functions();
+
+            const createRideBooking =
+                functions.httpsCallable(
+                    "createRideBooking"
                 );
 
+            const result =
+                await createRideBooking({
 
-            totalFare =
-                fare * seats;
+                    tripId:
+                        selectedTripData.id,
 
+                    groupId:
+                        tripGroup
+                            ? tripGroup.value
+                            : "",
 
-            bookingStatus =
-                "PENDING_PAYMENT";
+                    passengerName:
+                        name,
 
+                    passengerPhone:
+                        phone,
 
-            tripId =
-                selectedTripData.id;
+                    seats:
+                        seats
 
+                });
 
-            gatheringPoint =
-                selectedTripData.gatheringPoint ||
-                "";
+            const response =
+                result.data ||
+                {};
 
+            if (
+                response.success !== true
+            ) {
 
-            finalDestination =
-                selectedTripData.finalDestination ||
-                to;
+                throw new Error(
+                    response.message ||
+                    "Unable to create ride booking."
+                );
 
-
-            confirmedDeparture =
-                selectedTripData.departureTime ||
-                null;
-
-        }
-
-
-        /*
-         * CREATE BOOKING
-         */
-
-
-        await db
-            .collection("rideBookings")
-            .add({
-
-                bookingReference:
-
-                    bookingReference,
-
-
-                userId:
-
-                    user.uid,
-
-
-                passengerName:
-
-                    name,
-
-
-                passengerPhone:
-
-                    phone,
-
-
-                fromCity:
-
-                    from,
-
-
-                toCity:
-
-                    to,
-
-
-                travelDate:
-
-                    date,
-
-
-                preferredTime:
-
-                    time,
-
-
-                tripId:
-
-                    tripId,
-
-
-                gatheringPoint:
-
-                    gatheringPoint,
-
-
-                finalDestination:
-
-                    finalDestination,
-
-
-                confirmedDeparture:
-
-                    confirmedDeparture,
-
-
-                seats:
-
-                    seats,
-
-
-                totalFare:
-
-                    totalFare,
-
-
-                status:
-
-                    bookingStatus,
-
-
-                paymentStatus:
-
-                    totalFare !== null
-                        ? "UNPAID"
-                        : "WAITING_CONFIRMATION",
-
-
-                requestType:
-
-                    selectedTripData
-                        ? "SCHEDULED_TRIP"
-                        : "CUSTOM_REQUEST",
-
-
-                createdAt:
-
-                    firebase.firestore
-                        .FieldValue
-                        .serverTimestamp()
-
-            });
-
-
-        /*
-         * SUCCESS MESSAGE
-         */
-
-
-        if (
-            selectedTripData
-        ) {
+            }
 
             showMessage(
                 bookingMessage,
@@ -1377,25 +1681,84 @@ async function submitBooking(event) {
                 "success"
             );
 
-        }
-        else {
+            setTimeout(
+                function() {
 
-            showMessage(
-                bookingMessage,
-                "Ride request sent. Dreypella Ride will confirm the trip details.",
-                "success"
+                    window.location.href =
+                        "checkout.html?bookingId=" +
+                        encodeURIComponent(
+                            response.bookingId
+                        );
+
+                },
+                1200
             );
+
+            return;
 
         }
 
 
         /*
-         * Redirect later to booking page.
+         * CUSTOM JOURNEY REQUEST
          *
-         * For now we send the customer
-         * to their dashboard.
+         * No scheduled trip exists,
+         * so keep the existing request
+         * flow for customer requests.
          */
 
+        const functions =
+            firebase.functions();
+
+        const createCustomRideRequest =
+            functions.httpsCallable(
+                "createCustomRideRequest"
+            );
+
+        const response =
+            await createCustomRideRequest({
+
+                bookingReference:
+                    generateBookingReference(),
+
+                passengerName:
+                    name,
+
+                passengerPhone:
+                    phone,
+
+                fromCity:
+                    from,
+
+                toCity:
+                    to,
+
+                travelDate:
+                    date,
+
+                preferredTime:
+                    time,
+
+                seats:
+                    seats
+
+            });
+
+        if (
+            !response.data ||
+            response.data.success !== true
+        ) {
+            throw new Error(
+                "Unable to submit ride request."
+            );
+        }
+
+
+        showMessage(
+            bookingMessage,
+            "Ride request sent. Dreypella Ride will confirm the trip details.",
+            "success"
+        );
 
         setTimeout(
             function() {
@@ -1404,9 +1767,8 @@ async function submitBooking(event) {
                     "customer-dashboard.html";
 
             },
-            1800
+            1200
         );
-
 
     }
     catch(error) {
@@ -1416,9 +1778,9 @@ async function submitBooking(event) {
             error
         );
 
-
         showMessage(
             bookingMessage,
+            error.message ||
             "Unable to submit your request. Please try again.",
             "error"
         );
@@ -1428,7 +1790,6 @@ async function submitBooking(event) {
 
         submitButton.disabled =
             false;
-
 
         submitButton.textContent =
             "SUBMIT RIDE REQUEST";
@@ -1730,3 +2091,133 @@ function escapeHTML(value) {
         );
 
 }
+
+/* =========================================
+   DIRECT TRIP LINK
+   ========================================= */
+
+async function loadTripFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const tripId =
+        params.get("tripId");
+
+    if (!tripId) {
+
+        return;
+
+    }
+
+    try {
+
+        const tripSnapshot =
+            await db
+                .collection("trips")
+                .doc(tripId)
+                .get();
+
+        if (
+            !tripSnapshot.exists
+        ) {
+
+            showMessage(
+                journeyMessage,
+                "This trip is no longer available.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const trip =
+            tripSnapshot.data();
+
+        if (
+            trip.status !== "AVAILABLE"
+        ) {
+
+            showMessage(
+                journeyMessage,
+                "This trip is no longer available for booking.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const from =
+            trip.fromCity ||
+            trip.from ||
+            "";
+
+        const to =
+            trip.toCity ||
+            trip.to ||
+            "";
+
+        fromLocation.value =
+            from;
+
+        toLocation.value =
+            to;
+
+        if (
+            trip.travelDate
+        ) {
+
+            travelDate.value =
+                trip.travelDate;
+
+        }
+
+        if (
+            trip.departureTime &&
+            !preferredTime.value
+        ) {
+
+            preferredTime.value =
+                trip.departureTime;
+
+        }
+
+        availableTrips = [
+            {
+                id: tripSnapshot.id,
+                ...trip
+            }
+        ];
+
+        displayTrips();
+
+        selectTrip(
+            {
+                id: tripSnapshot.id,
+                ...trip
+            }
+        );
+
+    }
+    catch(error) {
+
+        console.error(
+            "Direct trip loading error:",
+            error
+        );
+
+        showMessage(
+            journeyMessage,
+            "Unable to load this trip. Please try again.",
+            "error"
+        );
+
+    }
+
+}
+
+loadTripFromURL();

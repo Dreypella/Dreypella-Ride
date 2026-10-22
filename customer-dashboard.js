@@ -114,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
         await loadRecentActivity(user);
 
         await loadActiveTrip(user);
+        await loadConsolidationProposals(user);
 
     });
 
@@ -305,9 +306,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const snapshot = await db
-                .collection("rides")
-                .where("customerId", "==", user.uid)
+                .collection("rideBookings")
+                .where("userId", "==", user.uid)
                 .where("status", "==", "COMPLETED")
+                .where("paymentStatus", "==", "PAID")
                 .get();
 
 
@@ -333,21 +335,70 @@ document.addEventListener("DOMContentLoaded", function () {
        ACTIVE TRIP
     ========================================= */
 
+    async function loadConsolidationProposals(user) {
+        const container = document.getElementById("consolidationProposalList");
+        if (!container) return;
+        container.textContent = "Loading shared-ride offers...";
+        try {
+            if (!firebase.functions) throw new Error("Firebase Functions SDK is unavailable.");
+            const callable = firebase.functions().httpsCallable("getMyConsolidationProposals");
+            const result = await callable({});
+            const proposals = result.data && Array.isArray(result.data.proposals) ? result.data.proposals : [];
+            container.replaceChildren();
+            if (!proposals.length) {
+                container.textContent = "No shared-ride offers at the moment.";
+                return;
+            }
+            proposals.forEach(function (proposal) {
+                const card = document.createElement("article");
+                card.className = "active-trip-card";
+                const heading = document.createElement("h3");
+                heading.textContent = (proposal.fromCity || "Pickup") + " → " + (proposal.toCity || "Destination");
+                const date = document.createElement("p");
+                date.textContent = "Suggested travel date: " + (proposal.travelDate || "Not specified");
+                const status = document.createElement("p");
+                const ownMember = (proposal.members || []).find(function (member) { return member.userId === user.uid; });
+                status.textContent = "Status: " + (ownMember ? ownMember.responseStatus : proposal.status || "PENDING");
+                card.append(heading, date, status);
+                if (proposal.status === "OPEN" && ownMember && ownMember.responseStatus === "PENDING") {
+                    ["ACCEPT", "DECLINE"].forEach(function (response) {
+                        const button = document.createElement("button");
+                        button.type = "button";
+                        button.className = "primary-button";
+                        button.style.marginRight = "8px";
+                        button.textContent = response === "ACCEPT" ? "ACCEPT OFFER" : "DECLINE";
+                        button.addEventListener("click", async function () {
+                            button.disabled = true;
+                            try {
+                                const respond = firebase.functions().httpsCallable("respondToConsolidationProposal");
+                                await respond({ proposalId: proposal.proposalId, response: response });
+                                await loadConsolidationProposals(user);
+                            } catch (error) {
+                                console.error("Consolidation response error:", error);
+                                button.disabled = false;
+                                alert(error.message || "Unable to submit your response. Please try again.");
+                            }
+                        });
+                        card.appendChild(button);
+                    });
+                }
+                container.appendChild(card);
+            });
+        } catch (error) {
+            console.error("Consolidation proposals error:", error);
+            container.textContent = "Shared-ride offers are temporarily unavailable. Please try again later.";
+        }
+    }
+
     async function loadActiveTrip(user) {
 
         try {
 
             const snapshot = await db
-                .collection("rides")
-                .where("customerId", "==", user.uid)
-                .where("status", "in", [
-                    "REQUESTED",
-                    "CONFIRMED",
-                    "ASSIGNED",
-                    "DRIVER_ARRIVING",
-                    "STARTED",
-                    "IN_PROGRESS"
-                ])
+                .collection("rideBookings")
+                .where("userId", "==", user.uid)
+                .where("status", "==", "CONFIRMED")
+                .where("paymentStatus", "==", "PAID")
                 .limit(1)
                 .get();
 
@@ -362,7 +413,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const doc = snapshot.docs[0];
-
             const data = doc.data();
 
 
@@ -371,18 +421,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             activeTripStatus.textContent =
-                formatStatus(data.status);
+                "Confirmed";
 
 
             activePickup.textContent =
-                data.pickupLocation ||
-                data.pickupAddress ||
+                data.gatheringPoint ||
                 "Pickup location";
 
 
             activeDestination.textContent =
-                data.destination ||
-                data.destinationAddress ||
+                data.finalDestination ||
+                data.toCity ||
                 "Destination";
 
 
@@ -400,7 +449,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
     /* =========================================
        RECENT ACTIVITY
     ========================================= */
@@ -409,28 +457,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
 
-            const snapshot = await db
-                .collection("walletTransactions")
-                .where("userId", "==", user.uid)
-                .orderBy("createdAt", "desc")
-                .limit(5)
-                .get();
+            const getCustomerTransactions =
+                firebase.functions().httpsCallable("getCustomerTransactions");
 
+            const result = await getCustomerTransactions({
+                limit: 5
+            });
 
-            if (snapshot.empty) {
+            const transactions =
+                result.data && Array.isArray(result.data.transactions)
+                    ? result.data.transactions
+                    : [];
 
+            if (!transactions.length) {
                 showEmptyActivity();
-
                 return;
             }
 
-
             activityList.innerHTML = "";
 
-
-            snapshot.forEach(function (doc) {
-
-                const data = doc.data();
+            transactions.forEach(function (data) {
 
                 const amount =
                     Number(data.amount || 0);
@@ -447,7 +493,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 item.innerHTML = `
 
                     <div class="activity-icon">
-                        ${getTransactionIcon(data.type)}
+                        ${getTransactionIcon(data.paymentType || data.type)}
                     </div>
 
                     <div class="activity-info">

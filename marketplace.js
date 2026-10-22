@@ -306,10 +306,16 @@ function sortProductsList() {
             function(a, b) {
 
                 return Number(
-                    a.price || 0
+                    a.customerPrice ??
+                    a.vendorPrice ??
+                    a.price ??
+                    0
                 ) -
                 Number(
-                    b.price || 0
+                    b.customerPrice ??
+                    b.vendorPrice ??
+                    b.price ??
+                    0
                 );
 
             }
@@ -326,10 +332,16 @@ function sortProductsList() {
             function(a, b) {
 
                 return Number(
-                    b.price || 0
+                    b.customerPrice ??
+                    b.vendorPrice ??
+                    b.price ??
+                    0
                 ) -
                 Number(
-                    a.price || 0
+                    a.customerPrice ??
+                    a.vendorPrice ??
+                    a.price ??
+                    0
                 );
 
             }
@@ -411,15 +423,19 @@ function createProductCard(product) {
         );
 
 
-    const price =
+    const vendorPrice =
         Number(
-            product.price || 0
+            product.vendorPrice ??
+            product.price ??
+            0
         );
 
-
     const customerPrice =
-        calculateCustomerPrice(
-            price
+        Number(
+            product.customerPrice ??
+            calculateCustomerPrice(
+                vendorPrice
+            )
         );
 
 
@@ -597,14 +613,39 @@ function addToCart(product) {
 
             vendorPrice:
                 Number(
-                    product.price || 0
+                    product.vendorPrice ??
+                    product.price ??
+                    0
+                ),
+
+            platformFee:
+                Number(
+                    product.platformFee ??
+                    calculatePlatformFee(
+                        product.vendorPrice ??
+                        product.price ??
+                        0
+                    )
+                ),
+
+            customerPrice:
+                Number(
+                    product.customerPrice ??
+                    calculateCustomerPrice(
+                        product.vendorPrice ??
+                        product.price ??
+                        0
+                    )
                 ),
 
             quantity:
                 1,
 
             imageUrl:
-                product.imageUrl || ""
+                product.imageUrl || "",
+
+            category:
+                product.category || ""
 
         });
 

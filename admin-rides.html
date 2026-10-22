@@ -12,239 +12,188 @@
 
     <title>Ride Management | Dreypella Admin</title>
 
-    <link
-        rel="stylesheet"
-        href="admin-rides.css"
-    >
+    <link rel="stylesheet" href="admin-rides.css">
 
 </head>
 
 
 <body>
 
-
-<!-- SIDEBAR -->
-
-<aside class="sidebar">
-
-    <div class="admin-logo">
-
+<header class="mobile-header">
+    <div class="mobile-brand">
         <strong>DREYPELLA</strong>
-
         <span>RIDE</span>
-
-        <small>ADMIN</small>
-
     </div>
 
+    <button id="menuButton" class="menu-button" type="button">☰</button>
+</header>
+
+<aside id="sidebar" class="sidebar">
+
+    <div class="sidebar-brand">
+        <strong>DREYPELLA</strong>
+        <span>ADMIN</span>
+    </div>
 
     <nav>
 
-        <a href="admin-dashboard.html">
-            Dashboard
+        <a class="nav-item" href="admin.html">
+            <span>▦</span>
+            Overview
         </a>
 
-        <a href="admin-rides.html" class="active">
+        <a class="nav-item active" href="admin-rides.html">
+            <span>🚐</span>
             Rides
         </a>
 
-        <a href="admin-deliveries.html">
+        <a class="nav-item" href="admin.html#deliveries">
+            <span>📦</span>
             Deliveries
         </a>
 
-        <a href="admin-users.html">
+        <a class="nav-item" href="admin.html#users">
+            <span>👥</span>
             Users
         </a>
 
-        <a href="admin-wallet.html">
-            Wallet
+        <a class="nav-item" href="admin.html#partners">
+            <span>🛵</span>
+            Partners
         </a>
 
-        <a href="admin-withdrawals.html">
+        <a class="nav-item" href="admin.html#vendors">
+            <span>🛍</span>
+            Vendors
+        </a>
+
+        <a class="nav-item" href="admin.html#pricing">
+            <span>₦</span>
+            Pricing
+        </a>
+
+        <a class="nav-item" href="admin.html#withdrawals">
+            <span>↗</span>
             Withdrawals
+        </a>
+
+        <a class="nav-item" href="admin.html#finance">
+            <span>₦</span>
+            Finance
+        </a>
+
+        <a class="nav-item" href="admin.html#support">
+            <span>?</span>
+            Support
+        </a>
+
+        <a class="nav-item" href="admin.html#settings">
+            <span>⚙</span>
+            Settings
         </a>
 
     </nav>
 
-
-    <button
-        id="logoutButton"
-        class="logout-button"
-    >
-        LOGOUT
+    <button id="logoutButton" class="logout-button" type="button">
+        Logout
     </button>
 
 </aside>
 
-
-
-<!-- MAIN -->
-
 <main class="main-content">
-
-
-    <!-- TOP -->
 
     <header class="topbar">
 
-        <div>
+        <div class="page-heading">
+            <small>TRANSPORT OPERATIONS</small>
 
-            <h1>
-                Ride Management
-            </h1>
+            <h1>Ride Management</h1>
 
             <p>
-                Manage customer ride requests and scheduled trips.
+                Manage customer ride requests, scheduled trips and active journeys.
             </p>
-
         </div>
 
-
-        <button
-            id="newTripButton"
-            class="primary-button"
-        >
-            + CREATE TRIP
+        <button id="newTripButton" class="primary-button" type="button">
+            + Create Trip
         </button>
 
     </header>
 
-
-
-    <!-- STATS -->
-
     <section class="stats">
 
         <div class="stat-card">
-
-            <span>
-                Pending Requests
-            </span>
-
-            <strong id="pendingCount">
-                0
-            </strong>
-
+            <div class="stat-icon">⏳</div>
+            <div>
+                <span>Pending Requests</span>
+                <strong id="pendingCount">0</strong>
+            </div>
         </div>
 
-
         <div class="stat-card">
-
-            <span>
-                Scheduled Trips
-            </span>
-
-            <strong id="tripCount">
-                0
-            </strong>
-
+            <div class="stat-icon">🚌</div>
+            <div>
+                <span>Scheduled Trips</span>
+                <strong id="tripCount">0</strong>
+            </div>
         </div>
 
-
         <div class="stat-card">
-
-            <span>
-                Active Trips
-            </span>
-
-            <strong id="activeCount">
-                0
-            </strong>
-
+            <div class="stat-icon">●</div>
+            <div>
+                <span>Active Trips</span>
+                <strong id="activeCount">0</strong>
+            </div>
         </div>
 
-
         <div class="stat-card">
-
-            <span>
-                Completed Trips
-            </span>
-
-            <strong id="completedCount">
-                0
-            </strong>
-
+            <div class="stat-icon">✓</div>
+            <div>
+                <span>Completed Trips</span>
+                <strong id="completedCount">0</strong>
+            </div>
         </div>
 
     </section>
-
-
-
-    <!-- REQUESTS -->
 
     <section class="panel">
 
         <div class="panel-header">
-
             <div>
-
-                <h2>
-                    Customer Ride Requests
-                </h2>
-
-                <p>
-                    Requests submitted by customers.
-                </p>
-
+                <div class="panel-eyebrow">CUSTOMER ACTIVITY</div>
+                <h2>Customer Ride Requests</h2>
+                <p>Review and manage ride requests submitted by customers.</p>
             </div>
 
+            <span class="panel-badge">REQUESTS</span>
         </div>
 
-
-        <div
-            id="requestsContainer"
-            class="requests-container"
-        >
-
-            <div class="loading">
-                Loading requests...
-            </div>
-
+        <div class="consolidation-admin-tools" style="margin:12px 0;padding:12px;border:1px solid #d8deea;border-radius:8px"><strong>Shared-ride proposals</strong><p>Select 2–8 pending custom requests with the same route and travel date.</p><button id="createConsolidationProposalButton" class="action-button approve" type="button" disabled>Create Shared-Ride Proposal (0)</button><span id="consolidationAdminMessage" role="status" style="display:block;margin-top:8px"></span></div>
+        <div id="requestsContainer" class="requests-container">
+            <div class="loading">Loading requests...</div>
         </div>
 
     </section>
-
-
-
-    <!-- TRIPS -->
 
     <section class="panel">
 
         <div class="panel-header">
-
             <div>
-
-                <h2>
-                    Scheduled Trips
-                </h2>
-
-                <p>
-                    Trips created and controlled by admin.
-                </p>
-
+                <div class="panel-eyebrow">TRANSPORT SCHEDULE</div>
+                <h2>Scheduled Trips</h2>
+                <p>Trips created and controlled by the administration team.</p>
             </div>
 
+            <span class="panel-badge">TRIPS</span>
         </div>
 
-
-        <div
-            id="tripsContainer"
-            class="trips-container"
-        >
-
-            <div class="loading">
-                Loading trips...
-            </div>
-
+        <div id="tripsContainer" class="trips-container">
+            <div class="loading">Loading trips...</div>
         </div>
 
     </section>
-
-
 
 </main>
-
-
 
 <!-- CREATE / EDIT TRIP MODAL -->
 
@@ -418,120 +367,74 @@
 
 
 
-                <!-- MEETING POINT -->
+                  <!-- TRIP GROUPS -->
 
-                <div class="form-group full">
+                  <div class="form-group full">
 
-                    <label>
-                        Meeting / Gathering Point
-                    </label>
+                      <div class="trip-groups-header">
 
-                    <input
-                        type="text"
-                        id="meetingPoint"
-                        placeholder="e.g. LAUTECH Main Gate"
-                        required
-                    >
+                          <div>
+                              <label>
+                                  Trip Groups / Gathering Points
+                              </label>
 
-                </div>
+                              <small>
+                                  Add each bus or vehicle group separately.
+                                  Seat numbers belong to the group, not the gathering point.
+                              </small>
+                          </div>
 
+                          <button
+                              type="button"
+                              id="addTripGroupButton"
+                              class="action-button approve"
+                          >
+                              + ADD GROUP
+                          </button>
 
+                      </div>
 
-                <!-- FINAL DESTINATION -->
+                      <div
+                          id="tripGroupsContainer"
+                          class="trip-groups-container"
+                      ></div>
 
-                <div class="form-group full">
+                  </div>
 
-                    <label>
-                        Final Destination Point
-                    </label>
+                  <!-- FINAL DESTINATION -->
 
-                    <input
-                        type="text"
-                        id="finalDestination"
-                        placeholder="Where the bus will finally stop"
-                        required
-                    >
+                  <div class="form-group full">
 
-                </div>
+                      <label>
+                          Final Destination Point
+                      </label>
 
+                      <input
+                          type="text"
+                          id="finalDestination"
+                          placeholder="Where the bus will finally stop"
+                          required
+                      >
 
+                  </div>
 
-                <!-- PRICE -->
+                  <!-- PRICE -->
 
-                <div class="form-group">
+                  <div class="form-group">
 
-                    <label>
-                        Customer Fare (₦)
-                    </label>
+                      <label>
+                          Customer Fare (₦)
+                      </label>
 
-                    <input
-                        type="number"
-                        id="tripPrice"
-                        min="0"
-                        placeholder="8000"
-                        required
-                    >
+                      <input
+                          type="number"
+                          id="tripPrice"
+                          min="0"
+                          placeholder="8000"
+                          required
+                      >
 
-                </div>
-
-
-
-                <!-- VEHICLE -->
-
-                <div class="form-group">
-
-                    <label>
-                        Vehicle
-                    </label>
-
-                    <input
-                        type="text"
-                        id="vehicle"
-                        placeholder="Bus / Vehicle details"
-                    >
-
-                </div>
-
-
-
-                <!-- DRIVER -->
-
-                <div class="form-group">
-
-                    <label>
-                        Driver Name
-                    </label>
-
-                    <input
-                        type="text"
-                        id="driverName"
-                        placeholder="Driver name"
-                    >
-
-                </div>
-
-
-
-                <!-- CAPACITY -->
-
-                <div class="form-group">
-
-                    <label>
-                        Passenger Capacity
-                    </label>
-
-                    <input
-                        type="number"
-                        id="capacity"
-                        min="1"
-                        value="14"
-                        required
-                    >
-
-                </div>
-
-
-
+                  </div>
                 <!-- STATUS -->
 
                 <div class="form-group">
@@ -602,10 +505,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 
 <script src="firebase-config.js"></script>
 
-<script src="admin-rides.js"></script>
+<script src="admin-rides.js?v=20260920"></script>
 
 
 </body>
