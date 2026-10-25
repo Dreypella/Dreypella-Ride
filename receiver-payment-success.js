@@ -100,6 +100,14 @@ async function verifyPayment() {
             );
         }
 
+        if (data.requiresReconciliation) {
+            showError(
+                "Paystack confirmed this payment, but Dreypella needs to reconcile it. DO NOT PAY AGAIN. Contact Dreypella support and provide payment reference: " +
+                (data.reference || paymentReference)
+            );
+            return;
+        }
+
         showSuccess(data);
 
     }

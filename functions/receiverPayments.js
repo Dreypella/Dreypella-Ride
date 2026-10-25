@@ -288,77 +288,119 @@ async function createReceiverPaymentRequest(
         );
 
 
-    await requestRef.set({
-
+    const requestData = {
         requestId,
-
         deliveryId,
-
-        senderId:
-            uid,
-
-        bookingReference:
-            delivery.bookingReference ||
-            null,
-
+        senderId: uid,
+        bookingReference: delivery.bookingReference || null,
         destinationIndex,
-
         recipientName,
         recipientPhone,
         recipientEmail,
-
         amount,
-
-        currency:
-            "NGN",
-
+        currency: "NGN",
         tokenHash,
-
-        status:
-            "PENDING",
-
+        status: "PENDING",
         expiresAt,
+        createdAt: now,
+        updatedAt: now
+    };
 
-        createdAt:
-            now,
+    await db.runTransaction(async transactionRunner => {
+        const currentDeliverySnapshot =
+            await transactionRunner.get(deliveryRef);
 
-        updatedAt:
-            now
+        if (!currentDeliverySnapshot.exists) {
+            throw new Error("Delivery not found.");
+        }
 
-    });
+        const currentDelivery = currentDeliverySnapshot.data();
+        const currentOwnerId =
+            currentDelivery.customerId ||
+            currentDelivery.userId ||
+            null;
 
-    if (
-        Array.isArray(
-            delivery.recipientPaymentAllocations
-        )
-    ) {
-        const updatedAllocations =
-            delivery.recipientPaymentAllocations.map(
-                item => {
-                    if (
-                        Number(item.destinationIndex) ===
-                        destinationIndex
-                    ) {
-                        return {
-                            ...item,
-                            paymentRequestId:
-                                requestId
-                        };
-                    }
+        if (currentOwnerId !== uid) {
+            throw new Error(
+                "You cannot create a payment request for this delivery."
+            );
+        }
 
-                    return item;
-                }
+        const currentPaymentStatus =
+            String(currentDelivery.paymentStatus || "").toUpperCase();
+
+        if (
+            currentPaymentStatus === "PAID" ||
+            currentPaymentStatus === "SUCCESS"
+        ) {
+            throw new Error("This delivery has already been paid.");
+        }
+
+        const currentDestinations =
+            Array.isArray(currentDelivery.destinations)
+                ? currentDelivery.destinations
+                : [];
+
+        if (!currentDestinations[destinationIndex]) {
+            throw new Error(
+                "The selected delivery destination does not exist."
+            );
+        }
+
+        const currentAllocations =
+            Array.isArray(currentDelivery.recipientPaymentAllocations)
+                ? currentDelivery.recipientPaymentAllocations
+                : [];
+
+        const currentAllocationIndex =
+            currentAllocations.findIndex(
+                item =>
+                    Number(item.destinationIndex) === destinationIndex
             );
 
-        await deliveryRef.update({
-            recipientPaymentAllocations:
-                updatedAllocations,
-            updatedAt:
-                admin.firestore
-                    .FieldValue
-                    .serverTimestamp()
-        });
-    }
+        const currentAllocation =
+            currentAllocationIndex >= 0
+                ? currentAllocations[currentAllocationIndex]
+                : null;
+
+        const currentAmount = money(
+            currentAllocation?.amount ??
+            (
+                currentDestinations.length === 1 &&
+                destinationIndex === 0
+                    ? currentDelivery.customerPrice
+                    : 0
+            )
+        );
+
+        if (currentAmount <= 0 || currentAmount !== amount) {
+            throw new Error(
+                "The recipient payment amount changed. Please create a new request."
+            );
+        }
+
+        if (currentAllocation?.paymentStatus === "PAID") {
+            throw new Error(
+                "This recipient payment has already been completed."
+            );
+        }
+
+        let updatedAllocations = currentAllocations.slice();
+
+        if (currentAllocationIndex >= 0) {
+            updatedAllocations[currentAllocationIndex] = {
+                ...currentAllocation,
+                paymentRequestId: requestId
+            };
+
+            transactionRunner.update(deliveryRef, {
+                recipientPaymentAllocations: updatedAllocations,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        transactionRunner.create(requestRef, requestData);
+    });
 
     const paymentUrl =
         "receiver-payment.html" +
@@ -518,34 +560,15 @@ async function getReceiverPaymentRequest(
     }
 
 
-    const expiresAt =
-        request.expiresAt;
+    const expiresAt = request.expiresAt;
 
-
-    if (
-        !expiresAt ||
-        expiresAt.toMillis() <
-        Date.now()
-    ) {
-
+    if (!expiresAt || expiresAt.toMillis() < Date.now()) {
         await requestDoc.ref.update({
-
-            status:
-                "EXPIRED",
-
-            updatedAt:
-                admin.firestore.FieldValue
-                    .serverTimestamp()
-
+            status: "EXPIRED",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
-
-
-        throw new Error(
-            "This payment request has expired."
-        );
-
+        throw new Error("This payment request has expired.");
     }
-
 
     const deliveryRef =
         db
@@ -928,6 +951,18 @@ async function initializeReceiverPayment(
                 destinationIndex
         );
 
+    const activeRequestId =
+        String(request.requestId || requestDoc.id);
+
+    if (
+        allocation?.paymentRequestId &&
+        String(allocation.paymentRequestId) !== activeRequestId
+    ) {
+        throw new Error(
+            "This payment link has been replaced. Please request a new link."
+        );
+    }
+
     const currentAmount =
         money(
             allocation?.amount ??
@@ -1239,36 +1274,24 @@ async function verifyReceiverPayment(
     }
 
     if (
-        request.status !==
-        "PENDING"
+        request.status !== "PENDING" &&
+        request.status !== "EXPIRED" &&
+        request.status !== "RECONCILIATION_REQUIRED"
     ) {
         throw new Error(
             "This payment request is no longer available."
         );
     }
 
-    const expiresAt =
-        request.expiresAt;
+    const expiresAt = request.expiresAt;
+    const requestExpired =
+        !expiresAt || expiresAt.toMillis() < Date.now();
 
-    if (
-        !expiresAt ||
-        expiresAt.toMillis() <
-        Date.now()
-    ) {
-
+    if (requestExpired && request.status === "PENDING") {
         await requestDoc.ref.update({
-            status:
-                "EXPIRED",
-
-            updatedAt:
-                admin.firestore
-                    .FieldValue
-                    .serverTimestamp()
+            status: "EXPIRED",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
-
-        throw new Error(
-            "This payment request has expired."
-        );
     }
 
     if (
@@ -1397,9 +1420,17 @@ async function verifyReceiverPayment(
                 }
 
                 if (
-                    currentRequest.status !==
-                    "PENDING"
+                    currentRequest.status ===
+                    "RECONCILIATION_REQUIRED" &&
+                    currentRequest.paystackReference ===
+                    reference
                 ) {
+                    return {
+                        reconciliationRequired: true
+                    };
+                }
+
+                if (!["PENDING", "EXPIRED"].includes(currentRequest.status)) {
                     throw new Error(
                         "This payment request is no longer available."
                     );
@@ -1478,6 +1509,12 @@ async function verifyReceiverPayment(
                           ]
                           : null;
 
+                  const activeRequestId =
+                      String(
+                          currentRequest.requestId ||
+                          requestDoc.id
+                      );
+
                   const authoritativeAmount =
                       money(
                           allocation?.amount ??
@@ -1538,23 +1575,17 @@ async function verifyReceiverPayment(
                           };
                       }
 
-                      throw new Error(
-                          "This recipient payment has already been completed."
-                      );
-                  }
+                      }
 
-                  const deliveryPaymentStatus =
+
+
+                      const deliveryPaymentStatus =
                       String(
                           delivery.paymentStatus ||
                           ""
                       ).toUpperCase();
 
-                  if (
-                      deliveryPaymentStatus ===
-                          "PAID" ||
-                      deliveryPaymentStatus ===
-                          "SUCCESS"
-                  ) {
+                  if ((deliveryPaymentStatus === "PAID" || deliveryPaymentStatus === "SUCCESS") && allocation?.paymentStatus !== "PAID") {
                       throw new Error(
                           "The delivery payment state is inconsistent with this recipient payment."
                       );
@@ -1599,6 +1630,133 @@ async function verifyReceiverPayment(
                       throw new Error(
                           "Paystack payment amount does not match the recipient allocation."
                       );
+                  }
+
+                  if (
+                    allocation?.paymentStatus === "PAID" &&
+                    allocation.paymentReference !== reference
+                ) {
+                    const reconciliationRef = db
+                        .collection("receiverPaymentReconciliations")
+                        .doc(requestDoc.id);
+                    const reason = "ALLOCATION_ALREADY_PAID_DIFFERENT_REFERENCE";
+                    transactionRunner.set(reconciliationRef, {
+                        requestId: activeRequestId,
+                        deliveryId: request.deliveryId,
+                        destinationIndex,
+                        amount: authoritativeAmount,
+                        currency: "NGN",
+                        paymentReference: reference,
+                        existingPaymentReference: allocation.paymentReference || null,
+                        paystackStatus: transaction.data.status,
+                        paystackTransactionId: transaction.data.id || null,
+                        paymentChannel: transaction.data.channel || null,
+                        reason,
+                        status: "RECONCILIATION_REQUIRED",
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    transactionRunner.update(requestDoc.ref, {
+                        status: "RECONCILIATION_REQUIRED",
+                        paystackReference: reference,
+                        paystackStatus: transaction.data.status,
+                        paystackTransactionId: transaction.data.id || null,
+                        paymentChannel: transaction.data.channel || null,
+                        reconciliationReason: reason,
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                    return { reconciliationRequired: true };
+                }
+
+                const currentExpiry = currentRequest.expiresAt;
+                const paymentRequestExpired =
+                    currentRequest.status === "EXPIRED" ||
+                    !currentExpiry ||
+                    currentExpiry.toMillis() < Date.now();
+
+                if (paymentRequestExpired) {
+                    const reconciliationRef = db
+                        .collection("receiverPaymentReconciliations")
+                        .doc(requestDoc.id);
+                    const reconciliationData = {
+                        requestId: String(currentRequest.requestId || requestDoc.id),
+                        deliveryId: request.deliveryId,
+                        destinationIndex: currentRequest.destinationIndex,
+                        amount: money(currentRequest.amount || 0),
+                        currency: "NGN",
+                        paymentReference: reference,
+                        paystackStatus: transaction.data.status,
+                        paystackTransactionId: transaction.data.id || null,
+                        paymentChannel: transaction.data.channel || null,
+                        reason: "PAYMENT_REQUEST_EXPIRED",
+                        status: "RECONCILIATION_REQUIRED",
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    transactionRunner.set(
+                        reconciliationRef,
+                        reconciliationData,
+                        { merge: true }
+                    );
+                    transactionRunner.update(requestDoc.ref, {
+                        status: "RECONCILIATION_REQUIRED",
+                        paystackReference: reference,
+                        paystackStatus: transaction.data.status,
+                        paystackTransactionId: transaction.data.id || null,
+                        paymentChannel: transaction.data.channel || null,
+                        reconciliationReason: "PAYMENT_REQUEST_EXPIRED",
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    return { reconciliationRequired: true };
+                }
+
+                if (
+                      allocation?.paymentRequestId &&
+                      String(allocation.paymentRequestId) !==
+                          activeRequestId
+                  ) {
+                      const reconciliationRef =
+                          db.collection(
+                              "receiverPaymentReconciliations"
+                          ).doc(requestDoc.id);
+
+                      transactionRunner.set(
+                          reconciliationRef,
+                          {
+                              requestId: activeRequestId,
+                              deliveryId: request.deliveryId,
+                              destinationIndex,
+                              amount: money(currentRequest.amount || 0),
+                              currency: "NGN",
+                              paymentReference: reference,
+                              paystackStatus: transaction.data.status,
+                              paystackTransactionId: transaction.data.id || null,
+                              paymentChannel: transaction.data.channel || null,
+                              reason: "PAYMENT_LINK_REPLACED",
+                              status: "RECONCILIATION_REQUIRED",
+                              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                          },
+                          { merge: true }
+                      );
+
+                      transactionRunner.update(
+                          requestDoc.ref,
+                          {
+                              status: "RECONCILIATION_REQUIRED",
+                              paystackReference: reference,
+                              paystackStatus: transaction.data.status,
+                              paystackTransactionId: transaction.data.id || null,
+                              paymentChannel: transaction.data.channel || null,
+                              reconciliationReason: "PAYMENT_LINK_REPLACED",
+                              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                          }
+                      );
+
+                      return {
+                          reconciliationRequired: true
+                      };
                   }
 
                   let updatedAllocations =
@@ -1789,6 +1947,18 @@ async function verifyReceiverPayment(
 
             }
         );
+
+    if (transactionResult.reconciliationRequired) {
+        return {
+            success: true,
+            requiresReconciliation: true,
+            deliveryId: request.deliveryId,
+            amount: money(request.amount),
+            reference,
+            status: "RECONCILIATION_REQUIRED",
+            message: "Paystack confirmed this payment, but Dreypella needs to reconcile it. Do not pay again. Contact Dreypella support and provide this payment reference."
+        };
+    }
 
     return {
 
